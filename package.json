@@ -17,5 +17,9 @@
     "@types/node": "^24.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5.8.0"
+  },
+  "dependencies": {
+    "@types/koa": "^3.0.2",
+    "koa": "^3.2.0"
   }
 }
