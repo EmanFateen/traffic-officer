@@ -10,6 +10,11 @@ export type Policy = {
     tenant: Rate;
 };
 
+export type Certificate = {
+    allowed: boolean;
+    retryAfter: number;
+};
+
 type Rate = {
     amount: number;
     per: number;
