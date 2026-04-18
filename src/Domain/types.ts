@@ -1,8 +1,8 @@
-export type UserIdentity ={
-    api_key: string;
+export type UserIdentity = {
+    apiKey: string;
     ip: string;
     tenant: string;
-}
+};
 
 export type Policy = {
     apiKey: Rate;
