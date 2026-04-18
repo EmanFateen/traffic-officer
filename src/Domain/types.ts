@@ -1,5 +1,5 @@
-export type UserIdentity ={
-    api_key: string;
-    ip: string;
-    tenant: string;
-}
+export type UserIdentity = {
+  apiKey: string;
+  ip: string;
+  tenant: string;
+};
