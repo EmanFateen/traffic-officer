@@ -16,6 +16,3 @@ The codebase follows Clean Architecture principles to ensure maintainability, te
 ## Practices & Methodologies
 * Domain-Driven Design (DDD)
 * Test-Driven Development (TDD)
-
-## AI-First Development
-This project follows an AI-first approach. However, I remain in full control of the development process, ensuring correctness, design quality, and alignment with best practices.
