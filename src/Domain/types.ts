@@ -17,5 +17,5 @@ export type Certificate = {
 
 type Rate = {
     amount: number;
-    per: number;
+    per: 's'|'m'|'h'|'d';
 };
