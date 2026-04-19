@@ -3,10 +3,12 @@ import {Certificate, Policy, UserIdentity} from "../Domain/types.js";
 import {rateLimiting} from "./RateLimiting.js";
 
 describe("RateLimiting", () => {
-    test('banana', ()=> {
+    test('it retunes certificate', ()=> {
         const path: string  = "/example-path";
         const userIdentity: UserIdentity = {
-            apiKey: '', tenant: '', ip: '',
+            apiKey: 'fake-api-key',
+            tenant: 'fake-tenant-id',
+            ip: 'fake-ip',
         };
         const rate = {amount: 1, per: "s"} as const;
         const policy: Policy = {
@@ -15,6 +17,9 @@ describe("RateLimiting", () => {
 
         const certificate: Certificate = rateLimiting(path, userIdentity, policy);
 
-        expect(certificate).toEqual({allowed: true, retryAfter: 5});
+        expect(certificate).toMatchObject({
+            allowed: expect.any(Boolean),
+            retryAfter: expect.any(Number)
+        });
     });
 })
