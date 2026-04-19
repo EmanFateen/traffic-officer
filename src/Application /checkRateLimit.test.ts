@@ -1,8 +1,8 @@
 import {describe, expect, test} from "vitest";
 import {Certificate, Policy, UserIdentity} from "../Domain/types.js";
-import {rateLimiting} from "./RateLimiting.js";
+import {checkRateLimit} from "./CheckRateLimit.js";
 
-describe("RateLimiting", () => {
+describe("checkRateLimit", () => {
     test('it retunes certificate', ()=> {
         const path: string  = "/example-path";
         const userIdentity: UserIdentity = {
@@ -15,7 +15,7 @@ describe("RateLimiting", () => {
             apiKey: rate, tenant: rate, ip: rate,
         }
 
-        const certificate: Certificate = rateLimiting(path, userIdentity, policy);
+        const certificate: Certificate = checkRateLimit(path, userIdentity, policy);
 
         expect(certificate).toMatchObject({
             allowed: expect.any(Boolean),
