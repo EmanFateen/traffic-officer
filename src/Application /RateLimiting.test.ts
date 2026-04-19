@@ -1,5 +1,6 @@
 import {describe, expect, test} from "vitest";
 import {Certificate, Policy, UserIdentity} from "../Domain/types.js";
+import {rateLimiting} from "./RateLimiting.js";
 
 describe("RateLimiting", () => {
     test('banana', ()=> {
@@ -14,6 +15,6 @@ describe("RateLimiting", () => {
 
         const certificate: Certificate = rateLimiting(path, userIdentity, policy);
 
-        expect(certificate).toContainEqual({allowed: true, retryAfter: 5});
+        expect(certificate).toEqual({allowed: true, retryAfter: 5});
     });
 })
