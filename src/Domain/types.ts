@@ -13,9 +13,22 @@ export type Policy = {
 export type Certificate = {
     allowed: boolean;
     retryAfter: number;
+    remainingTokens: number;
 };
 
-type Rate = {
-    amount: number;
-    per: number;
+export type Decision = {
+    allowed: boolean;
+    retryAfter: number;
+    remainingTokens: number;
+    bucketState: BucketState;
 };
+
+export type Rate = {
+    amount: number;
+    perMs: number;
+};
+
+export type BucketState = {
+    tokensCount: number;
+    lastUpdatedAtInMs: number;
+}
