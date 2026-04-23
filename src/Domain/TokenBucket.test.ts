@@ -129,4 +129,18 @@ describe("TokenBucket", () => {
         expect(actualDecision.remainingTokens).toEqual(4);
         expect(actualDecision.bucketState.tokensCount).toEqual(4.2);
     });
+
+    it("bucket will not be refilled if requestAt is after last refill", () => {
+        const actualDecision = limit(
+            100,
+            5,
+            { amount: 1, perMs: 5000 },
+            1000,
+            900,
+        );
+
+        expect(actualDecision.allowed).toBeTruthy();
+        expect(actualDecision.remainingTokens).toEqual(4);
+        expect(actualDecision.bucketState.tokensCount).toEqual(4);
+    })
 });

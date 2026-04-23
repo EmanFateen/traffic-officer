@@ -52,7 +52,7 @@ function getAvailableTokens(
     lastRefillInMs: number,
     requestedAtInMs: number,
 ): number {
-    const elapsedInMs: number = requestedAtInMs - lastRefillInMs;
+    const elapsedInMs: number = Math.max( 0 , requestedAtInMs - lastRefillInMs);
     const refilledTokens: number =
         elapsedInMs * (refillRate.amount / refillRate.perMs);
 
