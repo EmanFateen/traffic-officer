@@ -30,5 +30,5 @@ export type Rate = {
 
 export type BucketState = {
     tokensCount: number;
-    lastRefillInMs: number;
+    lastUpdatedAtInMs: number;
 }

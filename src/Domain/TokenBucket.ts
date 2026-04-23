@@ -19,7 +19,7 @@ export function limit(
             remainingTokens: Math.floor(remainingTokens),
             bucketState: {
                 tokensCount: remainingTokens,
-                lastRefillInMs: requestedAtInMs,
+                lastUpdatedAtInMs: requestedAtInMs,
             }
         };
     }
@@ -33,7 +33,7 @@ export function limit(
         remainingTokens: 0,
         bucketState: {
             tokensCount: Math.trunc(availableTokens*100)/100,
-            lastRefillInMs: requestedAtInMs,
+            lastUpdatedAtInMs: requestedAtInMs,
         }
     };
 }
@@ -44,7 +44,7 @@ function getAvailableTokens(
     bucketCapacity: number,
     requestedAtInMs: number,
 ): number {
-    const elapsedInMs: number = Math.max( 0 , requestedAtInMs - currentBucketState.lastRefillInMs);
+    const elapsedInMs: number = Math.max( 0 , requestedAtInMs - currentBucketState.lastUpdatedAtInMs);
     const refilledTokens: number =
         elapsedInMs * (refillRate.amount / refillRate.perMs);
 
