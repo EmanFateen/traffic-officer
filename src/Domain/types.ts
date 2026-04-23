@@ -28,7 +28,7 @@ export type Rate = {
     perMs: number;
 };
 
-type BucketState = {
+export type BucketState = {
     tokensCount: number;
     lastRefillInMs: number;
 }
