@@ -1,4 +1,4 @@
-import {BucketState, Decision, Rate} from "./types.js";
+import {BucketState, Decision, Rate} from "./types.ts";
 
 export function limit(
     currentBucketState: BucketState,
