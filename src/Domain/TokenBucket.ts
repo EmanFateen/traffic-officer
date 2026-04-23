@@ -1,19 +1,12 @@
-import {Decision, Rate} from "./types.js";
+import {BucketState, Decision, Rate} from "./types.js";
 
 export function limit(
-    bucketCapacity: number,
-    currentTokens: number,
+    currentBucketState: BucketState,
     refillRate: Rate,
-    lastRefillInMs: number,
+    bucketCapacity: number,
     requestedAtInMs: number,
 ): Decision {
-    const availableTokens: number = getAvailableTokens(
-        bucketCapacity,
-        currentTokens,
-        refillRate,
-        lastRefillInMs,
-        requestedAtInMs,
-    );
+    const availableTokens: number = getAvailableTokens(currentBucketState, refillRate, bucketCapacity, requestedAtInMs);
 
     const requestCost = 1;
     const remainingTokens: number = Math.trunc((availableTokens - requestCost) *100)/100;
@@ -46,15 +39,14 @@ export function limit(
 }
 
 function getAvailableTokens(
-    bucketCapacity: number,
-    currentTokens: number,
+    currentBucketState: BucketState,
     refillRate: Rate,
-    lastRefillInMs: number,
+    bucketCapacity: number,
     requestedAtInMs: number,
 ): number {
-    const elapsedInMs: number = Math.max( 0 , requestedAtInMs - lastRefillInMs);
+    const elapsedInMs: number = Math.max( 0 , requestedAtInMs - currentBucketState.lastRefillInMs);
     const refilledTokens: number =
         elapsedInMs * (refillRate.amount / refillRate.perMs);
 
-    return Math.min(bucketCapacity, currentTokens + refilledTokens);
+    return Math.min(bucketCapacity, currentBucketState.tokensCount + refilledTokens);
 }

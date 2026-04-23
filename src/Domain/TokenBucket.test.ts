@@ -5,10 +5,9 @@ import { limit } from "./TokenBucket.js";
 describe("TokenBucket", () => {
     it("allows a request when there are enough tokens", () => {
         const actualDecision = limit(
-            3,
-            3,
+            { tokensCount: 3, lastRefillInMs: 1_000 },
             { amount: 2, perMs: 5_000 },
-            1_000,
+            3,
             1_000,
         );
 
@@ -17,10 +16,9 @@ describe("TokenBucket", () => {
 
     it("denies a request when no available tokens", () => {
         const actualDecision = limit(
-            3,
-            0,
+            { tokensCount: 0, lastRefillInMs: 1_000 },
             { amount: 2, perMs: 5_000 },
-            1_000,
+            3,
             1_000,
         );
 
@@ -31,10 +29,9 @@ describe("TokenBucket", () => {
         let availableTokens = 3;
 
         const actualDecision = limit(
-            3,
-            availableTokens,
+            { tokensCount: availableTokens, lastRefillInMs: 1_000 },
             { amount: 2, perMs: 5_000 },
-            1_000,
+            3,
             1_000,
         );
 
@@ -45,11 +42,10 @@ describe("TokenBucket", () => {
         const requestedAtInMs = 500;
 
         const actualDecision = limit(
-            2,
-            0,
+            { tokensCount: 0, lastRefillInMs: 0 },
             { amount: 2, perMs: 1_000 },
-            0,
-            requestedAtInMs
+            2,
+            requestedAtInMs,
         );
 
         expect(actualDecision.allowed).toBeTruthy();
@@ -65,19 +61,28 @@ describe("TokenBucket", () => {
         let currentTokens = 2;
         let lastRefillInMs = 0;
         let requestedAtInMs = 1_000;
-        const firstDecision = limit(bucketCapacity, currentTokens, refillRate, lastRefillInMs, requestedAtInMs);
+        const firstDecision = limit(
+            { tokensCount:currentTokens, lastRefillInMs: lastRefillInMs },
+            refillRate,
+            bucketCapacity ,
+            requestedAtInMs
+        );
         currentTokens =  firstDecision.remainingTokens;
         lastRefillInMs =firstDecision.bucketState.lastRefillInMs;
-        const secondDecision = limit(bucketCapacity, currentTokens, refillRate, lastRefillInMs, requestedAtInMs);
+        const secondDecision = limit(
+            { tokensCount:currentTokens, lastRefillInMs: lastRefillInMs },
+            refillRate,
+            bucketCapacity,
+            requestedAtInMs
+        );
         currentTokens =  secondDecision.remainingTokens;
         lastRefillInMs =secondDecision.bucketState.lastRefillInMs;
         requestedAtInMs = 1_500;
 
         const actualDecision =  limit(
-            bucketCapacity,
-            currentTokens,
+            {tokensCount:currentTokens, lastRefillInMs: lastRefillInMs},
             refillRate,
-            lastRefillInMs,
+            bucketCapacity,
             requestedAtInMs,
         );
 
@@ -90,21 +95,30 @@ describe("TokenBucket", () => {
         let currentTokens = 2;
         let lastRefillInMs = 0;
         let requestedAtInMs = 1_000;
-        const firstDecision = limit(bucketCapacity, currentTokens, refillRate, lastRefillInMs, requestedAtInMs);
+        const firstDecision = limit(
+            { tokensCount:currentTokens, lastRefillInMs: lastRefillInMs },
+            refillRate,
+            bucketCapacity ,
+            requestedAtInMs
+        );
         currentTokens =  firstDecision.remainingTokens;
         lastRefillInMs = firstDecision.bucketState.lastRefillInMs;
         requestedAtInMs = 2_000;
-        const secondDecision = limit(bucketCapacity, currentTokens, refillRate, lastRefillInMs, requestedAtInMs);
+        const secondDecision = limit(
+            { tokensCount:currentTokens, lastRefillInMs: lastRefillInMs },
+            refillRate,
+            bucketCapacity ,
+            requestedAtInMs
+        );
         currentTokens =  secondDecision.remainingTokens;
         lastRefillInMs = secondDecision.bucketState.lastRefillInMs;
         requestedAtInMs = 2_300;
 
         const actualDecision =  limit(
-            bucketCapacity,
-            currentTokens,
+            { tokensCount:currentTokens, lastRefillInMs: lastRefillInMs },
             refillRate,
-            lastRefillInMs,
-            requestedAtInMs,
+            bucketCapacity ,
+            requestedAtInMs
         );
 
         expect(actualDecision.allowed).toBeFalsy();
@@ -117,11 +131,10 @@ describe("TokenBucket", () => {
 
     it("remaining tokens should stay integers", () => {
         const actualDecision = limit(
+            { tokensCount: 5, lastRefillInMs: 1_000 },
+            { amount: 1, perMs: 5_000 },
             100,
-            5,
-            { amount: 1, perMs: 5000 },
-            1000,
-            2000,
+            2_000,
         );
 
 
@@ -132,10 +145,9 @@ describe("TokenBucket", () => {
 
     it("bucket will not be refilled if requestAt is after last refill", () => {
         const actualDecision = limit(
+            { tokensCount: 5, lastRefillInMs: 1_000 },
+            { amount: 1, perMs: 5_000 },
             100,
-            5,
-            { amount: 1, perMs: 5000 },
-            1000,
             900,
         );
 
