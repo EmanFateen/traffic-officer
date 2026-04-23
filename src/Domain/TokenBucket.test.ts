@@ -25,7 +25,7 @@ describe("TokenBucket", () => {
         expect(actualDecision.allowed).toBeFalsy();
     });
 
-    it("consume one token per request", () => {
+    it("should decrease tokens by request cost if allowed", () => {
         let availableTokens = 3;
 
         const actualDecision = limit(
@@ -38,7 +38,7 @@ describe("TokenBucket", () => {
         expect(actualDecision.remainingTokens).toEqual(availableTokens - 1);
     });
 
-    it("limit decision must have bucket state", () => {
+    it("should return updated bucket state after decision", () => {
         const requestedAtInMs = 500;
 
         const actualDecision = limit(
@@ -55,7 +55,7 @@ describe("TokenBucket", () => {
         expect(actualDecision.bucketState.tokensCount).toEqual(0);
     });
 
-    it("maintain average rate over time", () => {
+    it("should enforce average rate over time by refill bucket", () => {
         const bucketCapacity = 2;
         const refillRate = { amount: 2, perMs: 1_000 };
         let currentTokens = 2;
@@ -89,7 +89,7 @@ describe("TokenBucket", () => {
         expect(actualDecision.allowed).toBeTruthy();
     });
 
-    it("blocks bursts", () => {
+    it("should reject requests exceeding burst capacity", () => {
         const bucketCapacity = 2;
         const refillRate = { amount: 2, perMs: 5_000 };
         let currentTokens = 2;
