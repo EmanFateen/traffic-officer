@@ -155,7 +155,7 @@ describe("TokenBucket", () => {
         expect(actualDecision.bucketState.tokensCount).toEqual(4.2);
     });
 
-    it("bucket will not be refilled if requestAt is after last refill", () => {
+    it("should not refill when requested time is earlier than last update", () => {
         const actualDecision = limit(
             { tokensCount: 5, lastUpdatedAtInMs: 1_000 },
             { amount: 1, perMs: 5_000 },
@@ -168,15 +168,16 @@ describe("TokenBucket", () => {
         expect(actualDecision.bucketState.tokensCount).toEqual(4);
     });
 
-    it("it should never exceed bucket capacity", () => {
+    it("should not refill beyond bucket capacity", () => {
+        const bucketCapacity = 100;
         const actualDecision = limit(
             { tokensCount: 80, lastUpdatedAtInMs: 700 },
             { amount: 100, perMs: 500 },
-            100,
+            bucketCapacity,
             1_500,
         );
 
         expect(actualDecision.allowed).toBeTruthy();
-        expect(actualDecision.remainingTokens).toEqual(99);
+        expect(actualDecision.remainingTokens).toEqual(bucketCapacity-1);
     });
 });

@@ -9,16 +9,17 @@ export function limit(
     const availableTokens: number = getAvailableTokens(currentBucketState, refillRate, bucketCapacity, requestedAtInMs);
 
     const requestCost = 1;
-    const remainingTokens: number = Math.trunc((availableTokens - requestCost) *100)/100;
+    const remainingTokens: number =availableTokens - requestCost;
     const allowed: boolean = remainingTokens >= 0;
 
     if (allowed) {
+        const truncedRemainingTokens = Math.trunc(remainingTokens*100)/100;
         return {
             allowed,
             retryAfter: 0,
-            remainingTokens: Math.floor(remainingTokens),
+            remainingTokens: Math.floor(truncedRemainingTokens),
             bucketState: {
-                tokensCount: remainingTokens,
+                tokensCount: truncedRemainingTokens,
                 lastUpdatedAtInMs: requestedAtInMs,
             }
         };
