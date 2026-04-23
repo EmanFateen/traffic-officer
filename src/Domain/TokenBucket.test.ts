@@ -14,6 +14,18 @@ describe("TokenBucket", () => {
         expect(actualDecision.allowed).toBeTruthy();
     });
 
+    it("should allow request when tokens exactly equal cost", () => {
+        const actualDecision = limit(
+            { tokensCount: 1, lastUpdatedAtInMs: 1_000 },
+            { amount: 2, perMs: 5_000 },
+            3,
+            1_000,
+        );
+
+        expect(actualDecision.allowed).toBeTruthy();
+        expect(actualDecision.remainingTokens).toEqual(0);
+    });
+
     it("denies a request when no available tokens", () => {
         const actualDecision = limit(
             { tokensCount: 0, lastUpdatedAtInMs: 1_000 },
@@ -154,5 +166,17 @@ describe("TokenBucket", () => {
         expect(actualDecision.allowed).toBeTruthy();
         expect(actualDecision.remainingTokens).toEqual(4);
         expect(actualDecision.bucketState.tokensCount).toEqual(4);
-    })
+    });
+
+    it("it should never exceed bucket capacity", () => {
+        const actualDecision = limit(
+            { tokensCount: 80, lastUpdatedAtInMs: 700 },
+            { amount: 100, perMs: 500 },
+            100,
+            1_500,
+        );
+
+        expect(actualDecision.allowed).toBeTruthy();
+        expect(actualDecision.remainingTokens).toEqual(99);
+    });
 });
