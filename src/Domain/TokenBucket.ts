@@ -16,7 +16,7 @@ export function limit(
     );
 
     const requestCost = 1;
-    const remainingTokens: number = availableTokens - requestCost;
+    const remainingTokens: number = Math.trunc((availableTokens - requestCost) *100)/100;
     const allowed: boolean = remainingTokens >= 0;
 
     if (allowed) {
@@ -39,7 +39,7 @@ export function limit(
         ),
         remainingTokens: 0,
         bucketState: {
-            tokensCount: availableTokens,
+            tokensCount: Math.trunc(availableTokens*100)/100,
             lastRefillInMs: requestedAtInMs,
         }
     };
@@ -56,5 +56,5 @@ function getAvailableTokens(
     const refilledTokens: number =
         elapsedInMs * (refillRate.amount / refillRate.perMs);
 
-    return Math.trunc(Math.min(bucketCapacity, currentTokens + refilledTokens) * 100 ) / 100;
+    return Math.min(bucketCapacity, currentTokens + refilledTokens);
 }
