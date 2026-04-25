@@ -32,3 +32,9 @@ export type BucketState = {
     tokensCount: number;
     lastUpdatedAtInMs: number;
 }
+
+export type KeyBuilder = {
+    ownedBy(keyOwner: string): string;
+}
+
+export type KeyType = "user" | "ip" | "tenant";
