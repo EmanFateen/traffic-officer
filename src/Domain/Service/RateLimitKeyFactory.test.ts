@@ -1,5 +1,5 @@
 import {describe, expect, test} from "vitest";
-import {UserIdentity} from "../types.ts";
+import {RateLimitKeys, UserIdentity} from "../types.ts";
 import {rateLimitKeyFactory} from "./RateLimitKeyFactory.ts";
 describe("rate limit key factory", () =>  {
     test("it must have api key at least", () => {
@@ -7,11 +7,17 @@ describe("rate limit key factory", () =>  {
             apiKey: "fake-api-key"
         }
 
-        const actualkeys = rateLimitKeyFactory(userIdentity);
+        const actualKeys: RateLimitKeys = rateLimitKeyFactory(userIdentity);
 
-        expect(actualkeys).toEqual({
+        expect(actualKeys).toEqual({
             apikey: `ratelimit:user:${userIdentity.apiKey}:tokens`
         });
+    });
+
+    test("it throws an exception when api key is missing", () => {
+        const userIdentity = {} as UserIdentity;
+
+        expect(() => rateLimitKeyFactory(userIdentity)).toThrow("apikey is required to generate the keys");
     });
 
     test.each([
@@ -48,7 +54,7 @@ describe("rate limit key factory", () =>  {
             },
         },
     ])("it creates only keys for provided optional user identity fields", ({userIdentity, expectedKeys}) => {
-        const actualKeys = rateLimitKeyFactory(userIdentity);
+        const actualKeys: RateLimitKeys = rateLimitKeyFactory(userIdentity);
 
         expect(actualKeys).toEqual(expectedKeys);
     });
