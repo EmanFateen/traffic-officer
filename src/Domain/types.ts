@@ -4,6 +4,12 @@ export type UserIdentity = {
     tenant?: string;
 };
 
+export type RateLimitKeys = {
+    apikey: string;
+    ip?: string;
+    tenant?: string;
+};
+
 export type Policy = {
     apiKey: Rate;
     ip?: Rate;

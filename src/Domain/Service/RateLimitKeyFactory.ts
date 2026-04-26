@@ -1,16 +1,8 @@
-import {UserIdentity} from "../types.ts";
+import {RateLimitKeys, UserIdentity} from "../types.ts";
 import {rateLimitKey} from "./RateLimitKey.ts";
 
-export function rateLimitKeyFactory(userIdentity: UserIdentity): {
-    apikey: string;
-    ip?: string;
-    tenant?: string;
-} {
-    const keys: {
-        apikey: string;
-        ip?: string;
-        tenant?: string;
-    } = {
+export function rateLimitKeyFactory(userIdentity: UserIdentity): RateLimitKeys {
+    const keys: RateLimitKeys = {
         apikey: rateLimitKey("user").ownedBy(userIdentity.apiKey),
     };
 
