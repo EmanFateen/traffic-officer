@@ -4,22 +4,22 @@ import {rateLimitKey} from "./RateLimitKey.ts";
 describe("key builder", () => {
     const cases = [
         {
-            keyOwner: "fake-user-id",
+            identity: "fake-user-id",
             key : "user"
         },
         {
-            keyOwner: "fake-ip",
+            identity: "fake-ip",
             key : "ip"
         },
         {
-            keyOwner: "fake-tenant-id",
+            identity: "fake-tenant-id",
             key : "tenant"
         }
     ] as const;
-    test.each(cases)("builds token key for $key", ({ keyOwner, key}) => {
+    test.each(cases)("builds token key for $key", ({ identity, key}) => {
 
-        const actual  = rateLimitKey(key).ownedBy(keyOwner);
+        const actual  = rateLimitKey(key).ownedBy(identity);
 
-        expect(actual).toEqual(`ratelimit:${key}:${keyOwner}:tokens`);
+        expect(actual).toEqual(`ratelimit:${key}:${identity}:tokens`);
     });
 });

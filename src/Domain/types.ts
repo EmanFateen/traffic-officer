@@ -1,13 +1,19 @@
 export type UserIdentity = {
     apiKey: string;
-    ip: string;
-    tenant: string;
+    ip?: string;
+    tenant?: string;
+};
+
+export type RateLimitKeys = {
+    apikey: string;
+    ip?: string;
+    tenant?: string;
 };
 
 export type Policy = {
     apiKey: Rate;
-    ip: Rate;
-    tenant: Rate;
+    ip?: Rate;
+    tenant?: Rate;
 };
 
 export type Certificate = {
@@ -34,7 +40,7 @@ export type BucketState = {
 }
 
 export type KeyBuilder = {
-    ownedBy(keyOwner: string): string;
+    ownedBy(identity: string): string;
 }
 
 export type KeyType = "user" | "ip" | "tenant";
