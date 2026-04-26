@@ -3,12 +3,24 @@ import {rateLimitKey} from "./RateLimitKey.ts";
 
 export function rateLimitKeyFactory(userIdentity: UserIdentity): {
     apikey: string;
-    ip: string;
-    tenant: string;
+    ip?: string;
+    tenant?: string;
 } {
-    return {
+    const keys: {
+        apikey: string;
+        ip?: string;
+        tenant?: string;
+    } = {
         apikey: rateLimitKey("user").ownedBy(userIdentity.apiKey),
-        ip: rateLimitKey("ip").ownedBy(userIdentity.ip),
-        tenant: rateLimitKey("tenant").ownedBy(userIdentity.tenant),
     };
+
+    if (userIdentity.ip !== undefined) {
+        keys.ip = rateLimitKey("ip").ownedBy(userIdentity.ip);
+    }
+
+    if (userIdentity.tenant !== undefined) {
+        keys.tenant = rateLimitKey("tenant").ownedBy(userIdentity.tenant);
+    }
+
+    return keys;
 }
