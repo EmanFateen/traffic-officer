@@ -34,7 +34,7 @@ export type BucketState = {
 }
 
 export type KeyBuilder = {
-    ownedBy(keyOwner: string): string;
+    ownedBy(identity: string): string;
 }
 
 export type KeyType = "user" | "ip" | "tenant";
