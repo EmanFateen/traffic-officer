@@ -1,13 +1,13 @@
 export type UserIdentity = {
     apiKey: string;
-    ip: string;
-    tenant: string;
+    ip?: string;
+    tenant?: string;
 };
 
 export type Policy = {
     apiKey: Rate;
-    ip: Rate;
-    tenant: Rate;
+    ip?: Rate;
+    tenant?: Rate;
 };
 
 export type Certificate = {
