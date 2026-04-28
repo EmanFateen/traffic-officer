@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import type { Config } from "./config.ts";
 import { createClient } from "./createClient.ts";
 
