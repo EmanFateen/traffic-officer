@@ -4,22 +4,23 @@ import type { Config } from "./config.ts";
 import { createClient } from "./createClient.ts";
 
 type RedisClient = Awaited<ReturnType<typeof createClient>>;
+let getRedisClient: typeof import("./getClient.ts").getRedisClient;
 
 vi.mock("./createClient.ts", () => ({
     createClient: vi.fn(),
 }));
 
 describe("Redis client singleton", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.clearAllMocks();
         vi.resetModules();
+        ({ getRedisClient } = await import("./getClient.ts"));
     });
 
     it("should create Redis client only once", async () => {
         const config: Config = { url: "redis://localhost:6379" };
         const client = { id: "redis-client" } as unknown as RedisClient;
         vi.mocked(createClient).mockResolvedValue(client);
-        const { getRedisClient } = await import("./getClient.ts");
 
         const firstClient = await getRedisClient(config);
         const secondClient = await getRedisClient(config);
@@ -34,7 +35,6 @@ describe("Redis client singleton", () => {
         const config: Config = { url: "redis://localhost:6379" };
         const client = { id: "redis-client" } as unknown as RedisClient;
         vi.mocked(createClient).mockResolvedValue(client);
-        const { getRedisClient } = await import("./getClient.ts");
 
         const [firstClient, secondClient] = await Promise.all([
             getRedisClient(config),
@@ -51,7 +51,6 @@ describe("Redis client singleton", () => {
         const secondConfig: Config = { url: "redis://localhost:6380" };
         const client = { id: "redis-client" } as unknown as RedisClient;
         vi.mocked(createClient).mockResolvedValue(client);
-        const { getRedisClient } = await import("./getClient.ts");
 
         await getRedisClient(firstConfig);
         const secondClient = await getRedisClient(secondConfig);
@@ -59,5 +58,19 @@ describe("Redis client singleton", () => {
         expect(secondClient).toBe(client);
         expect(createClient).toHaveBeenCalledOnce();
         expect(createClient).toHaveBeenCalledWith(firstConfig);
+    });
+
+    it("should retry Redis client creation after a failed connection", async () => {
+        const config: Config = { url: "redis://localhost:6379" };
+        const client = { id: "redis-client" } as unknown as RedisClient;
+        vi.mocked(createClient)
+            .mockRejectedValueOnce(new Error("connection failed"))
+            .mockResolvedValueOnce(client);
+
+        await expect(getRedisClient(config)).rejects.toThrow("connection failed");
+        await expect(getRedisClient(config)).resolves.toBe(client);
+
+        expect(createClient).toHaveBeenCalledTimes(2);
+        expect(createClient).toHaveBeenCalledWith(config);
     });
 });

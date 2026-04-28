@@ -8,7 +8,10 @@ let clientPromise: Promise<RedisClient> | undefined;
 export function getRedisClient(
     redisConfig: Config = config,
 ): Promise<RedisClient> {
-    clientPromise ??= createClient(redisConfig);
+    clientPromise ??= createClient(redisConfig).catch((error: unknown) => {
+        clientPromise = undefined;
+        throw error;
+    });
 
     return clientPromise;
 }
