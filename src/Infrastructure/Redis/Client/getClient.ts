@@ -5,7 +5,7 @@ export type RedisClient = Awaited<ReturnType<typeof createClient>>;
 
 let clientPromise: Promise<RedisClient> | undefined;
 
-export function getRedisClient(
+export function getClient(
     redisConfig: Config = config,
 ): Promise<RedisClient> {
     clientPromise ??= createClient(redisConfig).catch((error: unknown) => {
