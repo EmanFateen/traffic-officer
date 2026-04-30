@@ -36,4 +36,21 @@ describe("Redis bucket repository", () => {
         expect(bucketState?.lastUpdatedAtInMs).toEqual(expectedBucketState.lastUpdatedAtInMs);
         expect(redisClient.get).toHaveBeenCalledWith(key);
     });
+
+    test("sets bucket state as json", async () => {
+        const key = "bucket:user:123";
+        const bucketState = {
+            tokensCount: 2,
+            lastUpdatedAtInMs: 2_000,
+        };
+        const redisClient = {
+            get: vi.fn(),
+            set: vi.fn(),
+        };
+        const repository = new RedisBucketRepository(redisClient as unknown as RedisClient);
+
+        await repository.set(key, bucketState);
+
+        expect(redisClient.set).toHaveBeenCalledWith(key, JSON.stringify(bucketState));
+    });
 });

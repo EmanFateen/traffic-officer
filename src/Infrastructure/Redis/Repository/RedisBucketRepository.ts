@@ -15,5 +15,7 @@ export class RedisBucketRepository implements BucketRepository {
         return JSON.parse(bucketState) as BucketState;
     }
 
-    async set(_key: string, _bucketState: BucketState): Promise<void> {}
+    async set(key: string, bucketState: BucketState): Promise<void> {
+        await this.redisClient.set(key, JSON.stringify(bucketState));
+    }
 }
