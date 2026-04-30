@@ -12,7 +12,7 @@ export class RedisBucketRepository implements BucketRepository {
             return null;
         }
 
-        return null;
+        return JSON.parse(bucketState) as BucketState;
     }
 
     async set(_key: string, _bucketState: BucketState): Promise<void> {}
