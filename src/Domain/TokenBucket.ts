@@ -13,13 +13,13 @@ export function limit(
     const allowed: boolean = remainingTokens >= 0;
 
     if (allowed) {
-        const truncedRemainingTokens = Math.trunc(remainingTokens*100)/100;
+        const truncatedRemainingTokens = Math.trunc(remainingTokens*100)/100;
         return {
             allowed,
             retryAfter: 0,
-            remainingTokens: Math.floor(truncedRemainingTokens),
+            remainingTokens: Math.floor(truncatedRemainingTokens),
             bucketState: {
-                tokensCount: truncedRemainingTokens,
+                tokensCount: truncatedRemainingTokens,
                 lastUpdatedAtInMs: requestedAtInMs,
             }
         };
