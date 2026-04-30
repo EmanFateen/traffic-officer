@@ -1,0 +1,19 @@
+import type { BucketRepository } from "../../../Domain/Repository/BucketRepository.ts";
+import type { BucketState } from "../../../Domain/types.ts";
+import type { RedisClient } from "../Client/getClient.ts";
+
+export class RedisBucketRepository implements BucketRepository {
+    constructor(private readonly redisClient: RedisClient) {}
+
+    async get(key: string): Promise<BucketState | null> {
+        const bucketState = await this.redisClient.get(key);
+
+        if (bucketState === null) {
+            return null;
+        }
+
+        return null;
+    }
+
+    async set(_key: string, _bucketState: BucketState): Promise<void> {}
+}
