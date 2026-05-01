@@ -1,5 +1,5 @@
-import { Decision, TokenBucketConfig, TokenBucketState } from "./types.ts";
-import { RateLimitingAlgorithm } from "./Algorithm/RateLimitingAlgorithm.ts";
+import { Decision, TokenBucketConfig, TokenBucketState } from "../types.ts";
+import { RateLimitingAlgorithm } from "./RateLimitingAlgorithm.ts";
 
 export class TokenBucket
     implements RateLimitingAlgorithm<TokenBucketState, TokenBucketConfig>
