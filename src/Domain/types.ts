@@ -34,7 +34,7 @@ export type Rate = {
     perMs: number;
 };
 
-export type BucketState = {
+export type TokenBucketState = {
     tokensCount: number;
     lastUpdatedAtInMs: number;
 }

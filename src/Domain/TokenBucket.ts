@@ -1,11 +1,11 @@
-import {BucketState, Decision, Rate} from "./types.ts";
+import {TokenBucketState, Decision, Rate} from "./types.ts";
 
 export function limit(
-    currentBucketState: BucketState,
+    currentBucketState: TokenBucketState,
     refillRate: Rate,
     bucketCapacity: number,
     requestedAtInMs: number,
-): Decision<BucketState> {
+): Decision<TokenBucketState> {
     const availableTokens: number = getAvailableTokens(currentBucketState, refillRate, bucketCapacity, requestedAtInMs);
 
     const requestCost = 1;
@@ -40,7 +40,7 @@ export function limit(
 }
 
 function getAvailableTokens(
-    currentBucketState: BucketState,
+    currentBucketState: TokenBucketState,
     refillRate: Rate,
     bucketCapacity: number,
     requestedAtInMs: number,
