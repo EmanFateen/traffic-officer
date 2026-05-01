@@ -1,5 +1,6 @@
-import { Decision, TokenBucketConfig, TokenBucketState } from "../types.ts";
+import { Decision } from "../types.ts";
 import { RateLimitingAlgorithm } from "./RateLimitingAlgorithm.ts";
+import { TokenBucketConfig, TokenBucketState } from "./types.ts";
 
 export class TokenBucket
     implements RateLimitingAlgorithm<TokenBucketState, TokenBucketConfig>
@@ -9,7 +10,11 @@ export class TokenBucket
         config: TokenBucketConfig,
         requestedAtInMs: number,
     ): Decision<TokenBucketState> {
-        const availableTokens: number = this.getAvailableTokens(state, config, requestedAtInMs);
+        const availableTokens: number = this.getAvailableTokens(
+            state,
+            config,
+            requestedAtInMs,
+        );
 
         const requestCost = 1;
         const remainingTokens: number = availableTokens - requestCost;

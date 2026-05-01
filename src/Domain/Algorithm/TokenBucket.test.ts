@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-
+import { Decision } from "../types.ts";
 import { TokenBucket } from "./TokenBucket.ts";
-import { Decision, TokenBucketState } from "../types.ts";
+import { TokenBucketState } from "./types.ts";
 
 describe("TokenBucket", () => {
     it("allows a request when there are enough tokens", () => {

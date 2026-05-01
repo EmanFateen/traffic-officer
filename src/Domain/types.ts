@@ -34,16 +34,6 @@ export type Rate = {
     perMs: number;
 };
 
-export type TokenBucketState = {
-    tokensCount: number;
-    lastUpdatedAtInMs: number;
-};
-
-export type TokenBucketConfig = {
-    bucketCapacity: number;
-    refillRate: Rate;
-};
-
 export type KeyBuilder = {
     ownedBy(identity: string): string;
 };
