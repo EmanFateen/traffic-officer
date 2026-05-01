@@ -22,11 +22,11 @@ export type Certificate = {
     remainingTokens: number;
 };
 
-export type Decision = {
+export type Decision<State> = {
     allowed: boolean;
     retryAfter: number;
     remainingTokens: number;
-    bucketState: BucketState;
+    bucketState: State;
 };
 
 export type Rate = {

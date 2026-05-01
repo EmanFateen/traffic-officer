@@ -5,7 +5,7 @@ export function limit(
     refillRate: Rate,
     bucketCapacity: number,
     requestedAtInMs: number,
-): Decision {
+): Decision<BucketState> {
     const availableTokens: number = getAvailableTokens(currentBucketState, refillRate, bucketCapacity, requestedAtInMs);
 
     const requestCost = 1;
