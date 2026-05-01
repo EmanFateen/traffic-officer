@@ -1,19 +1,23 @@
-import {TokenBucketState, Decision, Rate} from "./types.ts";
+import { Decision, Rate, TokenBucketConfig, TokenBucketState } from "./types.ts";
 
 export function limit(
     currentBucketState: TokenBucketState,
-    refillRate: Rate,
-    bucketCapacity: number,
+    config: TokenBucketConfig,
     requestedAtInMs: number,
 ): Decision<TokenBucketState> {
-    const availableTokens: number = getAvailableTokens(currentBucketState, refillRate, bucketCapacity, requestedAtInMs);
+    const availableTokens: number = getAvailableTokens(
+        currentBucketState,
+        config.refillRate,
+        config.bucketCapacity,
+        requestedAtInMs,
+    );
 
     const requestCost = 1;
-    const remainingTokens: number =availableTokens - requestCost;
+    const remainingTokens: number = availableTokens - requestCost;
     const allowed: boolean = remainingTokens >= 0;
 
     if (allowed) {
-        const truncatedRemainingTokens = Math.trunc(remainingTokens*100)/100;
+        const truncatedRemainingTokens = Math.trunc(remainingTokens * 100) / 100;
         return {
             allowed,
             retryAfter: 0,
@@ -21,7 +25,7 @@ export function limit(
             nextState: {
                 tokensCount: truncatedRemainingTokens,
                 lastUpdatedAtInMs: requestedAtInMs,
-            }
+            },
         };
     }
 
@@ -29,13 +33,13 @@ export function limit(
     return {
         allowed,
         retryAfter: Math.ceil(
-            (missingTokens * refillRate.perMs) / refillRate.amount,
+            (missingTokens * config.refillRate.perMs) / config.refillRate.amount,
         ),
         remaining: 0,
         nextState: {
-            tokensCount: Math.trunc(availableTokens*100)/100,
+            tokensCount: Math.trunc(availableTokens * 100) / 100,
             lastUpdatedAtInMs: requestedAtInMs,
-        }
+        },
     };
 }
 
@@ -45,9 +49,15 @@ function getAvailableTokens(
     bucketCapacity: number,
     requestedAtInMs: number,
 ): number {
-    const elapsedInMs: number = Math.max( 0 , requestedAtInMs - currentBucketState.lastUpdatedAtInMs);
+    const elapsedInMs: number = Math.max(
+        0,
+        requestedAtInMs - currentBucketState.lastUpdatedAtInMs,
+    );
     const refilledTokens: number =
         elapsedInMs * (refillRate.amount / refillRate.perMs);
 
-    return Math.min(bucketCapacity, currentBucketState.tokensCount + refilledTokens);
+    return Math.min(
+        bucketCapacity,
+        currentBucketState.tokensCount + refilledTokens,
+    );
 }

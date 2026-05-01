@@ -37,10 +37,15 @@ export type Rate = {
 export type TokenBucketState = {
     tokensCount: number;
     lastUpdatedAtInMs: number;
-}
+};
+
+export type TokenBucketConfig = {
+    bucketCapacity: number;
+    refillRate: Rate;
+};
 
 export type KeyBuilder = {
     ownedBy(identity: string): string;
-}
+};
 
 export type KeyType = "user" | "ip" | "tenant";
