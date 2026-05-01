@@ -17,8 +17,8 @@ export function limit(
         return {
             allowed,
             retryAfter: 0,
-            remainingTokens: Math.floor(truncatedRemainingTokens),
-            bucketState: {
+            remaining: Math.floor(truncatedRemainingTokens),
+            nextState: {
                 tokensCount: truncatedRemainingTokens,
                 lastUpdatedAtInMs: requestedAtInMs,
             }
@@ -31,8 +31,8 @@ export function limit(
         retryAfter: Math.ceil(
             (missingTokens * refillRate.perMs) / refillRate.amount,
         ),
-        remainingTokens: 0,
-        bucketState: {
+        remaining: 0,
+        nextState: {
             tokensCount: Math.trunc(availableTokens*100)/100,
             lastUpdatedAtInMs: requestedAtInMs,
         }
