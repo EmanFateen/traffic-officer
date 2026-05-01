@@ -1,6 +1,6 @@
-import type { BucketState } from "../types.ts";
+import type { TokenBucketState } from "../types.ts";
 
 export type BucketRepository = {
-    get(key: string): Promise<BucketState | null>;
-    set(key: string, bucketState: BucketState): Promise<void>;
+    get(key: string): Promise<TokenBucketState | null>;
+    set(key: string, bucketState: TokenBucketState): Promise<void>;
 };

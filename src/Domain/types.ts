@@ -22,11 +22,11 @@ export type Certificate = {
     remainingTokens: number;
 };
 
-export type Decision = {
+export type Decision<State> = {
     allowed: boolean;
     retryAfter: number;
-    remainingTokens: number;
-    bucketState: BucketState;
+    remaining: number;
+    nextState: State;
 };
 
 export type Rate = {
@@ -34,13 +34,8 @@ export type Rate = {
     perMs: number;
 };
 
-export type BucketState = {
-    tokensCount: number;
-    lastUpdatedAtInMs: number;
-}
-
 export type KeyBuilder = {
     ownedBy(identity: string): string;
-}
+};
 
 export type KeyType = "user" | "ip" | "tenant";
