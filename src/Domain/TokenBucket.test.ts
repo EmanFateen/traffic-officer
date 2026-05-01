@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { limit } from "./TokenBucket.js";
+import { TokenBucket } from "./TokenBucket.js";
+import { Decision, TokenBucketState } from "./types.ts";
 
 describe("TokenBucket", () => {
     it("allows a request when there are enough tokens", () => {
-        const actualDecision = limit(
+        const tokenBucket = new TokenBucket();
+
+        const actualDecision: Decision<TokenBucketState> = tokenBucket.limit(
             { tokensCount: 3, lastUpdatedAtInMs: 1_000 },
             {
                 refillRate: { amount: 2, perMs: 5_000 },
@@ -17,7 +20,9 @@ describe("TokenBucket", () => {
     });
 
     it("should allow request when tokens exactly equal cost", () => {
-        const actualDecision = limit(
+        const tokenBucket = new TokenBucket();
+
+        const actualDecision: Decision<TokenBucketState> = tokenBucket.limit(
             { tokensCount: 1, lastUpdatedAtInMs: 1_000 },
             {
                 refillRate: { amount: 2, perMs: 5_000 },
@@ -31,7 +36,9 @@ describe("TokenBucket", () => {
     });
 
     it("denies a request when no available tokens", () => {
-        const actualDecision = limit(
+        const tokenBucket = new TokenBucket();
+
+        const actualDecision: Decision<TokenBucketState> = tokenBucket.limit(
             { tokensCount: 0, lastUpdatedAtInMs: 1_000 },
             {
                 refillRate: { amount: 2, perMs: 5_000 },
@@ -45,8 +52,9 @@ describe("TokenBucket", () => {
 
     it("should decrease tokens by request cost if allowed", () => {
         let availableTokens = 3;
+        const tokenBucket = new TokenBucket();
 
-        const actualDecision = limit(
+        const actualDecision: Decision<TokenBucketState> = tokenBucket.limit(
             { tokensCount: availableTokens, lastUpdatedAtInMs: 1_000 },
             {
                 refillRate: { amount: 2, perMs: 5_000 },
@@ -60,8 +68,9 @@ describe("TokenBucket", () => {
 
     it("should return updated bucket state after decision", () => {
         const requestedAtInMs = 500;
+        const tokenBucket = new TokenBucket();
 
-        const actualDecision = limit(
+        const actualDecision: Decision<TokenBucketState> = tokenBucket.limit(
             { tokensCount: 0, lastUpdatedAtInMs: 0 },
             {
                 refillRate: { amount: 2, perMs: 1_000 },
@@ -83,7 +92,8 @@ describe("TokenBucket", () => {
         let currentTokens = 2;
         let lastRefillInMs = 0;
         let requestedAtInMs = 1_000;
-        const firstDecision = limit(
+        const tokenBucket = new TokenBucket();
+        const firstDecision: Decision<TokenBucketState> = tokenBucket.limit(
             {
                 tokensCount: currentTokens,
                 lastUpdatedAtInMs: lastRefillInMs,
@@ -96,7 +106,7 @@ describe("TokenBucket", () => {
         );
         currentTokens = firstDecision.remaining;
         lastRefillInMs = firstDecision.nextState.lastUpdatedAtInMs;
-        const secondDecision = limit(
+        const secondDecision: Decision<TokenBucketState> = tokenBucket.limit(
             {
                 tokensCount: currentTokens,
                 lastUpdatedAtInMs: lastRefillInMs,
@@ -111,7 +121,7 @@ describe("TokenBucket", () => {
         lastRefillInMs = secondDecision.nextState.lastUpdatedAtInMs;
         requestedAtInMs = 1_500;
 
-        const actualDecision = limit(
+        const actualDecision: Decision<TokenBucketState> = tokenBucket.limit(
             {
                 tokensCount: currentTokens,
                 lastUpdatedAtInMs: lastRefillInMs,
@@ -132,7 +142,8 @@ describe("TokenBucket", () => {
         let currentTokens = 2;
         let lastRefillInMs = 0;
         let requestedAtInMs = 1_000;
-        const firstDecision = limit(
+        const tokenBucket = new TokenBucket();
+        const firstDecision: Decision<TokenBucketState> = tokenBucket.limit(
             {
                 tokensCount: currentTokens,
                 lastUpdatedAtInMs: lastRefillInMs,
@@ -146,7 +157,7 @@ describe("TokenBucket", () => {
         currentTokens = firstDecision.remaining;
         lastRefillInMs = firstDecision.nextState.lastUpdatedAtInMs;
         requestedAtInMs = 2_000;
-        const secondDecision = limit(
+        const secondDecision: Decision<TokenBucketState> = tokenBucket.limit(
             {
                 tokensCount: currentTokens,
                 lastUpdatedAtInMs: lastRefillInMs,
@@ -161,7 +172,7 @@ describe("TokenBucket", () => {
         lastRefillInMs = secondDecision.nextState.lastUpdatedAtInMs;
         requestedAtInMs = 2_300;
 
-        const actualDecision = limit(
+        const actualDecision: Decision<TokenBucketState> = tokenBucket.limit(
             {
                 tokensCount: currentTokens,
                 lastUpdatedAtInMs: lastRefillInMs,
@@ -181,7 +192,9 @@ describe("TokenBucket", () => {
     });
 
     it("remaining tokens should stay integers", () => {
-        const actualDecision = limit(
+        const tokenBucket = new TokenBucket();
+
+        const actualDecision: Decision<TokenBucketState> = tokenBucket.limit(
             { tokensCount: 5, lastUpdatedAtInMs: 1_000 },
             {
                 refillRate: { amount: 1, perMs: 5_000 },
@@ -196,7 +209,9 @@ describe("TokenBucket", () => {
     });
 
     it("should not refill when requested time is earlier than last update", () => {
-        const actualDecision = limit(
+        const tokenBucket = new TokenBucket();
+
+        const actualDecision: Decision<TokenBucketState> = tokenBucket.limit(
             { tokensCount: 5, lastUpdatedAtInMs: 1_000 },
             {
                 refillRate: { amount: 1, perMs: 5_000 },
@@ -212,7 +227,9 @@ describe("TokenBucket", () => {
 
     it("should not refill beyond bucket capacity", () => {
         const bucketCapacity = 100;
-        const actualDecision = limit(
+        const tokenBucket = new TokenBucket();
+
+        const actualDecision: Decision<TokenBucketState> = tokenBucket.limit(
             { tokensCount: 80, lastUpdatedAtInMs: 700 },
             {
                 refillRate: { amount: 100, perMs: 500 },

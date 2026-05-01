@@ -1,63 +1,62 @@
-import { Decision, Rate, TokenBucketConfig, TokenBucketState } from "./types.ts";
+import { Decision, TokenBucketConfig, TokenBucketState } from "./types.ts";
+import { RateLimitingAlgorithm } from "./Algorithm/RateLimitingAlgorithm.ts";
 
-export function limit(
-    currentBucketState: TokenBucketState,
-    config: TokenBucketConfig,
-    requestedAtInMs: number,
-): Decision<TokenBucketState> {
-    const availableTokens: number = getAvailableTokens(
-        currentBucketState,
-        config.refillRate,
-        config.bucketCapacity,
-        requestedAtInMs,
-    );
+export class TokenBucket
+    implements RateLimitingAlgorithm<TokenBucketState, TokenBucketConfig>
+{
+    limit(
+        state: TokenBucketState,
+        config: TokenBucketConfig,
+        requestedAtInMs: number,
+    ): Decision<TokenBucketState> {
+        const availableTokens: number = this.getAvailableTokens(state, config, requestedAtInMs);
 
-    const requestCost = 1;
-    const remainingTokens: number = availableTokens - requestCost;
-    const allowed: boolean = remainingTokens >= 0;
+        const requestCost = 1;
+        const remainingTokens: number = availableTokens - requestCost;
+        const allowed: boolean = remainingTokens >= 0;
 
-    if (allowed) {
-        const truncatedRemainingTokens = Math.trunc(remainingTokens * 100) / 100;
+        if (allowed) {
+            const truncatedRemainingTokens = Math.trunc(remainingTokens * 100) / 100;
+            return {
+                allowed,
+                retryAfter: 0,
+                remaining: Math.floor(truncatedRemainingTokens),
+                nextState: {
+                    tokensCount: truncatedRemainingTokens,
+                    lastUpdatedAtInMs: requestedAtInMs,
+                },
+            };
+        }
+
+        const missingTokens: number = requestCost - availableTokens;
         return {
             allowed,
-            retryAfter: 0,
-            remaining: Math.floor(truncatedRemainingTokens),
+            retryAfter: Math.ceil(
+                (missingTokens * config.refillRate.perMs) / config.refillRate.amount,
+            ),
+            remaining: 0,
             nextState: {
-                tokensCount: truncatedRemainingTokens,
+                tokensCount: Math.trunc(availableTokens * 100) / 100,
                 lastUpdatedAtInMs: requestedAtInMs,
             },
         };
     }
 
-    const missingTokens: number = requestCost - availableTokens;
-    return {
-        allowed,
-        retryAfter: Math.ceil(
-            (missingTokens * config.refillRate.perMs) / config.refillRate.amount,
-        ),
-        remaining: 0,
-        nextState: {
-            tokensCount: Math.trunc(availableTokens * 100) / 100,
-            lastUpdatedAtInMs: requestedAtInMs,
-        },
-    };
-}
+    private getAvailableTokens(
+        currentBucketState: TokenBucketState,
+        config: TokenBucketConfig,
+        requestedAtInMs: number,
+    ): number {
+        const elapsedInMs: number = Math.max(
+            0,
+            requestedAtInMs - currentBucketState.lastUpdatedAtInMs,
+        );
+        const refilledTokens: number =
+            elapsedInMs * (config.refillRate.amount / config.refillRate.perMs);
 
-function getAvailableTokens(
-    currentBucketState: TokenBucketState,
-    refillRate: Rate,
-    bucketCapacity: number,
-    requestedAtInMs: number,
-): number {
-    const elapsedInMs: number = Math.max(
-        0,
-        requestedAtInMs - currentBucketState.lastUpdatedAtInMs,
-    );
-    const refilledTokens: number =
-        elapsedInMs * (refillRate.amount / refillRate.perMs);
-
-    return Math.min(
-        bucketCapacity,
-        currentBucketState.tokensCount + refilledTokens,
-    );
+        return Math.min(
+            config.bucketCapacity,
+            currentBucketState.tokensCount + refilledTokens,
+        );
+    }
 }

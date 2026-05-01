@@ -1,5 +1,5 @@
-import {Decision} from "../types.ts";
+import { Decision } from "../types.ts";
 
 export interface RateLimitingAlgorithm<State, Config> {
-    limit(state: State, config: Config, time: number) : Decision<State>;
+    limit(state: State, config: Config, requestedAtInMs: number): Decision<State>;
 }
