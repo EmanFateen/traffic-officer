@@ -7,9 +7,9 @@ type KeyBuilder = {
 
 type KeyType = "user" | "ip" | "tenant";
 
-export function buildKey(key: KeyType) : KeyBuilder{
+export function buildRedisKey(key: KeyType): KeyBuilder{
     return {
-        ownedBy(identity: string){
+        ownedBy(identity: string): string{
             return `${PREFIX}:${key}:${identity}:${SUFFIX}`;
         }
     }

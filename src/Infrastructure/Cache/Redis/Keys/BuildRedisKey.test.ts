@@ -1,5 +1,5 @@
 import {describe, expect, test} from "vitest";
-import {buildKey} from "./BuildKey.ts";
+import {buildRedisKey} from "./BuildRedisKey.ts";
 
 describe("key builder", () => {
     const cases = [
@@ -18,7 +18,7 @@ describe("key builder", () => {
     ] as const;
     test.each(cases)("builds token key for $key", ({ identity, key}) => {
 
-        const actual  = buildKey(key).ownedBy(identity);
+        const actual  = buildRedisKey(key).ownedBy(identity);
 
         expect(actual).toEqual(`ratelimit:${key}:${identity}:tokens`);
     });
