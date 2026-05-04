@@ -1,6 +1,6 @@
 import {describe, expect, test} from "vitest";
 import {IdentifierTypes, StateIdentifiers, UserIdentity} from "../types.ts";
-import {IdentifierBuilder, IdentifierFactory, stateIdentifierFactory} from "./StateIdentifierFactory.ts";
+import {IdentifierBuilder, IdentifierBuilderFactory, stateIdentifierFactory} from "./StateIdentifierFactory.ts";
 import {RedisIdentifierBuilder} from "../../Infrastructure/Cache/Redis/Keys/RedisIdentifierBuilder.ts";
 describe("state identifier factory", () =>  {
     test("it must have api key at least", () => {
