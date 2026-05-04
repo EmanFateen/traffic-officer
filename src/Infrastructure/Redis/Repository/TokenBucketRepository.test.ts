@@ -2,6 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 
 import type { RedisClient } from "../Client/getClient.ts";
 import { tokenBucketRepository } from "./TokenBucketRepository.ts";
+import {TokenBucketState} from "../../../Domain/Algorithm/types.ts";
 
 describe("Redis bucket repository", () => {
     test("returns null when bucket does not exist", async () => {
@@ -9,10 +10,10 @@ describe("Redis bucket repository", () => {
         const redisClient = {
             get: vi.fn().mockResolvedValue(null),
             set: vi.fn(),
-        };
-        const repository = new tokenBucketRepository(redisClient as unknown as RedisClient);
+        } as unknown as RedisClient;
+        const repository = new tokenBucketRepository();
 
-        const bucketState = await repository.get(key);
+        const bucketState: TokenBucketState | null = await repository.get(redisClient, key);
 
         expect(bucketState).toBeNull();
         expect(redisClient.get).toHaveBeenCalledWith(key);
@@ -27,10 +28,10 @@ describe("Redis bucket repository", () => {
         const redisClient = {
             get: vi.fn().mockResolvedValue(JSON.stringify(expectedBucketState)),
             set: vi.fn(),
-        };
-        const repository = new tokenBucketRepository(redisClient as unknown as RedisClient);
+        }as unknown as RedisClient;
+        const repository = new tokenBucketRepository();
 
-        const bucketState = await repository.get(key);
+        const bucketState: TokenBucketState | null = await repository.get(redisClient, key);
 
         expect(bucketState?.tokensCount).toEqual(expectedBucketState.tokensCount);
         expect(bucketState?.lastUpdatedAtInMs).toEqual(expectedBucketState.lastUpdatedAtInMs);
@@ -46,10 +47,10 @@ describe("Redis bucket repository", () => {
         const redisClient = {
             get: vi.fn(),
             set: vi.fn(),
-        };
-        const repository = new tokenBucketRepository(redisClient as unknown as RedisClient);
+        }as unknown as RedisClient;
+        const repository = new tokenBucketRepository();
 
-        await repository.set(key, bucketState);
+        await repository.set(redisClient, key, bucketState);
 
         expect(redisClient.set).toHaveBeenCalledWith(key, JSON.stringify(bucketState));
     });

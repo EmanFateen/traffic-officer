@@ -2,11 +2,10 @@ import type { BucketRepositoryInterface } from "../../../Domain/Repository/Bucke
 import type { RedisClient } from "../Client/getClient.ts";
 import {TokenBucketState} from "../../../Domain/Algorithm/types.ts";
 
-export class tokenBucketRepository implements BucketRepositoryInterface<TokenBucketState> {
-    constructor(private readonly redisClient: RedisClient) {}
+export class tokenBucketRepository implements BucketRepositoryInterface<RedisClient, TokenBucketState> {
 
-    async get(key: string): Promise<TokenBucketState | null> {
-        const state = await this.redisClient.get(key);
+    async get(redisClient: RedisClient, key: string): Promise<TokenBucketState | null> {
+        const state: string | null = await redisClient.get(key);
 
         if (state === null) {
             return null;
@@ -15,7 +14,7 @@ export class tokenBucketRepository implements BucketRepositoryInterface<TokenBuc
         return JSON.parse(state) as TokenBucketState;
     }
 
-    async set(key: string, state: TokenBucketState): Promise<void> {
-        await this.redisClient.set(key, JSON.stringify(state));
+    async set(redisClient: RedisClient, key: string, state: TokenBucketState): Promise<void> {
+        await redisClient.set(key, JSON.stringify(state));
     }
 }

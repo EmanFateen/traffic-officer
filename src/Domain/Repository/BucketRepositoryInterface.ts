@@ -1,4 +1,4 @@
-export type BucketRepositoryInterface<State> = {
-    get(key: string): Promise<State | null>;
-    set(key: string, bucketState: State): Promise<void>;
+export type BucketRepositoryInterface<Client, State> = {
+    get(client: Client, key: string): Promise<State | null>;
+    set(client: Client, key: string, bucketState: State): Promise<void>;
 };
