@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 
 import type { RedisClient } from "../Client/getClient.ts";
-import { tokenBucketRepository } from "./TokenBucketRepository.ts";
+import { tokenBucketStateRepository } from "./TokenBucketStateRepository.ts";
 import {TokenBucketState} from "../../../Domain/Algorithm/types.ts";
 
 describe("Redis bucket repository", () => {
@@ -11,7 +11,7 @@ describe("Redis bucket repository", () => {
             get: vi.fn().mockResolvedValue(null),
             set: vi.fn(),
         } as unknown as RedisClient;
-        const repository = new tokenBucketRepository();
+        const repository = new tokenBucketStateRepository();
 
         const bucketState: TokenBucketState | null = await repository.get(redisClient, key);
 
@@ -29,7 +29,7 @@ describe("Redis bucket repository", () => {
             get: vi.fn().mockResolvedValue(JSON.stringify(expectedBucketState)),
             set: vi.fn(),
         }as unknown as RedisClient;
-        const repository = new tokenBucketRepository();
+        const repository = new tokenBucketStateRepository();
 
         const bucketState: TokenBucketState | null = await repository.get(redisClient, key);
 
@@ -48,7 +48,7 @@ describe("Redis bucket repository", () => {
             get: vi.fn(),
             set: vi.fn(),
         }as unknown as RedisClient;
-        const repository = new tokenBucketRepository();
+        const repository = new tokenBucketStateRepository();
 
         await repository.set(redisClient, key, bucketState);
 
