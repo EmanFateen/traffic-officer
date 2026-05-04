@@ -1,5 +1,5 @@
 import {RateLimitKeys, UserIdentity} from "../types.ts";
-import {rateLimitKey} from "./RateLimitKey.ts";
+import {buildKey} from "../../Infrastructure/Cache/Redis/Keys/BuildKey.ts";
 
 export function rateLimitKeyFactory(userIdentity: UserIdentity): RateLimitKeys {
     if (!userIdentity.apiKey) {
@@ -7,15 +7,15 @@ export function rateLimitKeyFactory(userIdentity: UserIdentity): RateLimitKeys {
     }
 
     const keys: RateLimitKeys = {
-        apikey: rateLimitKey("user").ownedBy(userIdentity.apiKey),
+        apikey: buildKey("user").ownedBy(userIdentity.apiKey),
     };
 
     if (userIdentity.ip !== undefined) {
-        keys.ip = rateLimitKey("ip").ownedBy(userIdentity.ip);
+        keys.ip = buildKey("ip").ownedBy(userIdentity.ip);
     }
 
     if (userIdentity.tenant !== undefined) {
-        keys.tenant = rateLimitKey("tenant").ownedBy(userIdentity.tenant);
+        keys.tenant = buildKey("tenant").ownedBy(userIdentity.tenant);
     }
 
     return keys;

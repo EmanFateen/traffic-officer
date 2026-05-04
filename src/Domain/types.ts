@@ -33,9 +33,3 @@ export type Rate = {
     amount: number;
     perMs: number;
 };
-
-export type KeyBuilder = {
-    ownedBy(identity: string): string;
-};
-
-export type KeyType = "user" | "ip" | "tenant";

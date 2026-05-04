@@ -1,9 +1,13 @@
-import {KeyBuilder, KeyType} from "../types.ts";
-
 const PREFIX = `ratelimit`;
 const SUFFIX = `tokens`;
 
-export function rateLimitKey(key: KeyType) : KeyBuilder{
+type KeyBuilder = {
+    ownedBy(identity: string): string;
+};
+
+type KeyType = "user" | "ip" | "tenant";
+
+export function buildKey(key: KeyType) : KeyBuilder{
     return {
         ownedBy(identity: string){
             return `${PREFIX}:${key}:${identity}:${SUFFIX}`;
