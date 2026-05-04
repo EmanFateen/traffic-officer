@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 
 import type { RedisClient } from "../Client/getClient.ts";
 import { tokenBucketStateRepository } from "./TokenBucketStateRepository.ts";
-import {TokenBucketState} from "../../../Domain/Algorithm/types.ts";
+import {TokenBucketState} from "../../../../Domain/Algorithm/types.ts";
 
 describe("Redis bucket repository", () => {
     test("returns null when bucket does not exist", async () => {

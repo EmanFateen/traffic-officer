@@ -1,6 +1,6 @@
-import type { StateRepositoryInterface } from "../../../Domain/Repository/StateRepositoryInterface.ts";
+import type { StateRepositoryInterface } from "../../../../Domain/Repository/StateRepositoryInterface.ts";
 import type { RedisClient } from "../Client/getClient.ts";
-import {TokenBucketState} from "../../../Domain/Algorithm/types.ts";
+import {TokenBucketState} from "../../../../Domain/Algorithm/types.ts";
 
 export class tokenBucketStateRepository implements StateRepositoryInterface<RedisClient, TokenBucketState> {
 

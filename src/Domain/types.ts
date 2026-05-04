@@ -4,7 +4,7 @@ export type UserIdentity = {
     tenant?: string;
 };
 
-export type RateLimitKeys = {
+export type StateIdentifiers = {
     apikey: string;
     ip?: string;
     tenant?: string;
@@ -34,8 +34,4 @@ export type Rate = {
     perMs: number;
 };
 
-export type KeyBuilder = {
-    ownedBy(identity: string): string;
-};
-
-export type KeyType = "user" | "ip" | "tenant";
+export type IdentifierTypes = "user" | "ip" | "tenant";
