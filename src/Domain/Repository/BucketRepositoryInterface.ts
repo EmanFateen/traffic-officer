@@ -1,6 +1,6 @@
-import type { TokenBucketState } from "../types.ts";
+import {TokenBucketState} from "../Algorithm/types.ts";
 
-export type BucketRepository = {
+export type BucketRepositoryInterface = {
     get(key: string): Promise<TokenBucketState | null>;
     set(key: string, bucketState: TokenBucketState): Promise<void>;
 };

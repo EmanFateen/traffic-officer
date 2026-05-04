@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 
 import type { RedisClient } from "../Client/getClient.ts";
-import { RedisBucketRepository } from "./RedisBucketRepository.ts";
+import { BucketRepository } from "./BucketRepository.ts";
 
 describe("Redis bucket repository", () => {
     test("returns null when bucket does not exist", async () => {
@@ -10,7 +10,7 @@ describe("Redis bucket repository", () => {
             get: vi.fn().mockResolvedValue(null),
             set: vi.fn(),
         };
-        const repository = new RedisBucketRepository(redisClient as unknown as RedisClient);
+        const repository = new BucketRepository(redisClient as unknown as RedisClient);
 
         const bucketState = await repository.get(key);
 
@@ -28,7 +28,7 @@ describe("Redis bucket repository", () => {
             get: vi.fn().mockResolvedValue(JSON.stringify(expectedBucketState)),
             set: vi.fn(),
         };
-        const repository = new RedisBucketRepository(redisClient as unknown as RedisClient);
+        const repository = new BucketRepository(redisClient as unknown as RedisClient);
 
         const bucketState = await repository.get(key);
 
@@ -47,7 +47,7 @@ describe("Redis bucket repository", () => {
             get: vi.fn(),
             set: vi.fn(),
         };
-        const repository = new RedisBucketRepository(redisClient as unknown as RedisClient);
+        const repository = new BucketRepository(redisClient as unknown as RedisClient);
 
         await repository.set(key, bucketState);
 
