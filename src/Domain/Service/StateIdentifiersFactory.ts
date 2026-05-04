@@ -1,6 +1,11 @@
 import {StateIdentifiers, UserIdentity} from "../types.ts";
 import {buildRedisIdentifier} from "../../Infrastructure/Cache/Redis/Keys/BuildRedisIdentifier.ts";
 
+
+export type IdentifierBuilder = {
+    ownedBy(identity: string): string;
+};
+
 export function stateIdentifiersFactory(userIdentity: UserIdentity): StateIdentifiers {
     if (!userIdentity.apiKey) {
         throw new Error("apikey is required to generate the keys");
