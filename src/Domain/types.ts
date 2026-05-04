@@ -33,3 +33,5 @@ export type Rate = {
     amount: number;
     perMs: number;
 };
+
+export type IdentifierTypes = "user" | "ip" | "tenant";
