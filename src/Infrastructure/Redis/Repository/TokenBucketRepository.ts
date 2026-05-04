@@ -2,7 +2,7 @@ import type { BucketRepositoryInterface } from "../../../Domain/Repository/Bucke
 import type { RedisClient } from "../Client/getClient.ts";
 import {TokenBucketState} from "../../../Domain/Algorithm/types.ts";
 
-export class BucketRepository implements BucketRepositoryInterface {
+export class tokenBucketRepository implements BucketRepositoryInterface<TokenBucketState> {
     constructor(private readonly redisClient: RedisClient) {}
 
     async get(key: string): Promise<TokenBucketState | null> {
