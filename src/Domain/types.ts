@@ -4,7 +4,7 @@ export type UserIdentity = {
     tenant?: string;
 };
 
-export type RateLimitKeys = {
+export type StateIdentifiers = {
     apikey: string;
     ip?: string;
     tenant?: string;
