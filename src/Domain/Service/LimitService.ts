@@ -44,6 +44,15 @@ export class LimitService<Client, State, Config> {
             apiKey: apiKeyDecision,
         };
 
+        if (stateIdentifiers.ip !== undefined && config.ip !== undefined) {
+            limitDecisions.ip = await this.decide(
+                tokenBucketAlgorithm,
+                stateIdentifiers.ip,
+                config.ip,
+                requestedAtInMs,
+            );
+        }
+
         return limitDecisions;
     }
 
