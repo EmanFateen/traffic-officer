@@ -75,7 +75,7 @@ export class LimitService<Client, State, Config> {
         requestedAtInMs: number,
     ): Promise<Decision<State>> {
         const state = await this.stateRepository.get(this.client, stateIdentifier);
-        const decision = tokenBucket.limit(state as State, config, requestedAtInMs);
+        const decision = tokenBucket.limit(state, config, requestedAtInMs);
 
         await this.stateRepository.set(
             this.client,
