@@ -167,4 +167,97 @@ describe("limit service", () => {
             expectedIpDecision.nextState,
         );
     });
+
+    test("limit returns decisions for api key and tenant identities", async () => {
+        const mockedClient: MockedClient = {
+            get: vi.fn(),
+            set: vi.fn(),
+        };
+        const mockedIdentifierBuilderFactory: IdentifierBuilderFactory = vi.fn(
+            (key) => ({
+                ownedBy: vi.fn((identity: string) => {
+                    return `ratelimit:${key}:${identity}:tokens`;
+                }),
+            }),
+        );
+        const apiKeyState = { tokensCount: 5, lastUpdatedAtInMs: 1_000 };
+        const tenantState = { tokensCount: 3, lastUpdatedAtInMs: 1_000 };
+        const requestedAtInMs = 1_000;
+        const expectedApiKeyDecision: Decision<TokenBucketState> = {
+            allowed: true,
+            retryAfter: 0,
+            remaining: 4,
+            nextState: {
+                tokensCount: 4,
+                lastUpdatedAtInMs: requestedAtInMs,
+            },
+        };
+        const expectedTenantDecision: Decision<TokenBucketState> = {
+            allowed: true,
+            retryAfter: 0,
+            remaining: 2,
+            nextState: {
+                tokensCount: 2,
+                lastUpdatedAtInMs: requestedAtInMs,
+            },
+        };
+        const repository: StateRepositoryInterface<MockedClient, TokenBucketState> = {
+            get: vi
+                .fn()
+                .mockResolvedValueOnce(apiKeyState)
+                .mockResolvedValueOnce(tenantState),
+            set: vi.fn().mockResolvedValue(undefined),
+        };
+        const limitService = new LimitService(
+            repository,
+            mockedClient,
+            mockedIdentifierBuilderFactory,
+        );
+        const userIdentity: UserIdentity = {
+            apiKey: "fake-api-key",
+            tenant: "fake-tenant",
+        };
+        const apiKeyConfig: TokenBucketConfig = {
+            bucketCapacity: 5,
+            refillRate: { amount: 1, perMs: 1_000 },
+        };
+        const tenantConfig: TokenBucketConfig = {
+            bucketCapacity: 3,
+            refillRate: { amount: 1, perMs: 1_000 },
+        };
+        const config: LimitConfig<TokenBucketConfig> = {
+            apiKey: apiKeyConfig,
+            tenant: tenantConfig,
+        };
+
+        const actualDecisions = await limitService.limit(
+            userIdentity,
+            config,
+            "TokenBucket",
+            requestedAtInMs,
+        );
+
+        expect(actualDecisions).toEqual({
+            apiKey: expectedApiKeyDecision,
+            tenant: expectedTenantDecision,
+        });
+        expect(repository.get).toHaveBeenCalledWith(
+            mockedClient,
+            "ratelimit:user:fake-api-key:tokens",
+        );
+        expect(repository.get).toHaveBeenCalledWith(
+            mockedClient,
+            "ratelimit:tenant:fake-tenant:tokens",
+        );
+        expect(repository.set).toHaveBeenCalledWith(
+            mockedClient,
+            "ratelimit:user:fake-api-key:tokens",
+            expectedApiKeyDecision.nextState,
+        );
+        expect(repository.set).toHaveBeenCalledWith(
+            mockedClient,
+            "ratelimit:tenant:fake-tenant:tokens",
+            expectedTenantDecision.nextState,
+        );
+    });
 });
