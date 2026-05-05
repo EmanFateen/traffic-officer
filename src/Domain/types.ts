@@ -24,6 +24,20 @@ export type Decision<State> = {
     nextState: State;
 };
 
+export type Algorithm = "TokenBucket";
+
+export type LimitConfig<Config> = {
+    apiKey: Config;
+    ip?: Config;
+    tenant?: Config;
+};
+
+export type LimitDecisions<State> = {
+    apiKey: Decision<State>;
+    ip?: Decision<State>;
+    tenant?: Decision<State>;
+};
+
 export type Rate = {
     amount: number;
     perMs: number;
