@@ -6,12 +6,16 @@ export class TokenBucket
     implements RateLimitingAlgorithm<TokenBucketState, TokenBucketConfig>
 {
     limit(
-        state: TokenBucketState,
+        state: TokenBucketState | null | undefined,
         config: TokenBucketConfig,
         requestedAtInMs: number,
     ): Decision<TokenBucketState> {
+        const currentState = state ?? {
+            tokensCount: config.bucketCapacity,
+            lastUpdatedAtInMs: requestedAtInMs,
+        };
         const availableTokens: number = this.getAvailableTokens(
-            state,
+            currentState,
             config,
             requestedAtInMs,
         );
