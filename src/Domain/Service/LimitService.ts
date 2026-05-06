@@ -1,7 +1,6 @@
 import {RateLimitingAlgorithm} from "../Algorithm/RateLimitingAlgorithm.ts";
 import {StateRepositoryInterface} from "../Repository/StateRepositoryInterface.ts";
-import {Decision, LimitConfig, LimitDecisions,} from "../types.ts";
-import {StateIdentifiers} from "../../Application/types.ts";
+import {Decision, LimitConfig, LimitDecisions, StateIdentifiers,} from "../types.ts";
 
 export class LimitService<State, Config> {
     constructor(

@@ -1,4 +1,5 @@
-import {IdentifierBuilder, StateIdentifiers, UserIdentity} from "./types.ts";
+import {IdentifierBuilder, UserIdentity} from "./types.ts";
+import {StateIdentifiers} from "../Domain/types.ts";
 
 export function stateIdentifierFactory(identifierBuilder: IdentifierBuilder, userIdentity: UserIdentity): StateIdentifiers {
     if (!userIdentity.apiKey) {

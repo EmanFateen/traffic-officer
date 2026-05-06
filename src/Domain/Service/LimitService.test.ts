@@ -1,10 +1,9 @@
 import { describe, expect, test, vi } from "vitest";
 import { TokenBucketConfig, TokenBucketState } from "../Algorithm/types.ts";
 import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
-import { Decision, LimitConfig } from "../types.ts";
+import {Decision, LimitConfig, StateIdentifiers} from "../types.ts";
 import { LimitService } from "./LimitService.ts";
 import {rateLimiterAlgorithmFactory} from "../Algorithm/RateLimiterAlgorithmFactory.ts";
-import {StateIdentifiers} from "../../Application/types.ts";
 
 describe("limit service", () => {
     test("limit returns a decision for the required api key identity", async () => {

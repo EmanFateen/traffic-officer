@@ -45,3 +45,9 @@ export type Identifier =  {
 };
 
 export type IdentifierBuilder = (scope: IdentifierScope) => Identifier;
+
+export type StateIdentifiers = {
+    apikey: string;
+    ip?: string;
+    tenant?: string;
+};
