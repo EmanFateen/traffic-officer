@@ -8,6 +8,7 @@ import {
     UserIdentity,
 } from "../types.ts";
 import { LimitService } from "./LimitService.ts";
+import {rateLimiterAlgorithmFactory} from "../Algorithm/RateLimiterAlgorithmFactory.ts";
 
 describe("limit service", () => {
     test("limit returns a decision for the required api key identity", async () => {
@@ -36,6 +37,7 @@ describe("limit service", () => {
         const limitService = new LimitService(
             repository,
             mockedIdentifierBuilder,
+            rateLimiterAlgorithmFactory('TokenBucket')
         );
         const userIdentity: UserIdentity = {
             apiKey: "fake-api-key",
@@ -51,7 +53,6 @@ describe("limit service", () => {
         const actualDecisions = await limitService.limit(
             userIdentity,
             config,
-            "TokenBucket",
             requestedAtInMs,
         );
 
@@ -106,6 +107,7 @@ describe("limit service", () => {
         const limitService = new LimitService(
             repository,
             mockedIdentifierBuilder,
+            rateLimiterAlgorithmFactory('TokenBucket')
         );
         const userIdentity: UserIdentity = {
             apiKey: "fake-api-key",
@@ -127,7 +129,6 @@ describe("limit service", () => {
         const actualDecisions = await limitService.limit(
             userIdentity,
             config,
-            "TokenBucket",
             requestedAtInMs,
         );
 
@@ -190,6 +191,7 @@ describe("limit service", () => {
         const limitService = new LimitService(
             repository,
             mockedIdentifierBuilder,
+            rateLimiterAlgorithmFactory('TokenBucket')
         );
         const userIdentity: UserIdentity = {
             apiKey: "fake-api-key",
@@ -211,7 +213,6 @@ describe("limit service", () => {
         const actualDecisions = await limitService.limit(
             userIdentity,
             config,
-            "TokenBucket",
             requestedAtInMs,
         );
 

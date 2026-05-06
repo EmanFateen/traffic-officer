@@ -9,32 +9,30 @@ import {
     UserIdentity,
 } from "../types.ts";
 import { stateIdentifierFactory } from "./StateIdentifierFactory.ts";
+import {rateLimiterAlgorithmFactory} from "../Algorithm/RateLimiterAlgorithmFactory.ts";
 
 export class LimitService<State, Config> {
     constructor(
         private readonly stateRepository: StateRepositoryInterface<State>,
         private readonly identifierBuilder: IdentifierBuilder,
+        private readonly limitingAlgorithm: RateLimitingAlgorithm<State, Config>,
     ) {}
 
     async limit(
         userIdentity: UserIdentity,
         config: LimitConfig<Config>,
-        algorithm: Algorithm,
         requestedAtInMs: number,
     ): Promise<LimitDecisions<State>> {
         const stateIdentifiers = stateIdentifierFactory(
             this.identifierBuilder,
             userIdentity,
         );
-        const limitingAlgorithm = new TokenBucket() as unknown as RateLimitingAlgorithm<
-            State,
-            Config
-        >;
+
 
         const state = await this.stateRepository.findOneBy(
             stateIdentifiers.apikey,
         );
-        const apiKeyDecision = limitingAlgorithm.limit(
+        const apiKeyDecision = this.limitingAlgorithm.limit(
             state,
             config.apiKey,
             requestedAtInMs,
@@ -43,14 +41,14 @@ export class LimitService<State, Config> {
             stateIdentifiers.apikey,
             apiKeyDecision.nextState,
         );
-
         const limitDecisions: LimitDecisions<State> = {
             apiKey: apiKeyDecision,
         };
 
+
         if (stateIdentifiers.ip !== undefined && config.ip !== undefined) {
             const state = await this.stateRepository.findOneBy(stateIdentifiers.ip);
-            limitDecisions.ip = limitingAlgorithm.limit(
+            limitDecisions.ip = this.limitingAlgorithm.limit(
                 state,
                 config.ip,
                 requestedAtInMs,
@@ -61,6 +59,7 @@ export class LimitService<State, Config> {
             );
         }
 
+
         if (
             stateIdentifiers.tenant !== undefined &&
             config.tenant !== undefined
@@ -68,7 +67,7 @@ export class LimitService<State, Config> {
             const state = await this.stateRepository.findOneBy(
                 stateIdentifiers.tenant,
             );
-            limitDecisions.tenant = limitingAlgorithm.limit(
+            limitDecisions.tenant = this.limitingAlgorithm.limit(
                 state,
                 config.tenant,
                 requestedAtInMs,
