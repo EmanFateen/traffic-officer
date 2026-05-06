@@ -79,18 +79,6 @@ export class LimitService<State, Config> {
             );
         }
 
-        if (
-            stateIdentifiers.tenant !== undefined &&
-            config.tenant !== undefined
-        ) {
-            limitDecisions.tenant = await this.decide(
-                tokenBucketAlgorithm,
-                stateIdentifiers.tenant,
-                config.tenant,
-                requestedAtInMs,
-            );
-        }
-
         return limitDecisions;
     }
 }
