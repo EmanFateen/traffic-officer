@@ -1,9 +1,6 @@
-import { RateLimitingAlgorithm } from "../Algorithm/RateLimitingAlgorithm.ts";
-import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
-import {
-    LimitConfig,
-    LimitDecisions,
-} from "../types.ts";
+import {RateLimitingAlgorithm} from "../Algorithm/RateLimitingAlgorithm.ts";
+import {StateRepositoryInterface} from "../Repository/StateRepositoryInterface.ts";
+import {Decision, LimitConfig, LimitDecisions,} from "../types.ts";
 import {StateIdentifiers} from "../../Application/types.ts";
 
 export class LimitService<State, Config> {
@@ -17,57 +14,33 @@ export class LimitService<State, Config> {
         config: LimitConfig<Config>,
         requestedAtInMs: number,
     ): Promise<LimitDecisions<State>> {
-
-        const apiKeyState = await this.stateRepository.findOneBy(
-            stateIdentifiers.apikey,
-        );
-        const apiKeyDecision = this.limitingAlgorithm.limit(
-            apiKeyState,
-            config.apiKey,
-            requestedAtInMs,
-        );
-        await this.stateRepository.save(
-            stateIdentifiers.apikey,
-            apiKeyDecision.nextState,
-        );
-
+        
         const limitDecisions: LimitDecisions<State> = {
-            apiKey: apiKeyDecision,
+            apiKey: await this.decide(stateIdentifiers.apikey, config.apiKey, requestedAtInMs),
         };
-
-
-
+        
         if (stateIdentifiers.ip !== undefined && config.ip !== undefined) {
-            const ipState = await this.stateRepository.findOneBy(stateIdentifiers.ip);
-            limitDecisions.ip =  this.limitingAlgorithm.limit(
-                ipState,
-                config.ip,
-                requestedAtInMs,
-            );
-            await this.stateRepository.save(
-                stateIdentifiers.ip,
-                limitDecisions.ip.nextState,
-            );
+            limitDecisions.ip =  await this.decide(stateIdentifiers.ip, config.ip, requestedAtInMs);
         }
 
-        if (
-            stateIdentifiers.tenant !== undefined &&
-            config.tenant !== undefined
-        ) {
-            const tenantState = await this.stateRepository.findOneBy(
-                stateIdentifiers.tenant,
-            );
-            limitDecisions.tenant =  this.limitingAlgorithm.limit(
-                tenantState,
-                config.tenant,
-                requestedAtInMs,
-            );
-            await this.stateRepository.save(
-                stateIdentifiers.tenant,
-                limitDecisions.tenant.nextState,
-            );
+        if (stateIdentifiers.tenant !== undefined && config.tenant !== undefined ) {
+            limitDecisions.tenant =  await this.decide(stateIdentifiers.tenant, config.tenant, requestedAtInMs);
         }
 
         return limitDecisions;
+    }
+
+    private async decide(identifier: string, config: Config, requestedAtInMs: number): Promise<Decision<State>> {
+        const state = await this.stateRepository.findOneBy(identifier);
+        
+        const decision: Decision<State> = this.limitingAlgorithm.limit(
+            state,
+            config,
+            requestedAtInMs,
+        );
+        
+        await this.stateRepository.save( identifier, decision.nextState);
+        
+        return decision;
     }
 }
