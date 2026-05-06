@@ -241,4 +241,28 @@ describe("TokenBucket", () => {
         expect(actualDecision.allowed).toBeTruthy();
         expect(actualDecision.remaining).toEqual(bucketCapacity - 1);
     });
+
+    it("allows the first request when bucket state does not exist", () => {
+        const requestedAtInMs = 1_000;
+        const tokenBucket = new TokenBucket();
+
+        const actualDecision: Decision<TokenBucketState> = tokenBucket.limit(
+            undefined,
+            {
+                refillRate: { amount: 1, perMs: 1_000 },
+                bucketCapacity: 5,
+            },
+            requestedAtInMs,
+        );
+
+        expect(actualDecision).toEqual({
+            allowed: true,
+            retryAfter: 0,
+            remaining: 4,
+            nextState: {
+                tokensCount: 4,
+                lastUpdatedAtInMs: requestedAtInMs,
+            },
+        });
+    });
 });
