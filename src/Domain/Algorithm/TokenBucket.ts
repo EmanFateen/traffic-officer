@@ -1,22 +1,22 @@
 import { Decision } from "../types.ts";
 import { RateLimitingAlgorithmInterface } from "./RateLimitingAlgorithmInterface.ts";
-import { TokenBucketConfig, TokenBucketState } from "./types.ts";
+import { TokenBucketPolicy, TokenBucketState } from "./types.ts";
 
 export class TokenBucket
-    implements RateLimitingAlgorithmInterface<TokenBucketState, TokenBucketConfig>
+    implements RateLimitingAlgorithmInterface<TokenBucketState, TokenBucketPolicy>
 {
     limit(
         state: TokenBucketState | null | undefined,
-        config: TokenBucketConfig,
+        policy: TokenBucketPolicy,
         requestedAtInMs: number,
     ): Decision<TokenBucketState> {
         const currentState = state ?? {
-            tokensCount: config.bucketCapacity,
+            tokensCount: policy.bucketCapacity,
             lastUpdatedAtInMs: requestedAtInMs,
         };
         const availableTokens: number = this.getAvailableTokens(
             currentState,
-            config,
+            policy,
             requestedAtInMs,
         );
 
@@ -41,7 +41,7 @@ export class TokenBucket
         return {
             allowed,
             retryAfter: Math.ceil(
-                (missingTokens * config.refillRate.perMs) / config.refillRate.amount,
+                (missingTokens * policy.refillRate.perMs) / policy.refillRate.amount,
             ),
             remaining: 0,
             nextState: {
@@ -53,7 +53,7 @@ export class TokenBucket
 
     private getAvailableTokens(
         currentBucketState: TokenBucketState,
-        config: TokenBucketConfig,
+        config: TokenBucketPolicy,
         requestedAtInMs: number,
     ): number {
         const elapsedInMs: number = Math.max(
