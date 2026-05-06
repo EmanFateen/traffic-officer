@@ -5,10 +5,10 @@ import {
     Decision,
     IdentifierBuilder,
     LimitConfig,
-    UserIdentity,
 } from "../types.ts";
 import { LimitService } from "./LimitService.ts";
 import {rateLimiterAlgorithmFactory} from "../Algorithm/RateLimiterAlgorithmFactory.ts";
+import {StateIdentifiers} from "../../Application/types.ts";
 
 describe("limit service", () => {
     test("limit returns a decision for the required api key identity", async () => {
@@ -39,8 +39,8 @@ describe("limit service", () => {
             mockedIdentifierBuilder,
             rateLimiterAlgorithmFactory("TokenBucket")
         );
-        const userIdentity: UserIdentity = {
-            apiKey: "fake-api-key",
+        const stateIdentifiers: StateIdentifiers = {
+            apikey: 'ratelimit:user:fake-api-key:tokens'
         };
         const apiKeyConfig: TokenBucketConfig = {
             bucketCapacity: 5,
@@ -50,11 +50,7 @@ describe("limit service", () => {
             apiKey: apiKeyConfig,
         };
 
-        const actualDecisions = await limitService.limit(
-            userIdentity,
-            config,
-            requestedAtInMs,
-        );
+        const actualDecisions = await limitService.limit(stateIdentifiers, config, requestedAtInMs);
 
         expect(actualDecisions).toEqual({
             apiKey: expectedApiKeyDecision,
@@ -109,9 +105,9 @@ describe("limit service", () => {
             mockedIdentifierBuilder,
             rateLimiterAlgorithmFactory("TokenBucket")
         );
-        const userIdentity: UserIdentity = {
-            apiKey: "fake-api-key",
-            ip: "fake-ip",
+        const stateIdentifiers: StateIdentifiers = {
+            apikey: 'ratelimit:user:fake-api-key:tokens',
+            ip: 'ratelimit:ip:fake-ip:tokens'
         };
         const apiKeyConfig: TokenBucketConfig = {
             bucketCapacity: 5,
@@ -126,11 +122,7 @@ describe("limit service", () => {
             ip: ipConfig,
         };
 
-        const actualDecisions = await limitService.limit(
-            userIdentity,
-            config,
-            requestedAtInMs,
-        );
+        const actualDecisions = await limitService.limit(stateIdentifiers, config, requestedAtInMs);
 
         expect(actualDecisions).toEqual({
             apiKey: expectedApiKeyDecision,
@@ -193,9 +185,9 @@ describe("limit service", () => {
             mockedIdentifierBuilder,
             rateLimiterAlgorithmFactory("TokenBucket")
         );
-        const userIdentity: UserIdentity = {
-            apiKey: "fake-api-key",
-            tenant: "fake-tenant",
+        const stateIdentifiers: StateIdentifiers = {
+            apikey: 'ratelimit:user:fake-api-key:tokens',
+            tenant: 'ratelimit:tenant:fake-tenant:tokens'
         };
         const apiKeyConfig: TokenBucketConfig = {
             bucketCapacity: 5,
@@ -210,11 +202,7 @@ describe("limit service", () => {
             tenant: tenantConfig,
         };
 
-        const actualDecisions = await limitService.limit(
-            userIdentity,
-            config,
-            requestedAtInMs,
-        );
+        const actualDecisions = await limitService.limit(stateIdentifiers, config, requestedAtInMs);
 
         expect(actualDecisions).toEqual({
             apiKey: expectedApiKeyDecision,

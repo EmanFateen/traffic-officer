@@ -5,8 +5,7 @@ import {
     LimitConfig,
     LimitDecisions,
 } from "../types.ts";
-import {stateIdentifierFactory} from "../../Application/StateIdentifierFactory.ts";
-import {UserIdentity} from "../../Application/types.ts";
+import {StateIdentifiers, UserIdentity} from "../../Application/types.ts";
 
 export class LimitService<State, Config> {
     constructor(
@@ -16,20 +15,16 @@ export class LimitService<State, Config> {
     ) {}
 
     async limit(
-        userIdentity: UserIdentity,
+        stateIdentifiers: StateIdentifiers,
         config: LimitConfig<Config>,
         requestedAtInMs: number,
     ): Promise<LimitDecisions<State>> {
-        const stateIdentifiers = stateIdentifierFactory(
-            this.identifierBuilder,
-            userIdentity,
-        );
 
-        const state = await this.stateRepository.findOneBy(
+        const apiKeyState = await this.stateRepository.findOneBy(
             stateIdentifiers.apikey,
         );
         const apiKeyDecision = this.limitingAlgorithm.limit(
-            state,
+            apiKeyState,
             config.apiKey,
             requestedAtInMs,
         );
@@ -42,10 +37,12 @@ export class LimitService<State, Config> {
             apiKey: apiKeyDecision,
         };
 
+
+
         if (stateIdentifiers.ip !== undefined && config.ip !== undefined) {
-            const state = await this.stateRepository.findOneBy(stateIdentifiers.ip);
+            const ipState = await this.stateRepository.findOneBy(stateIdentifiers.ip);
             limitDecisions.ip =  this.limitingAlgorithm.limit(
-                state,
+                ipState,
                 config.ip,
                 requestedAtInMs,
             );
@@ -59,11 +56,11 @@ export class LimitService<State, Config> {
             stateIdentifiers.tenant !== undefined &&
             config.tenant !== undefined
         ) {
-            const state = await this.stateRepository.findOneBy(
+            const tenantState = await this.stateRepository.findOneBy(
                 stateIdentifiers.tenant,
             );
             limitDecisions.tenant =  this.limitingAlgorithm.limit(
-                state,
+                tenantState,
                 config.tenant,
                 requestedAtInMs,
             );
