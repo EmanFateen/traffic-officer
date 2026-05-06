@@ -4,20 +4,17 @@ import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface
 import {
     Algorithm,
     Decision,
+    IdentifierBuilder,
     LimitConfig,
     LimitDecisions,
     UserIdentity,
 } from "../types.ts";
-import {
-    IdentifierBuilderFactory,
-    stateIdentifierFactory,
-} from "./StateIdentifierFactory.ts";
+import { stateIdentifierFactory } from "./StateIdentifierFactory.ts";
 
-export class LimitService<Client, State, Config> {
+export class LimitService<State, Config> {
     constructor(
-        private readonly stateRepository: StateRepositoryInterface<Client, State>,
-        private readonly client: Client,
-        private readonly identifierBuilderFactory: IdentifierBuilderFactory,
+        private readonly stateRepository: StateRepositoryInterface<State>,
+        private readonly identifierBuilder: IdentifierBuilder,
     ) {}
 
     async limit(
@@ -27,7 +24,7 @@ export class LimitService<Client, State, Config> {
         requestedAtInMs: number,
     ): Promise<LimitDecisions<State>> {
         const stateIdentifiers = stateIdentifierFactory(
-            this.identifierBuilderFactory,
+            this.identifierBuilder,
             userIdentity,
         );
         const tokenBucketAlgorithm = new TokenBucket() as unknown as RateLimitingAlgorithm<
@@ -74,14 +71,10 @@ export class LimitService<Client, State, Config> {
         config: Config,
         requestedAtInMs: number,
     ): Promise<Decision<State>> {
-        const state = await this.stateRepository.get(this.client, stateIdentifier);
+        const state = await this.stateRepository.findOneBy(stateIdentifier);
         const decision = tokenBucket.limit(state, config, requestedAtInMs);
 
-        await this.stateRepository.set(
-            this.client,
-            stateIdentifier,
-            decision.nextState,
-        );
+        await this.stateRepository.save(stateIdentifier, decision.nextState);
 
         return decision;
     }

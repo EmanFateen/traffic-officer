@@ -1,22 +1,17 @@
 import { describe, expect, test, vi } from "vitest";
 import { TokenBucketConfig, TokenBucketState } from "../Algorithm/types.ts";
 import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
-import { Decision, LimitConfig, UserIdentity } from "../types.ts";
-import { IdentifierBuilderFactory } from "./StateIdentifierFactory.ts";
+import {
+    Decision,
+    IdentifierBuilder,
+    LimitConfig,
+    UserIdentity,
+} from "../types.ts";
 import { LimitService } from "./LimitService.ts";
-
-type MockedClient = {
-    get: () => void;
-    set: () => void;
-};
 
 describe("limit service", () => {
     test("limit returns a decision for the required api key identity", async () => {
-        const mockedClient: MockedClient = {
-            get: vi.fn(),
-            set: vi.fn(),
-        };
-        const mockedIdentifierBuilderFactory: IdentifierBuilderFactory = vi.fn(
+        const mockedIdentifierBuilder: IdentifierBuilder = vi.fn(
             (key) => ({
                 ownedBy: vi.fn((identity: string) => {
                     return `ratelimit:${key}:${identity}:tokens`;
@@ -34,14 +29,13 @@ describe("limit service", () => {
                 lastUpdatedAtInMs: requestedAtInMs,
             },
         };
-        const repository: StateRepositoryInterface<MockedClient, TokenBucketState> = {
-            get: vi.fn().mockResolvedValue(apiKeyState),
-            set: vi.fn().mockResolvedValue(undefined),
+        const repository: StateRepositoryInterface<TokenBucketState> = {
+            findOneBy: vi.fn().mockResolvedValue(apiKeyState),
+            save: vi.fn().mockResolvedValue(undefined),
         };
         const limitService = new LimitService(
             repository,
-            mockedClient,
-            mockedIdentifierBuilderFactory,
+            mockedIdentifierBuilder,
         );
         const userIdentity: UserIdentity = {
             apiKey: "fake-api-key",
@@ -64,23 +58,17 @@ describe("limit service", () => {
         expect(actualDecisions).toEqual({
             apiKey: expectedApiKeyDecision,
         });
-        expect(repository.get).toHaveBeenCalledWith(
-            mockedClient,
+        expect(repository.findOneBy).toHaveBeenCalledWith(
             "ratelimit:user:fake-api-key:tokens",
         );
-        expect(repository.set).toHaveBeenCalledWith(
-            mockedClient,
+        expect(repository.save).toHaveBeenCalledWith(
             "ratelimit:user:fake-api-key:tokens",
             expectedApiKeyDecision.nextState,
         );
     });
 
     test("limit returns decisions for api key and ip identities", async () => {
-        const mockedClient: MockedClient = {
-            get: vi.fn(),
-            set: vi.fn(),
-        };
-        const mockedIdentifierBuilderFactory: IdentifierBuilderFactory = vi.fn(
+        const mockedIdentifierBuilder: IdentifierBuilder = vi.fn(
             (key) => ({
                 ownedBy: vi.fn((identity: string) => {
                     return `ratelimit:${key}:${identity}:tokens`;
@@ -108,17 +96,16 @@ describe("limit service", () => {
                 lastUpdatedAtInMs: requestedAtInMs,
             },
         };
-        const repository: StateRepositoryInterface<MockedClient, TokenBucketState> = {
-            get: vi
+        const repository: StateRepositoryInterface<TokenBucketState> = {
+            findOneBy: vi
                 .fn()
                 .mockResolvedValueOnce(apiKeyState)
                 .mockResolvedValueOnce(ipState),
-            set: vi.fn().mockResolvedValue(undefined),
+            save: vi.fn().mockResolvedValue(undefined),
         };
         const limitService = new LimitService(
             repository,
-            mockedClient,
-            mockedIdentifierBuilderFactory,
+            mockedIdentifierBuilder,
         );
         const userIdentity: UserIdentity = {
             apiKey: "fake-api-key",
@@ -148,32 +135,24 @@ describe("limit service", () => {
             apiKey: expectedApiKeyDecision,
             ip: expectedIpDecision,
         });
-        expect(repository.get).toHaveBeenCalledWith(
-            mockedClient,
+        expect(repository.findOneBy).toHaveBeenCalledWith(
             "ratelimit:user:fake-api-key:tokens",
         );
-        expect(repository.get).toHaveBeenCalledWith(
-            mockedClient,
+        expect(repository.findOneBy).toHaveBeenCalledWith(
             "ratelimit:ip:fake-ip:tokens",
         );
-        expect(repository.set).toHaveBeenCalledWith(
-            mockedClient,
+        expect(repository.save).toHaveBeenCalledWith(
             "ratelimit:user:fake-api-key:tokens",
             expectedApiKeyDecision.nextState,
         );
-        expect(repository.set).toHaveBeenCalledWith(
-            mockedClient,
+        expect(repository.save).toHaveBeenCalledWith(
             "ratelimit:ip:fake-ip:tokens",
             expectedIpDecision.nextState,
         );
     });
 
     test("limit returns decisions for api key and tenant identities", async () => {
-        const mockedClient: MockedClient = {
-            get: vi.fn(),
-            set: vi.fn(),
-        };
-        const mockedIdentifierBuilderFactory: IdentifierBuilderFactory = vi.fn(
+        const mockedIdentifierBuilder: IdentifierBuilder = vi.fn(
             (key) => ({
                 ownedBy: vi.fn((identity: string) => {
                     return `ratelimit:${key}:${identity}:tokens`;
@@ -201,17 +180,16 @@ describe("limit service", () => {
                 lastUpdatedAtInMs: requestedAtInMs,
             },
         };
-        const repository: StateRepositoryInterface<MockedClient, TokenBucketState> = {
-            get: vi
+        const repository: StateRepositoryInterface<TokenBucketState> = {
+            findOneBy: vi
                 .fn()
                 .mockResolvedValueOnce(apiKeyState)
                 .mockResolvedValueOnce(tenantState),
-            set: vi.fn().mockResolvedValue(undefined),
+            save: vi.fn().mockResolvedValue(undefined),
         };
         const limitService = new LimitService(
             repository,
-            mockedClient,
-            mockedIdentifierBuilderFactory,
+            mockedIdentifierBuilder,
         );
         const userIdentity: UserIdentity = {
             apiKey: "fake-api-key",
@@ -241,21 +219,17 @@ describe("limit service", () => {
             apiKey: expectedApiKeyDecision,
             tenant: expectedTenantDecision,
         });
-        expect(repository.get).toHaveBeenCalledWith(
-            mockedClient,
+        expect(repository.findOneBy).toHaveBeenCalledWith(
             "ratelimit:user:fake-api-key:tokens",
         );
-        expect(repository.get).toHaveBeenCalledWith(
-            mockedClient,
+        expect(repository.findOneBy).toHaveBeenCalledWith(
             "ratelimit:tenant:fake-tenant:tokens",
         );
-        expect(repository.set).toHaveBeenCalledWith(
-            mockedClient,
+        expect(repository.save).toHaveBeenCalledWith(
             "ratelimit:user:fake-api-key:tokens",
             expectedApiKeyDecision.nextState,
         );
-        expect(repository.set).toHaveBeenCalledWith(
-            mockedClient,
+        expect(repository.save).toHaveBeenCalledWith(
             "ratelimit:tenant:fake-tenant:tokens",
             expectedTenantDecision.nextState,
         );
