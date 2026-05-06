@@ -44,3 +44,6 @@ export type StateIdentifiers = {
     ip?: string;
     tenant?: string;
 };
+
+//// **** algos *** ////
+export type AlgorithmName = "TokenBucket";
