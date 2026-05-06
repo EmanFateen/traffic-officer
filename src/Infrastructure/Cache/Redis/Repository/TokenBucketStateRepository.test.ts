@@ -13,7 +13,7 @@ describe("Redis bucket repository", () => {
         } as unknown as RedisClient;
         const repository = new tokenBucketStateRepository();
 
-        const bucketState: TokenBucketState | null = await repository.get(redisClient, key);
+        const bucketState: TokenBucketState | null = await repository.findOneBy(redisClient, key);
 
         expect(bucketState).toBeNull();
         expect(redisClient.get).toHaveBeenCalledWith(key);
@@ -31,7 +31,7 @@ describe("Redis bucket repository", () => {
         }as unknown as RedisClient;
         const repository = new tokenBucketStateRepository();
 
-        const bucketState: TokenBucketState | null = await repository.get(redisClient, key);
+        const bucketState: TokenBucketState | null = await repository.findOneBy(redisClient, key);
 
         expect(bucketState?.tokensCount).toEqual(expectedBucketState.tokensCount);
         expect(bucketState?.lastUpdatedAtInMs).toEqual(expectedBucketState.lastUpdatedAtInMs);

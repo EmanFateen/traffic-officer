@@ -4,7 +4,7 @@ import {TokenBucketState} from "../../../../Domain/Algorithm/types.ts";
 
 export class tokenBucketStateRepository implements StateRepositoryInterface<RedisClient, TokenBucketState> {
 
-    async get(client: RedisClient, key: string): Promise<TokenBucketState | null> {
+    async findOneBy(client: RedisClient, key: string): Promise<TokenBucketState | null> {
         const state: string | null = await client.get(key);
 
         if (state === null) {
