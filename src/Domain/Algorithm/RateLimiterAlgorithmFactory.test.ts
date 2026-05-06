@@ -11,4 +11,11 @@ describe('RateLimiter Algorithm Factory', () => {
 
        expect(actual).toBeInstanceOf(TokenBucket);
    });
+
+    test('throws error if the algorithm name is unsupported', ()=>{
+        const algorithmName = 'fake-algorithm-name' as AlgorithmName;
+
+        expect(()=> rateLimiterAlgorithmFactory(algorithmName))
+            .toThrow('fake-algorithm-name is unsupported algorithm');
+    });
 })
