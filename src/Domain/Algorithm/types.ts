@@ -9,3 +9,5 @@ export type TokenBucketConfig = {
     bucketCapacity: number;
     refillRate: Rate;
 };
+
+export type AlgorithmName = "TokenBucket";

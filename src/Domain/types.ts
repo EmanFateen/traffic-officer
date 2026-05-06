@@ -1,10 +1,3 @@
-export type UserIdentity = {
-    apiKey: string;
-    ip?: string;
-    tenant?: string;
-};
-
-
 export type Policy = {
     apiKey: Rate;
     ip?: Rate;
@@ -52,12 +45,3 @@ export type Identifier =  {
 };
 
 export type IdentifierBuilder = (scope: IdentifierScope) => Identifier;
-
-export type StateIdentifiers = {
-    apikey: string;
-    ip?: string;
-    tenant?: string;
-};
-
-//// **** algos *** ////
-export type AlgorithmName = "TokenBucket";

@@ -1,7 +1,7 @@
 import {describe, expect, test} from "vitest";
-import {AlgorithmName} from "../types.ts";
 import {TokenBucket} from "./TokenBucket.ts";
 import {rateLimiterAlgorithmFactory} from "./RateLimiterAlgorithmFactory.ts";
+import {AlgorithmName} from "./types.ts";
 
 describe('RateLimiter Algorithm Factory', () => {
    test('returns TokenBucket instance when algorithm name is TokenBucket', ()=>{

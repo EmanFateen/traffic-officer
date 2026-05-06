@@ -4,9 +4,9 @@ import {
     IdentifierBuilder,
     LimitConfig,
     LimitDecisions,
-    UserIdentity,
 } from "../types.ts";
 import {stateIdentifierFactory} from "../../Application/StateIdentifierFactory.ts";
+import {UserIdentity} from "../../Application/types.ts";
 
 export class LimitService<State, Config> {
     constructor(
