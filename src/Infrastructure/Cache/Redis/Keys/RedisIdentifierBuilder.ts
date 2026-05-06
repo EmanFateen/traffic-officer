@@ -1,4 +1,4 @@
-import {Identifier, IdentifierScope} from "../../../../Domain/types.ts";
+import {Identifier, IdentifierScope} from "../../../../Application/types.ts";
 
 const PREFIX = `ratelimit`;
 const SUFFIX = `tokens`;
