@@ -4,11 +4,6 @@ export type UserIdentity = {
     tenant?: string;
 };
 
-export type StateIdentifiers = {
-    apikey: string;
-    ip?: string;
-    tenant?: string;
-};
 
 export type Policy = {
     apiKey: Rate;
@@ -34,4 +29,18 @@ export type Rate = {
     perMs: number;
 };
 
-export type IdentifierTypes = "user" | "ip" | "tenant";
+/////////////// *** State Identifier types ******** ////////////////
+
+export type IdentifierScope = "user" | "ip" | "tenant";
+
+export type Identifier =  {
+    ownedBy(identity: string): string;
+};
+
+export type IdentifierBuilder = (scope: IdentifierScope) => Identifier;
+
+export type StateIdentifiers = {
+    apikey: string;
+    ip?: string;
+    tenant?: string;
+};

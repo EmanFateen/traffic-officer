@@ -1,12 +1,6 @@
-import {IdentifierTypes, StateIdentifiers, UserIdentity} from "../types.ts";
+import {IdentifierBuilder, StateIdentifiers, UserIdentity} from "../types.ts";
 
-export type IdentifierBuilder =  {
-    ownedBy(identity: string): string;
-};
-
-export type IdentifierBuilderFactory = (key: IdentifierTypes) => IdentifierBuilder;
-
-export function stateIdentifierFactory(identifierBuilder: IdentifierBuilderFactory, userIdentity: UserIdentity): StateIdentifiers {
+export function stateIdentifierFactory(identifierBuilder: IdentifierBuilder, userIdentity: UserIdentity): StateIdentifiers {
     if (!userIdentity.apiKey) {
         throw new Error("apikey is required to generate the identifiers");
     }

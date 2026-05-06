@@ -1,7 +1,6 @@
 import {describe, expect, test} from "vitest";
-import {IdentifierTypes, StateIdentifiers, UserIdentity} from "../types.ts";
-import {IdentifierBuilder, IdentifierBuilderFactory, stateIdentifierFactory} from "./StateIdentifierFactory.ts";
-import {RedisIdentifierBuilder} from "../../Infrastructure/Cache/Redis/Keys/RedisIdentifierBuilder.ts";
+import {Identifier, IdentifierScope, StateIdentifiers, UserIdentity} from "../types.ts";
+import {stateIdentifierFactory} from "./StateIdentifierFactory.ts";
 describe("state identifier factory", () =>  {
     test("it must have api key at least", () => {
         const userIdentity: UserIdentity = {
@@ -61,7 +60,7 @@ describe("state identifier factory", () =>  {
     });
 });
 
-function ExampleIdentifierBuilder(key: IdentifierTypes): IdentifierBuilder {
+function ExampleIdentifierBuilder(key: IdentifierScope): Identifier {
     return {
         ownedBy(identity: string): string{
             return `build-example-${key}-for-${identity}`;
