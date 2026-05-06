@@ -1,188 +1,90 @@
-import { describe, expect, test, vi } from "vitest";
-import { TokenBucketConfig, TokenBucketState } from "../Algorithm/types.ts";
-import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
-import {Decision, LimitConfig, StateIdentifiers} from "../types.ts";
-import { LimitService } from "./LimitService.ts";
-import {rateLimiterAlgorithmFactory} from "../Algorithm/RateLimiterAlgorithmFactory.ts";
+import {describe, expect, test, vi} from "vitest";
+import {StateRepositoryInterface} from "../Repository/StateRepositoryInterface.ts";
+import {Decision, LimitConfig, LimitDecisions, StateIdentifiers} from "../types.ts";
+import {LimitService} from "./LimitService.ts";
+import {RateLimitingAlgorithm} from "../Algorithm/RateLimitingAlgorithm.ts";
 
+type FakeState = {
+    key: string
+}
+
+type FakeConfig = {
+    key: string
+}
 describe("limit service", () => {
     test("limit returns a decision for the required api key identity", async () => {
-        const apiKeyState = { tokensCount: 5, lastUpdatedAtInMs: 1_000 };
-        const requestedAtInMs = 1_000;
-        const expectedApiKeyDecision: Decision<TokenBucketState> = {
-            allowed: true,
-            retryAfter: 0,
-            remaining: 4,
-            nextState: {
-                tokensCount: 4,
-                lastUpdatedAtInMs: requestedAtInMs,
-            },
-        };
-        const repository: StateRepositoryInterface<TokenBucketState> = {
-            findOneBy: vi.fn().mockResolvedValue(apiKeyState),
+        const mockedRepository: StateRepositoryInterface<FakeState> = {
+            findOneBy: vi.fn().mockResolvedValue({key: 'current-state-key'} as FakeState),
             save: vi.fn().mockResolvedValue(undefined),
         };
-        const limitService = new LimitService(repository, rateLimiterAlgorithmFactory("TokenBucket"));
-        const stateIdentifiers: StateIdentifiers = {
-            apikey: 'ratelimit:user:fake-api-key:tokens'
+        const expectedDecision = { nextState: { key: 'new-state-key' } } as Decision<FakeState>;
+        const MockedAlgorithm: RateLimitingAlgorithm<FakeState, FakeConfig> = {
+            limit: vi.fn().mockReturnValue(expectedDecision),
         };
-        const apiKeyConfig: TokenBucketConfig = {
-            bucketCapacity: 5,
-            refillRate: { amount: 1, perMs: 1_000 },
-        };
-        const config: LimitConfig<TokenBucketConfig> = {
-            apiKey: apiKeyConfig,
+        const limitService = new LimitService(mockedRepository, MockedAlgorithm);
+        const stateIdentifiers: StateIdentifiers = { apikey: 'apikey-identifier' };
+        const algorithmConfig: LimitConfig<FakeConfig> = {
+            apiKey: { key : 'example-config-key' }
         };
 
-        const actualDecisions = await limitService.limit(stateIdentifiers, config, requestedAtInMs);
+        const actualDecisions: LimitDecisions<FakeState> =
+            await limitService.limit(stateIdentifiers, algorithmConfig, 1_000);
 
-        expect(actualDecisions).toEqual({
-            apiKey: expectedApiKeyDecision,
-        });
-        expect(repository.findOneBy).toHaveBeenCalledWith(
-            "ratelimit:user:fake-api-key:tokens",
-        );
-        expect(repository.save).toHaveBeenCalledWith(
-            "ratelimit:user:fake-api-key:tokens",
-            expectedApiKeyDecision.nextState,
-        );
+        expect(actualDecisions).toEqual({apiKey: expectedDecision});
+        expect(mockedRepository.findOneBy).toHaveBeenCalledWith( stateIdentifiers.apikey );
+        expect(mockedRepository.save).toHaveBeenCalledWith(stateIdentifiers.apikey, expectedDecision.nextState);
     });
 
-    test("limit returns decisions for api key and ip identities", async () => {
-        const apiKeyState = { tokensCount: 5, lastUpdatedAtInMs: 1_000 };
-        const ipState = { tokensCount: 2, lastUpdatedAtInMs: 1_000 };
-        const requestedAtInMs = 1_000;
-        const expectedApiKeyDecision: Decision<TokenBucketState> = {
-            allowed: true,
-            retryAfter: 0,
-            remaining: 4,
-            nextState: {
-                tokensCount: 4,
-                lastUpdatedAtInMs: requestedAtInMs,
-            },
-        };
-        const expectedIpDecision: Decision<TokenBucketState> = {
-            allowed: true,
-            retryAfter: 0,
-            remaining: 1,
-            nextState: {
-                tokensCount: 1,
-                lastUpdatedAtInMs: requestedAtInMs,
-            },
-        };
-        const repository: StateRepositoryInterface<TokenBucketState> = {
+    test("limit returns decisions for all the identities", async () => {
+        const mockedRepository: StateRepositoryInterface<FakeState> = {
             findOneBy: vi
                 .fn()
-                .mockResolvedValueOnce(apiKeyState)
-                .mockResolvedValueOnce(ipState),
+                .mockResolvedValueOnce({key: 'current-apiKey-state-key'} as FakeState)
+                .mockResolvedValueOnce({key: 'current-ip-state-key'} as FakeState)
+                .mockResolvedValueOnce({key: 'current-tenant-state-key'} as FakeState),
             save: vi.fn().mockResolvedValue(undefined),
         };
-        const limitService = new LimitService(repository, rateLimiterAlgorithmFactory("TokenBucket"));
+        const expectedDecisions: LimitDecisions<FakeState> = {
+            apiKey: { nextState: { key: 'new-apiKey-state-key'} } as Decision<FakeState>,
+            ip:  { nextState: { key: 'new-ip-state-key'} } as Decision<FakeState>,
+            tenant: { nextState: { key: 'new-tenant-state-key'} } as Decision<FakeState>
+        };
+        const MockedAlgorithm: RateLimitingAlgorithm<FakeState, FakeConfig> = {
+            limit: vi.fn()
+                .mockReturnValueOnce(expectedDecisions.apiKey)
+                .mockReturnValueOnce(expectedDecisions.ip)
+                .mockReturnValueOnce(expectedDecisions.tenant),
+        };
+        const limitService = new LimitService(mockedRepository, MockedAlgorithm);
         const stateIdentifiers: StateIdentifiers = {
-            apikey: 'ratelimit:user:fake-api-key:tokens',
-            ip: 'ratelimit:ip:fake-ip:tokens'
+            apikey: 'apikey-identifier',
+            ip: 'ip-identifier',
+            tenant: 'tenant-identifier',
         };
-        const apiKeyConfig: TokenBucketConfig = {
-            bucketCapacity: 5,
-            refillRate: { amount: 1, perMs: 1_000 },
-        };
-        const ipConfig: TokenBucketConfig = {
-            bucketCapacity: 2,
-            refillRate: { amount: 1, perMs: 1_000 },
-        };
-        const config: LimitConfig<TokenBucketConfig> = {
-            apiKey: apiKeyConfig,
-            ip: ipConfig,
+        const algorithmConfig: LimitConfig<FakeConfig> = {
+            apiKey: { key : 'api-config' },
+            ip: { key : 'ip-config' },
+            tenant: { key : 'tenant-config' },
         };
 
-        const actualDecisions = await limitService.limit(stateIdentifiers, config, requestedAtInMs);
+        const actualDecisions =
+            await limitService.limit(stateIdentifiers, algorithmConfig, 1_000);
 
-        expect(actualDecisions).toEqual({
-            apiKey: expectedApiKeyDecision,
-            ip: expectedIpDecision,
-        });
-        expect(repository.findOneBy).toHaveBeenCalledWith(
-            "ratelimit:user:fake-api-key:tokens",
+        expect(actualDecisions).toEqual(expectedDecisions);
+        expect(mockedRepository.findOneBy).toHaveBeenCalledWith(stateIdentifiers.apikey);
+        expect(mockedRepository.findOneBy).toHaveBeenCalledWith(stateIdentifiers.ip);
+        expect(mockedRepository.findOneBy).toHaveBeenCalledWith(stateIdentifiers.tenant);
+        expect(mockedRepository.save).toHaveBeenCalledWith(
+            stateIdentifiers.apikey,
+            expectedDecisions.apiKey.nextState,
         );
-        expect(repository.findOneBy).toHaveBeenCalledWith(
-            "ratelimit:ip:fake-ip:tokens",
+        expect(mockedRepository.save).toHaveBeenCalledWith(
+            stateIdentifiers.ip,
+            expectedDecisions.ip?.nextState,
         );
-        expect(repository.save).toHaveBeenCalledWith(
-            "ratelimit:user:fake-api-key:tokens",
-            expectedApiKeyDecision.nextState,
-        );
-        expect(repository.save).toHaveBeenCalledWith(
-            "ratelimit:ip:fake-ip:tokens",
-            expectedIpDecision.nextState,
-        );
-    });
-
-    test("limit returns decisions for api key and tenant identities", async () => {
-        const apiKeyState = { tokensCount: 5, lastUpdatedAtInMs: 1_000 };
-        const tenantState = { tokensCount: 3, lastUpdatedAtInMs: 1_000 };
-        const requestedAtInMs = 1_000;
-        const expectedApiKeyDecision: Decision<TokenBucketState> = {
-            allowed: true,
-            retryAfter: 0,
-            remaining: 4,
-            nextState: {
-                tokensCount: 4,
-                lastUpdatedAtInMs: requestedAtInMs,
-            },
-        };
-        const expectedTenantDecision: Decision<TokenBucketState> = {
-            allowed: true,
-            retryAfter: 0,
-            remaining: 2,
-            nextState: {
-                tokensCount: 2,
-                lastUpdatedAtInMs: requestedAtInMs,
-            },
-        };
-        const repository: StateRepositoryInterface<TokenBucketState> = {
-            findOneBy: vi
-                .fn()
-                .mockResolvedValueOnce(apiKeyState)
-                .mockResolvedValueOnce(tenantState),
-            save: vi.fn().mockResolvedValue(undefined),
-        };
-        const limitService = new LimitService(repository, rateLimiterAlgorithmFactory("TokenBucket"));
-        const stateIdentifiers: StateIdentifiers = {
-            apikey: 'ratelimit:user:fake-api-key:tokens',
-            tenant: 'ratelimit:tenant:fake-tenant:tokens'
-        };
-        const apiKeyConfig: TokenBucketConfig = {
-            bucketCapacity: 5,
-            refillRate: { amount: 1, perMs: 1_000 },
-        };
-        const tenantConfig: TokenBucketConfig = {
-            bucketCapacity: 3,
-            refillRate: { amount: 1, perMs: 1_000 },
-        };
-        const config: LimitConfig<TokenBucketConfig> = {
-            apiKey: apiKeyConfig,
-            tenant: tenantConfig,
-        };
-
-        const actualDecisions = await limitService.limit(stateIdentifiers, config, requestedAtInMs);
-
-        expect(actualDecisions).toEqual({
-            apiKey: expectedApiKeyDecision,
-            tenant: expectedTenantDecision,
-        });
-        expect(repository.findOneBy).toHaveBeenCalledWith(
-            "ratelimit:user:fake-api-key:tokens",
-        );
-        expect(repository.findOneBy).toHaveBeenCalledWith(
-            "ratelimit:tenant:fake-tenant:tokens",
-        );
-        expect(repository.save).toHaveBeenCalledWith(
-            "ratelimit:user:fake-api-key:tokens",
-            expectedApiKeyDecision.nextState,
-        );
-        expect(repository.save).toHaveBeenCalledWith(
-            "ratelimit:tenant:fake-tenant:tokens",
-            expectedTenantDecision.nextState,
+        expect(mockedRepository.save).toHaveBeenCalledWith(
+            stateIdentifiers.tenant,
+            expectedDecisions.tenant?.nextState,
         );
     });
 });

@@ -10,20 +10,20 @@ export class LimitService<State, Config> {
 
     async limit(
         stateIdentifiers: StateIdentifiers,
-        config: LimitConfig<Config>,
+        algorithmConfig: LimitConfig<Config>,
         requestedAtInMs: number,
     ): Promise<LimitDecisions<State>> {
         
         const limitDecisions: LimitDecisions<State> = {
-            apiKey: await this.decide(stateIdentifiers.apikey, config.apiKey, requestedAtInMs),
+            apiKey: await this.decide(stateIdentifiers.apikey, algorithmConfig.apiKey, requestedAtInMs),
         };
         
-        if (stateIdentifiers.ip !== undefined && config.ip !== undefined) {
-            limitDecisions.ip =  await this.decide(stateIdentifiers.ip, config.ip, requestedAtInMs);
+        if (stateIdentifiers.ip !== undefined && algorithmConfig.ip !== undefined) {
+            limitDecisions.ip =  await this.decide(stateIdentifiers.ip, algorithmConfig.ip, requestedAtInMs);
         }
 
-        if (stateIdentifiers.tenant !== undefined && config.tenant !== undefined ) {
-            limitDecisions.tenant =  await this.decide(stateIdentifiers.tenant, config.tenant, requestedAtInMs);
+        if (stateIdentifiers.tenant !== undefined && algorithmConfig.tenant !== undefined ) {
+            limitDecisions.tenant =  await this.decide(stateIdentifiers.tenant, algorithmConfig.tenant, requestedAtInMs);
         }
 
         return limitDecisions;
