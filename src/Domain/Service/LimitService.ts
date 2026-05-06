@@ -14,6 +14,7 @@ export class LimitService<State, Config> {
     constructor(
         private readonly stateRepository: StateRepositoryInterface<State>,
         private readonly identifierBuilder: IdentifierBuilder,
+        private readonly limitingAlgorithm: RateLimitingAlgorithm<State, Config>
     ) {}
 
     async limit(
@@ -25,15 +26,11 @@ export class LimitService<State, Config> {
             this.identifierBuilder,
             userIdentity,
         );
-        const limitingAlgorithm = new TokenBucket() as unknown as RateLimitingAlgorithm<
-            State,
-            Config
-        >;
 
         const state = await this.stateRepository.findOneBy(
             stateIdentifiers.apikey,
         );
-        const apiKeyDecision = limitingAlgorithm.limit(
+        const apiKeyDecision = this.limitingAlgorithm.limit(
             state,
             config.apiKey,
             requestedAtInMs,
@@ -49,7 +46,7 @@ export class LimitService<State, Config> {
 
         if (stateIdentifiers.ip !== undefined && config.ip !== undefined) {
             const state = await this.stateRepository.findOneBy(stateIdentifiers.ip);
-            limitDecisions.ip = limitingAlgorithm.limit(
+            limitDecisions.ip =  this.limitingAlgorithm.limit(
                 state,
                 config.ip,
                 requestedAtInMs,
@@ -67,7 +64,7 @@ export class LimitService<State, Config> {
             const state = await this.stateRepository.findOneBy(
                 stateIdentifiers.tenant,
             );
-            limitDecisions.tenant = limitingAlgorithm.limit(
+            limitDecisions.tenant =  this.limitingAlgorithm.limit(
                 state,
                 config.tenant,
                 requestedAtInMs,
