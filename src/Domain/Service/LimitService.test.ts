@@ -1,6 +1,6 @@
 import {describe, expect, test, vi} from "vitest";
 import {StateRepositoryInterface} from "../Repository/StateRepositoryInterface.ts";
-import {Decision, LimitConfig, LimitDecisions, StateIdentifiers} from "../types.ts";
+import {Decision, LimitPolicies, LimitDecisions, StateIdentifiers} from "../types.ts";
 import {LimitService} from "./LimitService.ts";
 import {RateLimitingAlgorithmInterface} from "../Algorithm/RateLimitingAlgorithmInterface.ts";
 
@@ -23,7 +23,7 @@ describe("limit service", () => {
         };
         const limitService = new LimitService(mockedRepository, MockedAlgorithm);
         const stateIdentifiers: StateIdentifiers = { apikey: 'apikey-identifier' };
-        const algorithmConfig: LimitConfig<FakeConfig> = {
+        const algorithmConfig: LimitPolicies<FakeConfig> = {
             apiKey: { key : 'example-config-key' }
         };
 
@@ -61,7 +61,7 @@ describe("limit service", () => {
             ip: 'ip-identifier',
             tenant: 'tenant-identifier',
         };
-        const algorithmConfig: LimitConfig<FakeConfig> = {
+        const algorithmConfig: LimitPolicies<FakeConfig> = {
             apiKey: { key : 'api-config' },
             ip: { key : 'ip-config' },
             tenant: { key : 'tenant-config' },
