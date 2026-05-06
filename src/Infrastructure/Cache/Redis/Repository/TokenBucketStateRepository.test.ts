@@ -1,16 +1,25 @@
-import { describe, expect, test, vi } from "vitest";
+import {beforeEach, describe, expect, test, vi} from "vitest";
 
-import type { RedisClient } from "../Client/getClient.ts";
+import {getClient, RedisClient} from "../Client/getClient.ts";
 import { tokenBucketStateRepository } from "./TokenBucketStateRepository.ts";
 import {TokenBucketState} from "../../../../Domain/Algorithm/types.ts";
 
+vi.mock("../Client/getClient.ts", () => ({
+    getClient: vi.fn(),
+}));
+
 describe("Redis bucket repository", () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
     test("returns null when bucket does not exist", async () => {
         const key = "bucket:user:123";
         const redisClient = {
             get: vi.fn().mockResolvedValue(null),
             set: vi.fn(),
         } as unknown as RedisClient;
+        vi.mocked(getClient).mockResolvedValue(redisClient);
+
         const repository = new tokenBucketStateRepository();
 
         const bucketState: TokenBucketState | null = await repository.findOneBy(key);
@@ -29,6 +38,7 @@ describe("Redis bucket repository", () => {
             get: vi.fn().mockResolvedValue(JSON.stringify(expectedBucketState)),
             set: vi.fn(),
         }as unknown as RedisClient;
+        vi.mocked(getClient).mockResolvedValue(redisClient);
         const repository = new tokenBucketStateRepository();
 
         const bucketState: TokenBucketState | null = await repository.findOneBy(key);
@@ -48,6 +58,7 @@ describe("Redis bucket repository", () => {
             get: vi.fn(),
             set: vi.fn(),
         }as unknown as RedisClient;
+        vi.mocked(getClient).mockResolvedValue(redisClient);
         const repository = new tokenBucketStateRepository();
 
         await repository.save(key, bucketState);
