@@ -1,7 +1,7 @@
 import {describe, expect, test} from "vitest";
-import {UserIdentity} from "../Domain/types.ts";
 import {stateIdentifierFactory} from "./StateIdentifierFactory.ts";
-import {Identifier, IdentifierScope, StateIdentifiers} from "./types.ts";
+import {Identifier, IdentifierScope, UserIdentity} from "./types.ts";
+import {StateIdentifiers} from "../Domain/types.ts";
 describe("state identifier factory", () =>  {
     test("it must have api key at least", () => {
         const userIdentity: UserIdentity = {

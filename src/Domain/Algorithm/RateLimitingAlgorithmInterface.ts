@@ -1,6 +1,6 @@
 import { Decision } from "../types.ts";
 
-export interface RateLimitingAlgorithm<State, Config> {
+export interface RateLimitingAlgorithmInterface<State, Config> {
     limit(
         state: State | null | undefined,
         config: Config,
