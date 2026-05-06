@@ -51,7 +51,6 @@ describe("limit service", () => {
         const actualDecisions = await limitService.limit(
             userIdentity,
             config,
-            "TokenBucket",
             requestedAtInMs,
         );
 
@@ -127,7 +126,6 @@ describe("limit service", () => {
         const actualDecisions = await limitService.limit(
             userIdentity,
             config,
-            "TokenBucket",
             requestedAtInMs,
         );
 
@@ -211,7 +209,6 @@ describe("limit service", () => {
         const actualDecisions = await limitService.limit(
             userIdentity,
             config,
-            "TokenBucket",
             requestedAtInMs,
         );
 

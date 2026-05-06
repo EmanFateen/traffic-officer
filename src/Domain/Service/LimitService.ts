@@ -19,7 +19,6 @@ export class LimitService<State, Config> {
     async limit(
         userIdentity: UserIdentity,
         config: LimitConfig<Config>,
-        algorithm: Algorithm,
         requestedAtInMs: number,
     ): Promise<LimitDecisions<State>> {
         const stateIdentifiers = stateIdentifierFactory(
