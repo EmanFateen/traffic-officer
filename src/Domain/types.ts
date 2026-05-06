@@ -1,10 +1,3 @@
-export type UserIdentity = {
-    apiKey: string;
-    ip?: string;
-    tenant?: string;
-};
-
-
 export type Policy = {
     apiKey: Rate;
     ip?: Rate;
@@ -27,22 +20,6 @@ export type Decision<State> = {
 export type Rate = {
     amount: number;
     perMs: number;
-};
-
-/////////////// *** State Identifier types ******** ////////////////
-
-export type IdentifierScope = "user" | "ip" | "tenant";
-
-export type Identifier =  {
-    ownedBy(identity: string): string;
-};
-
-export type IdentifierBuilder = (scope: IdentifierScope) => Identifier;
-
-export type StateIdentifiers = {
-    apikey: string;
-    ip?: string;
-    tenant?: string;
 };
 
 //// **** algos *** ////
