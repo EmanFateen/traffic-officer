@@ -50,7 +50,7 @@ describe("Redis bucket repository", () => {
         }as unknown as RedisClient;
         const repository = new tokenBucketStateRepository();
 
-        await repository.set(key, bucketState);
+        await repository.save(key, bucketState);
 
         expect(redisClient.set).toHaveBeenCalledWith(key, JSON.stringify(bucketState));
     });
