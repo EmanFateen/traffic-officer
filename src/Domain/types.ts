@@ -1,23 +1,9 @@
-export type Policy = {
-    apiKey: Rate;
-    ip?: Rate;
-    tenant?: Rate;
-};
-
-export type Certificate = {
-    allowed: boolean;
-    retryAfter: number;
-    remainingTokens: number;
-};
-
 export type Decision<State> = {
     allowed: boolean;
     retryAfter: number;
     remaining: number;
     nextState: State;
 };
-
-export type Algorithm = "TokenBucket";
 
 export type LimitConfig<Config> = {
     apiKey: Config;
@@ -35,16 +21,6 @@ export type Rate = {
     amount: number;
     perMs: number;
 };
-
-/////////////// *** State Identifier types ******** ////////////////
-
-export type IdentifierScope = "user" | "ip" | "tenant";
-
-export type Identifier =  {
-    ownedBy(identity: string): string;
-};
-
-export type IdentifierBuilder = (scope: IdentifierScope) => Identifier;
 
 export type StateIdentifiers = {
     apikey: string;
