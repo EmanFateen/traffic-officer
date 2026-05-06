@@ -1,16 +1,14 @@
 import { RateLimitingAlgorithm } from "../Algorithm/RateLimitingAlgorithm.ts";
 import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
 import {
-    IdentifierBuilder,
     LimitConfig,
     LimitDecisions,
 } from "../types.ts";
-import {StateIdentifiers, UserIdentity} from "../../Application/types.ts";
+import {StateIdentifiers} from "../../Application/types.ts";
 
 export class LimitService<State, Config> {
     constructor(
         private readonly stateRepository: StateRepositoryInterface<State>,
-        private readonly identifierBuilder: IdentifierBuilder,
         private readonly limitingAlgorithm: RateLimitingAlgorithm<State, Config>
     ) {}
 

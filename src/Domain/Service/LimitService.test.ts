@@ -1,24 +1,13 @@
 import { describe, expect, test, vi } from "vitest";
 import { TokenBucketConfig, TokenBucketState } from "../Algorithm/types.ts";
 import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
-import {
-    Decision,
-    IdentifierBuilder,
-    LimitConfig,
-} from "../types.ts";
+import { Decision, LimitConfig } from "../types.ts";
 import { LimitService } from "./LimitService.ts";
 import {rateLimiterAlgorithmFactory} from "../Algorithm/RateLimiterAlgorithmFactory.ts";
 import {StateIdentifiers} from "../../Application/types.ts";
 
 describe("limit service", () => {
     test("limit returns a decision for the required api key identity", async () => {
-        const mockedIdentifierBuilder: IdentifierBuilder = vi.fn(
-            (key) => ({
-                ownedBy: vi.fn((identity: string) => {
-                    return `ratelimit:${key}:${identity}:tokens`;
-                }),
-            }),
-        );
         const apiKeyState = { tokensCount: 5, lastUpdatedAtInMs: 1_000 };
         const requestedAtInMs = 1_000;
         const expectedApiKeyDecision: Decision<TokenBucketState> = {
@@ -34,11 +23,7 @@ describe("limit service", () => {
             findOneBy: vi.fn().mockResolvedValue(apiKeyState),
             save: vi.fn().mockResolvedValue(undefined),
         };
-        const limitService = new LimitService(
-            repository,
-            mockedIdentifierBuilder,
-            rateLimiterAlgorithmFactory("TokenBucket")
-        );
+        const limitService = new LimitService(repository, rateLimiterAlgorithmFactory("TokenBucket"));
         const stateIdentifiers: StateIdentifiers = {
             apikey: 'ratelimit:user:fake-api-key:tokens'
         };
@@ -65,13 +50,6 @@ describe("limit service", () => {
     });
 
     test("limit returns decisions for api key and ip identities", async () => {
-        const mockedIdentifierBuilder: IdentifierBuilder = vi.fn(
-            (key) => ({
-                ownedBy: vi.fn((identity: string) => {
-                    return `ratelimit:${key}:${identity}:tokens`;
-                }),
-            }),
-        );
         const apiKeyState = { tokensCount: 5, lastUpdatedAtInMs: 1_000 };
         const ipState = { tokensCount: 2, lastUpdatedAtInMs: 1_000 };
         const requestedAtInMs = 1_000;
@@ -100,11 +78,7 @@ describe("limit service", () => {
                 .mockResolvedValueOnce(ipState),
             save: vi.fn().mockResolvedValue(undefined),
         };
-        const limitService = new LimitService(
-            repository,
-            mockedIdentifierBuilder,
-            rateLimiterAlgorithmFactory("TokenBucket")
-        );
+        const limitService = new LimitService(repository, rateLimiterAlgorithmFactory("TokenBucket"));
         const stateIdentifiers: StateIdentifiers = {
             apikey: 'ratelimit:user:fake-api-key:tokens',
             ip: 'ratelimit:ip:fake-ip:tokens'
@@ -145,13 +119,6 @@ describe("limit service", () => {
     });
 
     test("limit returns decisions for api key and tenant identities", async () => {
-        const mockedIdentifierBuilder: IdentifierBuilder = vi.fn(
-            (key) => ({
-                ownedBy: vi.fn((identity: string) => {
-                    return `ratelimit:${key}:${identity}:tokens`;
-                }),
-            }),
-        );
         const apiKeyState = { tokensCount: 5, lastUpdatedAtInMs: 1_000 };
         const tenantState = { tokensCount: 3, lastUpdatedAtInMs: 1_000 };
         const requestedAtInMs = 1_000;
@@ -180,11 +147,7 @@ describe("limit service", () => {
                 .mockResolvedValueOnce(tenantState),
             save: vi.fn().mockResolvedValue(undefined),
         };
-        const limitService = new LimitService(
-            repository,
-            mockedIdentifierBuilder,
-            rateLimiterAlgorithmFactory("TokenBucket")
-        );
+        const limitService = new LimitService(repository, rateLimiterAlgorithmFactory("TokenBucket"));
         const stateIdentifiers: StateIdentifiers = {
             apikey: 'ratelimit:user:fake-api-key:tokens',
             tenant: 'ratelimit:tenant:fake-tenant:tokens'
