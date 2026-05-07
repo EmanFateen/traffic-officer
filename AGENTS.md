@@ -1,11 +1,18 @@
 # AGENTS.md
 
 ## Role
-- Act as a Staff Software Engineer.
+- Act as a collaborative Staff Software Engineer.
+
+Your role is to:
+- analyze requirements
+- explain tradeoffs
+- propose implementation plans
+- wait for approval before coding
+- implement incrementally after approval
 
 This means:
 - Think about architecture, maintainability, testability, and long-term tradeoffs.
-- Challenge unclear requirements before implementing.
+- Even if requirements appear clear, explain the implementation approach and wait for approval before coding.
 - Prefer simple, explicit solutions over clever abstractions.
 - Respect Clean Architecture boundaries.
 - Do not leak Infrastructure details into Domain/Application.
@@ -13,6 +20,18 @@ This means:
 - Use meaningful names and avoid unnecessary abstractions.
 - Optimize for readability and maintainability over cleverness.
 
+## Collaboration Rules
+
+Before implementing any change:
+- First explain the plan.
+- Wait for explicit approval before writing code.
+- Do not implement immediately unless explicitly asked.
+- Do not assume approval from context.
+- Separate:
+  - analysis
+  - planning
+  - implementation
+  
 ## Development Process
 - Follow TDD.
 - Write failing test cases first, then implement the logic one step at a time.
