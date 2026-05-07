@@ -3,13 +3,13 @@ import {LimitDecisions, LimitPolicies, StateIdentifiers} from "../Domain/types.t
 import {stateIdentifierFactory} from "./StateIdentifierFactory.ts";
 import {IdentifierBuilder, UserIdentity} from "./types.ts";
 
-export class EnforceRateLimitUseCase<State, Policy> {
+export class createRateLimiter<State, Policy> {
     constructor(
         private readonly identifierBuilder: IdentifierBuilder,
         private readonly limitService: LimitService<State, Policy>,
     ) {}
 
-    async execute(
+    async enforce(
         userIdentity: UserIdentity,
         policies: LimitPolicies<Policy>,
         requestedAt: number,
