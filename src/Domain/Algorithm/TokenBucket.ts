@@ -5,7 +5,7 @@ import { TokenBucketPolicy, TokenBucketState } from "./types.ts";
 export class TokenBucket
     implements RateLimiterInterface<TokenBucketState, TokenBucketPolicy>
 {
-    limit(
+    attempt(
         state: TokenBucketState | null | undefined,
         policy: TokenBucketPolicy,
         requestedAtInMs: number,

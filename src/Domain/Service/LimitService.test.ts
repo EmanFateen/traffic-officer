@@ -19,7 +19,7 @@ describe("limit service", () => {
         };
         const expectedDecision = { nextState: { key: 'new-state-key' } } as Decision<FakeState>;
         const MockedAlgorithm: RateLimiterInterface<FakeState, FakeConfig> = {
-            limit: vi.fn().mockReturnValue(expectedDecision),
+            attempt: vi.fn().mockReturnValue(expectedDecision),
         };
         const limitService = new LimitService(mockedRepository, MockedAlgorithm);
         const stateIdentifiers: StateIdentifiers = { apikey: 'apikey-identifier' };
@@ -50,7 +50,7 @@ describe("limit service", () => {
             tenant: { nextState: { key: 'new-tenant-state-key'} } as Decision<FakeState>
         };
         const MockedAlgorithm: RateLimiterInterface<FakeState, FakeConfig> = {
-            limit: vi.fn()
+            attempt: vi.fn()
                 .mockReturnValueOnce(expectedDecisions.apiKey)
                 .mockReturnValueOnce(expectedDecisions.ip)
                 .mockReturnValueOnce(expectedDecisions.tenant),

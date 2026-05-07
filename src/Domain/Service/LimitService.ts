@@ -32,7 +32,7 @@ export class LimitService<State, Policy> {
     private async decide(identifier: string, config: Policy, requestedAtInMs: number): Promise<Decision<State>> {
         const state = await this.stateRepository.findOneBy(identifier);
         
-        const decision: Decision<State> = this.limitingAlgorithm.limit(
+        const decision: Decision<State> = this.limitingAlgorithm.attempt(
             state,
             config,
             requestedAtInMs,
