@@ -9,36 +9,36 @@ export class LimitService<State, Policy> {
     ) {}
 
     async execute(
-        stateIdentifiers: StateIdentifiers,
-        algorithmPolicy: LimitPolicies<Policy>,
-        requestedAtInMs: number,
+        identifiers: StateIdentifiers,
+        policies: LimitPolicies<Policy>,
+        requestedAt: number,
     ): Promise<LimitDecisions<State>> {
         
         const limitDecisions: LimitDecisions<State> = {
-            apiKey: await this.attempt(stateIdentifiers.apikey, algorithmPolicy.apiKey, requestedAtInMs),
+            apiKey: await this.attempt(identifiers.apikey, policies.apiKey, requestedAt),
         };
         
-        if (stateIdentifiers.ip !== undefined && algorithmPolicy.ip !== undefined) {
-            limitDecisions.ip =  await this.attempt(stateIdentifiers.ip, algorithmPolicy.ip, requestedAtInMs);
+        if (identifiers.ip !== undefined && policies.ip !== undefined) {
+            limitDecisions.ip =  await this.attempt(identifiers.ip, policies.ip, requestedAt);
         }
 
-        if (stateIdentifiers.tenant !== undefined && algorithmPolicy.tenant !== undefined ) {
-            limitDecisions.tenant =  await this.attempt(stateIdentifiers.tenant, algorithmPolicy.tenant, requestedAtInMs);
+        if (identifiers.tenant !== undefined && policies.tenant !== undefined ) {
+            limitDecisions.tenant =  await this.attempt(identifiers.tenant, policies.tenant, requestedAt);
         }
 
         return limitDecisions;
     }
 
-    private async attempt(identifier: string, config: Policy, requestedAtInMs: number): Promise<Decision<State>> {
-        const state = await this.stateRepository.findOneBy(identifier);
+    private async attempt(identifier: string, policy: Policy, requestedAt: number): Promise<Decision<State>> {
+        const currentState = await this.stateRepository.findOneBy(identifier);
         
         const decision: Decision<State> = this.limitingAlgorithm.attempt(
-            state,
-            config,
-            requestedAtInMs,
+            currentState,
+            policy,
+            requestedAt,
         );
         
-        await this.stateRepository.save( identifier, decision.nextState);
+        await this.stateRepository.save(identifier, decision.nextState);
         
         return decision;
     }
