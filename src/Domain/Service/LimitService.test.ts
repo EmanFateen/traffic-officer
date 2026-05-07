@@ -28,7 +28,7 @@ describe("limit service", () => {
         };
 
         const actualDecisions: LimitDecisions<FakeState> =
-            await limitService.limit(stateIdentifiers, algorithmConfig, 1_000);
+            await limitService.execute(stateIdentifiers, algorithmConfig, 1_000);
 
         expect(actualDecisions).toEqual({apiKey: expectedDecision});
         expect(mockedRepository.findOneBy).toHaveBeenCalledWith( stateIdentifiers.apikey );
@@ -68,7 +68,7 @@ describe("limit service", () => {
         };
 
         const actualDecisions =
-            await limitService.limit(stateIdentifiers, algorithmConfig, 1_000);
+            await limitService.execute(stateIdentifiers, algorithmConfig, 1_000);
 
         expect(actualDecisions).toEqual(expectedDecisions);
         expect(mockedRepository.findOneBy).toHaveBeenCalledWith(stateIdentifiers.apikey);

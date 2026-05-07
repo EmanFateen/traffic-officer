@@ -8,7 +8,7 @@ export class LimitService<State, Policy> {
         private readonly limitingAlgorithm: RateLimiterInterface<State, Policy>
     ) {}
 
-    async limit(
+    async execute(
         stateIdentifiers: StateIdentifiers,
         algorithmPolicy: LimitPolicies<Policy>,
         requestedAtInMs: number,
