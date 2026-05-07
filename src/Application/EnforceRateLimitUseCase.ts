@@ -1,5 +1,5 @@
 import {LimitService} from "../Domain/Service/LimitService.ts";
-import {LimitDecisions, LimitPolicies} from "../Domain/types.ts";
+import {LimitDecisions, LimitPolicies, StateIdentifiers} from "../Domain/types.ts";
 import {stateIdentifierFactory} from "./StateIdentifierFactory.ts";
 import {IdentifierBuilder, UserIdentity} from "./types.ts";
 
@@ -14,7 +14,15 @@ export class EnforceRateLimitUseCase<State, Policy> {
         policies: LimitPolicies<Policy>,
         requestedAt: number,
     ): Promise<LimitDecisions<State>> {
-        const stateIdentifiers = stateIdentifierFactory(this.identifierBuilder, userIdentity);
+        if (!userIdentity.apiKey) {
+            throw new Error("apikey is required to enforce rate limits");
+        }
+
+        if (!policies.apiKey) {
+            throw new Error("api key policy is required to enforce rate limits");
+        }
+
+        const stateIdentifiers: StateIdentifiers = stateIdentifierFactory(this.identifierBuilder, userIdentity);
 
         return this.limitService.execute(stateIdentifiers, policies, requestedAt);
     }

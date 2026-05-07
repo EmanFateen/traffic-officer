@@ -66,4 +66,42 @@ describe("enforce rate limit use case", () => {
             requestedAt,
         );
     });
+
+    test("should reject requests when the api key identity is missing", async () => {
+        const userIdentity = {} as UserIdentity;
+        const policies: LimitPolicies<FakePolicy> = {
+            apiKey: {key: "api-key-policy"},
+        };
+        const identifierBuilder = vi.fn((scope: IdentifierScope): Identifier => ({
+            ownedBy: vi.fn((identity: string) => `example-${scope}-for-${identity}`),
+        }));
+        const limitService = {
+            execute: vi.fn(),
+        } as unknown as LimitService<FakeState, FakePolicy>;
+        const useCase = new EnforceRateLimitUseCase(identifierBuilder, limitService);
+
+        await expect(useCase.execute(userIdentity, policies, 1_000)).rejects.toThrow(
+            "apikey is required to enforce rate limits",
+        );
+        expect(limitService.execute).not.toHaveBeenCalled();
+    });
+
+    test("should reject requests when the api key policy is missing", async () => {
+        const userIdentity: UserIdentity = {
+            apiKey: "fake-api-key",
+        };
+        const policies = {} as LimitPolicies<FakePolicy>;
+        const identifierBuilder = vi.fn((scope: IdentifierScope): Identifier => ({
+            ownedBy: vi.fn((identity: string) => `example-${scope}-for-${identity}`),
+        }));
+        const limitService = {
+            execute: vi.fn(),
+        } as unknown as LimitService<FakeState, FakePolicy>;
+        const useCase = new EnforceRateLimitUseCase(identifierBuilder, limitService);
+
+        await expect(useCase.execute(userIdentity, policies, 1_000)).rejects.toThrow(
+            "api key policy is required to enforce rate limits",
+        );
+        expect(limitService.execute).not.toHaveBeenCalled();
+    });
 });
