@@ -1,7 +1,7 @@
 import {describe, expect, test, vi} from "vitest";
 import {LimitService} from "../Domain/Service/LimitService.ts";
 import {LimitDecisions, LimitPolicies} from "../Domain/types.ts";
-import {createRateLimiter} from "./CreateRateLimiter.ts";
+import {EnforceRateLimitUseCase} from "./EnforceRateLimitUseCase.ts";
 import {Identifier, IdentifierScope, UserIdentity} from "./types.ts";
 
 type FakeState = {
@@ -51,7 +51,7 @@ describe("enforce rate limit use case", () => {
         const limitService = {
             execute: vi.fn().mockResolvedValue(expectedDecisions),
         } as unknown as LimitService<FakeState, FakePolicy>;
-        const useCase = new createRateLimiter(identifierBuilder, limitService);
+        const useCase = new EnforceRateLimitUseCase(identifierBuilder, limitService);
 
         const actualDecisions = await useCase.enforce(userIdentity, policies, requestedAt);
 
@@ -78,7 +78,7 @@ describe("enforce rate limit use case", () => {
         const limitService = {
             execute: vi.fn(),
         } as unknown as LimitService<FakeState, FakePolicy>;
-        const useCase = new createRateLimiter(identifierBuilder, limitService);
+        const useCase = new EnforceRateLimitUseCase(identifierBuilder, limitService);
 
         await expect(useCase.enforce(userIdentity, policies, 1_000)).rejects.toThrow(
             "apikey is required to enforce rate limits",
@@ -97,7 +97,7 @@ describe("enforce rate limit use case", () => {
         const limitService = {
             execute: vi.fn(),
         } as unknown as LimitService<FakeState, FakePolicy>;
-        const useCase = new createRateLimiter(identifierBuilder, limitService);
+        const useCase = new EnforceRateLimitUseCase(identifierBuilder, limitService);
 
         await expect(useCase.enforce(userIdentity, policies, 1_000)).rejects.toThrow(
             "api key policy is required to enforce rate limits",
