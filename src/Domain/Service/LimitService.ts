@@ -15,21 +15,21 @@ export class LimitService<State, Policy> {
     ): Promise<LimitDecisions<State>> {
         
         const limitDecisions: LimitDecisions<State> = {
-            apiKey: await this.decide(stateIdentifiers.apikey, algorithmPolicy.apiKey, requestedAtInMs),
+            apiKey: await this.attempt(stateIdentifiers.apikey, algorithmPolicy.apiKey, requestedAtInMs),
         };
         
         if (stateIdentifiers.ip !== undefined && algorithmPolicy.ip !== undefined) {
-            limitDecisions.ip =  await this.decide(stateIdentifiers.ip, algorithmPolicy.ip, requestedAtInMs);
+            limitDecisions.ip =  await this.attempt(stateIdentifiers.ip, algorithmPolicy.ip, requestedAtInMs);
         }
 
         if (stateIdentifiers.tenant !== undefined && algorithmPolicy.tenant !== undefined ) {
-            limitDecisions.tenant =  await this.decide(stateIdentifiers.tenant, algorithmPolicy.tenant, requestedAtInMs);
+            limitDecisions.tenant =  await this.attempt(stateIdentifiers.tenant, algorithmPolicy.tenant, requestedAtInMs);
         }
 
         return limitDecisions;
     }
 
-    private async decide(identifier: string, config: Policy, requestedAtInMs: number): Promise<Decision<State>> {
+    private async attempt(identifier: string, config: Policy, requestedAtInMs: number): Promise<Decision<State>> {
         const state = await this.stateRepository.findOneBy(identifier);
         
         const decision: Decision<State> = this.limitingAlgorithm.attempt(
