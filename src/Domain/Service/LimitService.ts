@@ -1,44 +1,44 @@
-import {RateLimitingAlgorithmInterface} from "../Algorithm/RateLimitingAlgorithmInterface.ts";
+import {RateLimiterInterface} from "../Algorithm/RateLimiterInterface.ts";
 import {StateRepositoryInterface} from "../Repository/StateRepositoryInterface.ts";
 import {Decision, LimitPolicies, LimitDecisions, StateIdentifiers,} from "../types.ts";
 
 export class LimitService<State, Policy> {
     constructor(
         private readonly stateRepository: StateRepositoryInterface<State>,
-        private readonly limitingAlgorithm: RateLimitingAlgorithmInterface<State, Policy>
+        private readonly limitingAlgorithm: RateLimiterInterface<State, Policy>
     ) {}
 
-    async limit(
-        stateIdentifiers: StateIdentifiers,
-        algorithmPolicy: LimitPolicies<Policy>,
-        requestedAtInMs: number,
+    async execute(
+        identifiers: StateIdentifiers,
+        policies: LimitPolicies<Policy>,
+        requestedAt: number,
     ): Promise<LimitDecisions<State>> {
         
         const limitDecisions: LimitDecisions<State> = {
-            apiKey: await this.decide(stateIdentifiers.apikey, algorithmPolicy.apiKey, requestedAtInMs),
+            apiKey: await this.attempt(identifiers.apikey, policies.apiKey, requestedAt),
         };
         
-        if (stateIdentifiers.ip !== undefined && algorithmPolicy.ip !== undefined) {
-            limitDecisions.ip =  await this.decide(stateIdentifiers.ip, algorithmPolicy.ip, requestedAtInMs);
+        if (identifiers.ip !== undefined && policies.ip !== undefined) {
+            limitDecisions.ip =  await this.attempt(identifiers.ip, policies.ip, requestedAt);
         }
 
-        if (stateIdentifiers.tenant !== undefined && algorithmPolicy.tenant !== undefined ) {
-            limitDecisions.tenant =  await this.decide(stateIdentifiers.tenant, algorithmPolicy.tenant, requestedAtInMs);
+        if (identifiers.tenant !== undefined && policies.tenant !== undefined ) {
+            limitDecisions.tenant =  await this.attempt(identifiers.tenant, policies.tenant, requestedAt);
         }
 
         return limitDecisions;
     }
 
-    private async decide(identifier: string, config: Policy, requestedAtInMs: number): Promise<Decision<State>> {
-        const state = await this.stateRepository.findOneBy(identifier);
+    private async attempt(identifier: string, policy: Policy, requestedAt: number): Promise<Decision<State>> {
+        const currentState = await this.stateRepository.findOneBy(identifier);
         
-        const decision: Decision<State> = this.limitingAlgorithm.limit(
-            state,
-            config,
-            requestedAtInMs,
+        const decision: Decision<State> = this.limitingAlgorithm.attempt(
+            currentState,
+            policy,
+            requestedAt,
         );
         
-        await this.stateRepository.save( identifier, decision.nextState);
+        await this.stateRepository.save(identifier, decision.nextState);
         
         return decision;
     }

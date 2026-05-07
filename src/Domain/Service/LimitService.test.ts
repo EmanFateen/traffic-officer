@@ -2,7 +2,7 @@ import {describe, expect, test, vi} from "vitest";
 import {StateRepositoryInterface} from "../Repository/StateRepositoryInterface.ts";
 import {Decision, LimitPolicies, LimitDecisions, StateIdentifiers} from "../types.ts";
 import {LimitService} from "./LimitService.ts";
-import {RateLimitingAlgorithmInterface} from "../Algorithm/RateLimitingAlgorithmInterface.ts";
+import {RateLimiterInterface} from "../Algorithm/RateLimiterInterface.ts";
 
 type FakeState = {
     key: string
@@ -18,8 +18,8 @@ describe("limit service", () => {
             save: vi.fn().mockResolvedValue(undefined),
         };
         const expectedDecision = { nextState: { key: 'new-state-key' } } as Decision<FakeState>;
-        const MockedAlgorithm: RateLimitingAlgorithmInterface<FakeState, FakeConfig> = {
-            limit: vi.fn().mockReturnValue(expectedDecision),
+        const MockedAlgorithm: RateLimiterInterface<FakeState, FakeConfig> = {
+            attempt: vi.fn().mockReturnValue(expectedDecision),
         };
         const limitService = new LimitService(mockedRepository, MockedAlgorithm);
         const stateIdentifiers: StateIdentifiers = { apikey: 'apikey-identifier' };
@@ -28,7 +28,7 @@ describe("limit service", () => {
         };
 
         const actualDecisions: LimitDecisions<FakeState> =
-            await limitService.limit(stateIdentifiers, algorithmConfig, 1_000);
+            await limitService.execute(stateIdentifiers, algorithmConfig, 1_000);
 
         expect(actualDecisions).toEqual({apiKey: expectedDecision});
         expect(mockedRepository.findOneBy).toHaveBeenCalledWith( stateIdentifiers.apikey );
@@ -49,8 +49,8 @@ describe("limit service", () => {
             ip:  { nextState: { key: 'new-ip-state-key'} } as Decision<FakeState>,
             tenant: { nextState: { key: 'new-tenant-state-key'} } as Decision<FakeState>
         };
-        const MockedAlgorithm: RateLimitingAlgorithmInterface<FakeState, FakeConfig> = {
-            limit: vi.fn()
+        const MockedAlgorithm: RateLimiterInterface<FakeState, FakeConfig> = {
+            attempt: vi.fn()
                 .mockReturnValueOnce(expectedDecisions.apiKey)
                 .mockReturnValueOnce(expectedDecisions.ip)
                 .mockReturnValueOnce(expectedDecisions.tenant),
@@ -68,7 +68,7 @@ describe("limit service", () => {
         };
 
         const actualDecisions =
-            await limitService.limit(stateIdentifiers, algorithmConfig, 1_000);
+            await limitService.execute(stateIdentifiers, algorithmConfig, 1_000);
 
         expect(actualDecisions).toEqual(expectedDecisions);
         expect(mockedRepository.findOneBy).toHaveBeenCalledWith(stateIdentifiers.apikey);

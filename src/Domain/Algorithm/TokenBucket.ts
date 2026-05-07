@@ -1,33 +1,28 @@
 import { Decision } from "../types.ts";
-import { RateLimitingAlgorithmInterface } from "./RateLimitingAlgorithmInterface.ts";
+import { RateLimiterInterface } from "./RateLimiterInterface.ts";
 import { TokenBucketPolicy, TokenBucketState } from "./types.ts";
 
 export class TokenBucket
-    implements RateLimitingAlgorithmInterface<TokenBucketState, TokenBucketPolicy>
+    implements RateLimiterInterface<TokenBucketState, TokenBucketPolicy>
 {
-    limit(
+    attempt(
         state: TokenBucketState | null | undefined,
         policy: TokenBucketPolicy,
         requestedAtInMs: number,
     ): Decision<TokenBucketState> {
-        const currentState = state ?? {
-            tokensCount: policy.bucketCapacity,
-            lastUpdatedAtInMs: requestedAtInMs,
-        };
+
         const availableTokens: number = this.getAvailableTokens(
-            currentState,
+            state,
             policy,
             requestedAtInMs,
         );
 
-        const requestCost = 1;
-        const remainingTokens: number = availableTokens - requestCost;
-        const allowed: boolean = remainingTokens >= 0;
+        const remainingTokens: number = this.consume(availableTokens);
 
-        if (allowed) {
+        if (remainingTokens >= 0) {
             const truncatedRemainingTokens = Math.trunc(remainingTokens * 100) / 100;
             return {
-                allowed,
+                allowed: true,
                 retryAfter: 0,
                 remaining: Math.floor(truncatedRemainingTokens),
                 nextState: {
@@ -37,11 +32,10 @@ export class TokenBucket
             };
         }
 
-        const missingTokens: number = requestCost - availableTokens;
         return {
-            allowed,
+            allowed: false,
             retryAfter: Math.ceil(
-                (missingTokens * policy.refillRate.perMs) / policy.refillRate.amount,
+                ((remainingTokens * -1) * policy.refillRate.perMs) / policy.refillRate.amount,
             ),
             remaining: 0,
             nextState: {
@@ -51,21 +45,34 @@ export class TokenBucket
         };
     }
 
+
     private getAvailableTokens(
-        currentBucketState: TokenBucketState,
-        config: TokenBucketPolicy,
+        state: TokenBucketState | null | undefined,
+        policy: TokenBucketPolicy,
         requestedAtInMs: number,
     ): number {
+
+        const currentBucketState: TokenBucketState = state ?? {
+            tokensCount: policy.bucketCapacity,
+            lastUpdatedAtInMs: requestedAtInMs,
+        };
+
         const elapsedInMs: number = Math.max(
             0,
             requestedAtInMs - currentBucketState.lastUpdatedAtInMs,
         );
         const refilledTokens: number =
-            elapsedInMs * (config.refillRate.amount / config.refillRate.perMs);
+            elapsedInMs * (policy.refillRate.amount / policy.refillRate.perMs);
 
         return Math.min(
-            config.bucketCapacity,
+            policy.bucketCapacity,
             currentBucketState.tokensCount + refilledTokens,
         );
+    }
+
+    private consume(availableTokens: number): number {
+        const requestCost = 1;
+
+        return availableTokens - requestCost;
     }
 }
