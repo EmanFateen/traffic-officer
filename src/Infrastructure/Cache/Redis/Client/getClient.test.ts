@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { Config } from "./config.ts";
 import { createClient } from "./createClient.ts";
 
@@ -16,7 +16,7 @@ describe("Redis client singleton", () => {
     ({ getClient } = await import("./getClient.ts"));
   });
 
-  it("should create Redis client only once", async () => {
+  test("should create Redis client only once", async () => {
     const config: Config = { url: "redis://localhost:6379" };
     const client = { id: "redis-client" } as unknown as RedisClient;
     vi.mocked(createClient).mockResolvedValue(client);
@@ -30,7 +30,7 @@ describe("Redis client singleton", () => {
     expect(createClient).toHaveBeenCalledWith(config);
   });
 
-  it("should share pending Redis client creation between concurrent calls", async () => {
+  test("should share pending Redis client creation between concurrent calls", async () => {
     const config: Config = { url: "redis://localhost:6379" };
     const client = { id: "redis-client" } as unknown as RedisClient;
     vi.mocked(createClient).mockResolvedValue(client);
@@ -45,7 +45,7 @@ describe("Redis client singleton", () => {
     expect(createClient).toHaveBeenCalledOnce();
   });
 
-  it("should keep using the first Redis client once initialized", async () => {
+  test("should keep using the first Redis client once initialized", async () => {
     const firstConfig: Config = { url: "redis://localhost:6379" };
     const secondConfig: Config = { url: "redis://localhost:6380" };
     const client = { id: "redis-client" } as unknown as RedisClient;
@@ -59,7 +59,7 @@ describe("Redis client singleton", () => {
     expect(createClient).toHaveBeenCalledWith(firstConfig);
   });
 
-  it("should retry Redis client creation after a failed connection", async () => {
+  test("should retry Redis client creation after a failed connection", async () => {
     const config: Config = { url: "redis://localhost:6379" };
     const client = { id: "redis-client" } as unknown as RedisClient;
     vi.mocked(createClient)

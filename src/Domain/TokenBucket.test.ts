@@ -1,9 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, test } from "vitest";
 
 import { limit } from "./TokenBucket.ts";
 
 describe("TokenBucket", () => {
-  it("allows a request when there are enough tokens", () => {
+  test("allows a request when there are enough tokens", () => {
     const actualDecision = limit(
       { tokensCount: 3, lastUpdatedAtInMs: 1_000 },
       { amount: 2, perMs: 5_000 },
@@ -14,7 +14,7 @@ describe("TokenBucket", () => {
     expect(actualDecision.allowed).toBeTruthy();
   });
 
-  it("should allow request when tokens exactly equal cost", () => {
+  test("should allow request when tokens exactly equal cost", () => {
     const actualDecision = limit(
       { tokensCount: 1, lastUpdatedAtInMs: 1_000 },
       { amount: 2, perMs: 5_000 },
@@ -26,7 +26,7 @@ describe("TokenBucket", () => {
     expect(actualDecision.remainingTokens).toEqual(0);
   });
 
-  it("denies a request when no available tokens", () => {
+  test("denies a request when no available tokens", () => {
     const actualDecision = limit(
       { tokensCount: 0, lastUpdatedAtInMs: 1_000 },
       { amount: 2, perMs: 5_000 },
@@ -37,7 +37,7 @@ describe("TokenBucket", () => {
     expect(actualDecision.allowed).toBeFalsy();
   });
 
-  it("should decrease tokens by request cost if allowed", () => {
+  test("should decrease tokens by request cost if allowed", () => {
     const availableTokens = 3;
 
     const actualDecision = limit(
@@ -50,7 +50,7 @@ describe("TokenBucket", () => {
     expect(actualDecision.remainingTokens).toEqual(availableTokens - 1);
   });
 
-  it("should return updated bucket state after decision", () => {
+  test("should return updated bucket state after decision", () => {
     const requestedAtInMs = 500;
 
     const actualDecision = limit(
@@ -69,7 +69,7 @@ describe("TokenBucket", () => {
     expect(actualDecision.bucketState.tokensCount).toEqual(0);
   });
 
-  it("should enforce average rate over time by refill bucket", () => {
+  test("should enforce average rate over time by refill bucket", () => {
     const bucketCapacity = 2;
     const refillRate = { amount: 2, perMs: 1_000 };
     let currentTokens = 2;
@@ -103,7 +103,7 @@ describe("TokenBucket", () => {
     expect(actualDecision.allowed).toBeTruthy();
   });
 
-  it("should reject requests exceeding burst capacity", () => {
+  test("should reject requests exceeding burst capacity", () => {
     const bucketCapacity = 2;
     const refillRate = { amount: 2, perMs: 5_000 };
     let currentTokens = 2;
@@ -144,7 +144,7 @@ describe("TokenBucket", () => {
     );
   });
 
-  it("remaining tokens should stay integers", () => {
+  test("remaining tokens should stay integers", () => {
     const actualDecision = limit(
       { tokensCount: 5, lastUpdatedAtInMs: 1_000 },
       { amount: 1, perMs: 5_000 },
@@ -157,7 +157,7 @@ describe("TokenBucket", () => {
     expect(actualDecision.bucketState.tokensCount).toEqual(4.2);
   });
 
-  it("should not refill when requested time is earlier than last update", () => {
+  test("should not refill when requested time is earlier than last update", () => {
     const actualDecision = limit(
       { tokensCount: 5, lastUpdatedAtInMs: 1_000 },
       { amount: 1, perMs: 5_000 },
@@ -170,7 +170,7 @@ describe("TokenBucket", () => {
     expect(actualDecision.bucketState.tokensCount).toEqual(4);
   });
 
-  it("should not refill beyond bucket capacity", () => {
+  test("should not refill beyond bucket capacity", () => {
     const bucketCapacity = 100;
     const actualDecision = limit(
       { tokensCount: 80, lastUpdatedAtInMs: 700 },
