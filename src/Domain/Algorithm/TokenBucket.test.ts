@@ -51,7 +51,7 @@ describe("TokenBucket", () => {
     });
 
     it("should decrease tokens by request cost if allowed", () => {
-        let availableTokens = 3;
+        const availableTokens = 3;
         const tokenBucket = new TokenBucket();
 
         const actualDecision: Decision<TokenBucketState> = tokenBucket.attempt(
