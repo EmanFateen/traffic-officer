@@ -2,11 +2,11 @@ import { describe, expect, test, vi } from "vitest";
 import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
 import {
   Decision,
-  LimitPolicies,
+  Policies,
   LimitDecisions,
   StateIdentifiers,
 } from "../types.ts";
-import { LimitService } from "./LimitService.ts";
+import { rateLimiterService } from "./RateLimiterService.ts";
 import { RateLimiterInterface } from "../Algorithm/RateLimiterInterface.ts";
 
 type FakeState = {
@@ -30,9 +30,12 @@ describe("limit service", () => {
     const MockedAlgorithm: RateLimiterInterface<FakeState, FakeConfig> = {
       attempt: vi.fn().mockReturnValue(expectedDecision),
     };
-    const limitService = new LimitService(mockedRepository, MockedAlgorithm);
-    const stateIdentifiers: StateIdentifiers = { apikey: "apikey-identifier" };
-    const algorithmConfig: LimitPolicies<FakeConfig> = {
+    const limitService = new rateLimiterService(
+      mockedRepository,
+      MockedAlgorithm,
+    );
+    const stateIdentifiers: StateIdentifiers = { apiKey: "apikey-identifier" };
+    const algorithmConfig: Policies<FakeConfig> = {
       apiKey: { key: "example-config-key" },
     };
 
@@ -41,10 +44,10 @@ describe("limit service", () => {
 
     expect(actualDecisions).toEqual({ apiKey: expectedDecision });
     expect(mockedRepository.findOneBy).toHaveBeenCalledWith(
-      stateIdentifiers.apikey,
+      stateIdentifiers.apiKey,
     );
     expect(mockedRepository.save).toHaveBeenCalledWith(
-      stateIdentifiers.apikey,
+      stateIdentifiers.apiKey,
       expectedDecision.nextState,
     );
   });
@@ -76,13 +79,16 @@ describe("limit service", () => {
         .mockReturnValueOnce(expectedDecisions.ip)
         .mockReturnValueOnce(expectedDecisions.tenant),
     };
-    const limitService = new LimitService(mockedRepository, MockedAlgorithm);
+    const limitService = new rateLimiterService(
+      mockedRepository,
+      MockedAlgorithm,
+    );
     const stateIdentifiers: StateIdentifiers = {
-      apikey: "apikey-identifier",
+      apiKey: "apikey-identifier",
       ip: "ip-identifier",
       tenant: "tenant-identifier",
     };
-    const algorithmConfig: LimitPolicies<FakeConfig> = {
+    const algorithmConfig: Policies<FakeConfig> = {
       apiKey: { key: "api-config" },
       ip: { key: "ip-config" },
       tenant: { key: "tenant-config" },
@@ -96,7 +102,7 @@ describe("limit service", () => {
 
     expect(actualDecisions).toEqual(expectedDecisions);
     expect(mockedRepository.findOneBy).toHaveBeenCalledWith(
-      stateIdentifiers.apikey,
+      stateIdentifiers.apiKey,
     );
     expect(mockedRepository.findOneBy).toHaveBeenCalledWith(
       stateIdentifiers.ip,
@@ -105,7 +111,7 @@ describe("limit service", () => {
       stateIdentifiers.tenant,
     );
     expect(mockedRepository.save).toHaveBeenCalledWith(
-      stateIdentifiers.apikey,
+      stateIdentifiers.apiKey,
       expectedDecisions.apiKey.nextState,
     );
     expect(mockedRepository.save).toHaveBeenCalledWith(

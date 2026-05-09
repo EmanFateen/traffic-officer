@@ -1,24 +1,26 @@
-import { LimitService } from "../Domain/Service/LimitService.ts";
+import { DecisionEvaluator } from "../Domain/Service/DecisionEvaluator.ts";
+import { rateLimiterService } from "../Domain/Service/RateLimiterService.ts";
 import {
-  LimitDecisions,
-  LimitPolicies,
+  EnforcementDecision,
+  Policies,
   StateIdentifiers,
 } from "../Domain/types.ts";
 import { stateIdentifierFactory } from "./StateIdentifierFactory.ts";
-import { IdentifierBuilder, UserIdentity } from "./types.ts";
+import { IdentifierBuilder, Identities } from "./types.ts";
 
 export class EnforceRateLimitUseCase<State, Policy> {
   constructor(
     private readonly identifierBuilder: IdentifierBuilder,
-    private readonly limitService: LimitService<State, Policy>,
+    private readonly rateLimiterService: rateLimiterService<State, Policy>,
+    private readonly decisionEvaluator: DecisionEvaluator,
   ) {}
 
   async enforce(
-    userIdentity: UserIdentity,
-    policies: LimitPolicies<Policy>,
+    identities: Identities,
+    policies: Policies<Policy>,
     requestedAt: number,
-  ): Promise<LimitDecisions<State>> {
-    if (!userIdentity.apiKey) {
+  ): Promise<EnforcementDecision> {
+    if (!identities.apiKey) {
       throw new Error("apikey is required to enforce rate limits");
     }
 
@@ -28,9 +30,15 @@ export class EnforceRateLimitUseCase<State, Policy> {
 
     const stateIdentifiers: StateIdentifiers = stateIdentifierFactory(
       this.identifierBuilder,
-      userIdentity,
+      identities,
     );
 
-    return this.limitService.execute(stateIdentifiers, policies, requestedAt);
+    const decisions = await this.rateLimiterService.execute(
+      stateIdentifiers,
+      policies,
+      requestedAt,
+    );
+
+    return this.decisionEvaluator.evaluate(decisions);
   }
 }

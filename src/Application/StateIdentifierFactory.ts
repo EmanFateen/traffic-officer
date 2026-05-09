@@ -1,24 +1,24 @@
-import { IdentifierBuilder, UserIdentity } from "./types.ts";
+import { IdentifierBuilder, Identities } from "./types.ts";
 import { StateIdentifiers } from "../Domain/types.ts";
 
 export function stateIdentifierFactory(
   identifierBuilder: IdentifierBuilder,
-  userIdentity: UserIdentity,
+  identities: Identities,
 ): StateIdentifiers {
-  if (!userIdentity.apiKey) {
-    throw new Error("apikey is required to generate the identifiers");
+  if (!identities.apiKey) {
+    throw new Error("apiKey is required to generate the identifiers");
   }
 
   const keys: StateIdentifiers = {
-    apikey: identifierBuilder("user").ownedBy(userIdentity.apiKey),
+    apiKey: identifierBuilder("user").ownedBy(identities.apiKey),
   };
 
-  if (userIdentity.ip !== undefined) {
-    keys.ip = identifierBuilder("ip").ownedBy(userIdentity.ip);
+  if (identities.ip !== undefined) {
+    keys.ip = identifierBuilder("ip").ownedBy(identities.ip);
   }
 
-  if (userIdentity.tenant !== undefined) {
-    keys.tenant = identifierBuilder("tenant").ownedBy(userIdentity.tenant);
+  if (identities.tenant !== undefined) {
+    keys.tenant = identifierBuilder("tenant").ownedBy(identities.tenant);
   }
 
   return keys;

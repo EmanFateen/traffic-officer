@@ -1,8 +1,13 @@
 import { describe, expect, test, vi } from "vitest";
-import { LimitService } from "../Domain/Service/LimitService.ts";
-import { LimitDecisions, LimitPolicies } from "../Domain/types.ts";
+import { DecisionEvaluator } from "../Domain/Service/DecisionEvaluator.ts";
+import { rateLimiterService } from "../Domain/Service/RateLimiterService.ts";
+import {
+  EnforcementDecision,
+  LimitDecisions,
+  Policies,
+} from "../Domain/types.ts";
 import { EnforceRateLimitUseCase } from "./EnforceRateLimitUseCase.ts";
-import { Identifier, IdentifierScope, UserIdentity } from "./types.ts";
+import { Identifier, IdentifierScope, Identities } from "./types.ts";
 
 type FakeState = {
   key: string;
@@ -13,13 +18,13 @@ type FakePolicy = {
 };
 
 describe("enforce rate limit use case", () => {
-  test("should return decisions for the requested user identities", async () => {
-    const userIdentity: UserIdentity = {
+  test("should return the enforcement decision for the requested user identities", async () => {
+    const userIdentity: Identities = {
       apiKey: "fake-api-key",
       ip: "fake-ip",
       tenant: "fake-tenant",
     };
-    const policies: LimitPolicies<FakePolicy> = {
+    const policies: Policies<FakePolicy> = {
       apiKey: { key: "api-key-policy" },
       ip: { key: "ip-policy" },
       tenant: { key: "tenant-policy" },
@@ -45,6 +50,10 @@ describe("enforce rate limit use case", () => {
         nextState: { key: "tenant-state" },
       },
     };
+    const expectedEnforcementDecision: EnforcementDecision = {
+      allowed: false,
+      retryAfter: 500,
+    };
     const identifierBuilder = vi.fn(
       (scope: IdentifierScope): Identifier => ({
         ownedBy: vi.fn(
@@ -54,33 +63,38 @@ describe("enforce rate limit use case", () => {
     );
     const limitService = {
       execute: vi.fn().mockResolvedValue(expectedDecisions),
-    } as unknown as LimitService<FakeState, FakePolicy>;
+    } as unknown as rateLimiterService<FakeState, FakePolicy>;
+    const decisionEvaluator = {
+      evaluate: vi.fn().mockReturnValue(expectedEnforcementDecision),
+    } as unknown as DecisionEvaluator;
     const useCase = new EnforceRateLimitUseCase(
       identifierBuilder,
       limitService,
+      decisionEvaluator,
     );
 
-    const actualDecisions = await useCase.enforce(
+    const actualDecision = await useCase.enforce(
       userIdentity,
       policies,
       requestedAt,
     );
 
-    expect(actualDecisions).toEqual(expectedDecisions);
+    expect(actualDecision).toEqual(expectedEnforcementDecision);
     expect(limitService.execute).toHaveBeenCalledWith(
       {
-        apikey: "example-user-for-fake-api-key",
+        apiKey: "example-user-for-fake-api-key",
         ip: "example-ip-for-fake-ip",
         tenant: "example-tenant-for-fake-tenant",
       },
       policies,
       requestedAt,
     );
+    expect(decisionEvaluator.evaluate).toHaveBeenCalledWith(expectedDecisions);
   });
 
   test("should reject requests when the api key identity is missing", async () => {
-    const userIdentity = {} as UserIdentity;
-    const policies: LimitPolicies<FakePolicy> = {
+    const userIdentity = {} as Identities;
+    const policies: Policies<FakePolicy> = {
       apiKey: { key: "api-key-policy" },
     };
     const identifierBuilder = vi.fn(
@@ -92,10 +106,14 @@ describe("enforce rate limit use case", () => {
     );
     const limitService = {
       execute: vi.fn(),
-    } as unknown as LimitService<FakeState, FakePolicy>;
+    } as unknown as rateLimiterService<FakeState, FakePolicy>;
+    const decisionEvaluator = {
+      evaluate: vi.fn(),
+    } as unknown as DecisionEvaluator;
     const useCase = new EnforceRateLimitUseCase(
       identifierBuilder,
       limitService,
+      decisionEvaluator,
     );
 
     await expect(
@@ -105,10 +123,10 @@ describe("enforce rate limit use case", () => {
   });
 
   test("should reject requests when the api key policy is missing", async () => {
-    const userIdentity: UserIdentity = {
+    const userIdentity: Identities = {
       apiKey: "fake-api-key",
     };
-    const policies = {} as LimitPolicies<FakePolicy>;
+    const policies = {} as Policies<FakePolicy>;
     const identifierBuilder = vi.fn(
       (scope: IdentifierScope): Identifier => ({
         ownedBy: vi.fn(
@@ -118,10 +136,14 @@ describe("enforce rate limit use case", () => {
     );
     const limitService = {
       execute: vi.fn(),
-    } as unknown as LimitService<FakeState, FakePolicy>;
+    } as unknown as rateLimiterService<FakeState, FakePolicy>;
+    const decisionEvaluator = {
+      evaluate: vi.fn(),
+    } as unknown as DecisionEvaluator;
     const useCase = new EnforceRateLimitUseCase(
       identifierBuilder,
       limitService,
+      decisionEvaluator,
     );
 
     await expect(

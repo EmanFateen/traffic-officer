@@ -2,12 +2,12 @@ import { RateLimiterInterface } from "../Algorithm/RateLimiterInterface.ts";
 import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
 import {
   Decision,
-  LimitPolicies,
+  Policies,
   LimitDecisions,
   StateIdentifiers,
 } from "../types.ts";
 
-export class LimitService<State, Policy> {
+export class rateLimiterService<State, Policy> {
   constructor(
     private readonly stateRepository: StateRepositoryInterface<State>,
     private readonly limitingAlgorithm: RateLimiterInterface<State, Policy>,
@@ -15,12 +15,12 @@ export class LimitService<State, Policy> {
 
   async execute(
     identifiers: StateIdentifiers,
-    policies: LimitPolicies<Policy>,
+    policies: Policies<Policy>,
     requestedAt: number,
   ): Promise<LimitDecisions<State>> {
     const limitDecisions: LimitDecisions<State> = {
       apiKey: await this.attempt(
-        identifiers.apikey,
+        identifiers.apiKey,
         policies.apiKey,
         requestedAt,
       ),

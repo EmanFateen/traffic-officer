@@ -5,20 +5,25 @@ export type Decision<State> = {
   nextState: State;
 };
 
+export type EnforcementDecision = {
+  allowed: boolean;
+  retryAfter: number;
+};
+
 export type LimitDecisions<State> = {
   apiKey: Decision<State>;
   ip?: Decision<State>;
   tenant?: Decision<State>;
 };
 
-export type LimitPolicies<Policy> = {
+export type Policies<Policy> = {
   apiKey: Policy;
   ip?: Policy;
   tenant?: Policy;
 };
 
 export type StateIdentifiers = {
-  apikey: string;
+  apiKey: string;
   ip?: string;
   tenant?: string;
 };
