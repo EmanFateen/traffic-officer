@@ -1,22 +1,22 @@
-import { Decision, EnforcementDecision, LimitDecisions } from "../types.ts";
+import { EnforcementDecision, LimitDecisions } from "../types.ts";
 
 export class DecisionEvaluator {
   evaluate<State>(decisions: LimitDecisions<State>): EnforcementDecision {
-    const evaluatedDecisions: Decision<State>[] = [
+    const allDecisions = [
       decisions.apiKey,
       decisions.ip,
       decisions.tenant,
     ].filter((decision) => decision !== undefined);
-    const rejectedDecisions = evaluatedDecisions.filter(
-      (decision) => !decision.allowed,
+
+    const allowed = allDecisions.every((decision) => decision.allowed);
+    const retryAfter = Math.max(
+      0,
+      ...allDecisions.map((decision) => decision.retryAfter),
     );
 
     return {
-      allowed: rejectedDecisions.length === 0,
-      retryAfter: Math.max(
-        0,
-        ...rejectedDecisions.map((decision) => decision.retryAfter),
-      ),
+      allowed,
+      retryAfter,
     };
   }
 }
