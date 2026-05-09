@@ -99,4 +99,23 @@ describe("decision evaluator", () => {
       retryAfter: 500,
     });
   });
+
+  test("should ignore dimensions that were not evaluated", () => {
+    const decisions: LimitDecisions<FakeState> = {
+      apiKey: {
+        allowed: true,
+        retryAfter: 0,
+        remaining: 9,
+        nextState: { key: "api-key-state" },
+      },
+    };
+    const evaluator = new DecisionEvaluator();
+
+    const actualDecision = evaluator.evaluate(decisions);
+
+    expect(actualDecision).toEqual({
+      allowed: true,
+      retryAfter: 0,
+    });
+  });
 });
