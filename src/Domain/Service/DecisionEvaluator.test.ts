@@ -68,4 +68,35 @@ describe("decision evaluator", () => {
       retryAfter: 500,
     });
   });
+
+  test("should return the maximum retry after from rejected dimensions", () => {
+    const decisions: LimitDecisions<FakeState> = {
+      apiKey: {
+        allowed: false,
+        retryAfter: 200,
+        remaining: 0,
+        nextState: { key: "api-key-state" },
+      },
+      ip: {
+        allowed: false,
+        retryAfter: 500,
+        remaining: 0,
+        nextState: { key: "ip-state" },
+      },
+      tenant: {
+        allowed: true,
+        retryAfter: 0,
+        remaining: 19,
+        nextState: { key: "tenant-state" },
+      },
+    };
+    const evaluator = new DecisionEvaluator();
+
+    const actualDecision = evaluator.evaluate(decisions);
+
+    expect(actualDecision).toEqual({
+      allowed: false,
+      retryAfter: 500,
+    });
+  });
 });
