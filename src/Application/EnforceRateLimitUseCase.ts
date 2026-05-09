@@ -2,11 +2,11 @@ import { DecisionEvaluator } from "../Domain/Service/DecisionEvaluator.ts";
 import { rateLimiterService } from "../Domain/Service/RateLimiterService.ts";
 import {
   EnforcementDecision,
-  LimitPolicies,
+  Policies,
   StateIdentifiers,
 } from "../Domain/types.ts";
 import { stateIdentifierFactory } from "./StateIdentifierFactory.ts";
-import { IdentifierBuilder, UserIdentity } from "./types.ts";
+import { IdentifierBuilder, Identities } from "./types.ts";
 
 export class EnforceRateLimitUseCase<State, Policy> {
   constructor(
@@ -16,11 +16,11 @@ export class EnforceRateLimitUseCase<State, Policy> {
   ) {}
 
   async enforce(
-    userIdentity: UserIdentity,
-    policies: LimitPolicies<Policy>,
+    identities: Identities,
+    policies: Policies<Policy>,
     requestedAt: number,
   ): Promise<EnforcementDecision> {
-    if (!userIdentity.apiKey) {
+    if (!identities.apiKey) {
       throw new Error("apikey is required to enforce rate limits");
     }
 
@@ -30,7 +30,7 @@ export class EnforceRateLimitUseCase<State, Policy> {
 
     const stateIdentifiers: StateIdentifiers = stateIdentifierFactory(
       this.identifierBuilder,
-      userIdentity,
+      identities,
     );
 
     const decisions = await this.rateLimiterService.execute(

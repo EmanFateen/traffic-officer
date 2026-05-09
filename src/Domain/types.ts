@@ -16,7 +16,7 @@ export type LimitDecisions<State> = {
   tenant?: Decision<State>;
 };
 
-export type LimitPolicies<Policy> = {
+export type Policies<Policy> = {
   apiKey: Policy;
   ip?: Policy;
   tenant?: Policy;

@@ -6,7 +6,7 @@ export type Identifier = {
 
 export type IdentifierBuilder = (scope: IdentifierScope) => Identifier;
 
-export type UserIdentity = {
+export type Identities = {
   apiKey: string;
   ip?: string;
   tenant?: string;

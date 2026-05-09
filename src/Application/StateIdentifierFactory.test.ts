@@ -1,10 +1,10 @@
 import { describe, expect, test } from "vitest";
 import { stateIdentifierFactory } from "./StateIdentifierFactory.ts";
-import { Identifier, IdentifierScope, UserIdentity } from "./types.ts";
+import { Identifier, IdentifierScope, Identities } from "./types.ts";
 import { StateIdentifiers } from "../Domain/types.ts";
 describe("state identifier factory", () => {
   test("it must have api key at least", () => {
-    const userIdentity: UserIdentity = {
+    const userIdentity: Identities = {
       apiKey: "fake-api-key",
     };
 
@@ -19,7 +19,7 @@ describe("state identifier factory", () => {
   });
 
   test("it throws an exception when api key is missing", () => {
-    const userIdentity = {} as UserIdentity;
+    const userIdentity = {} as Identities;
 
     expect(() =>
       stateIdentifierFactory(ExampleIdentifierBuilder, userIdentity),

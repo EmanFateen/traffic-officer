@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
 import {
   Decision,
-  LimitPolicies,
+  Policies,
   LimitDecisions,
   StateIdentifiers,
 } from "../types.ts";
@@ -32,7 +32,7 @@ describe("limit service", () => {
     };
     const limitService = new rateLimiterService(mockedRepository, MockedAlgorithm);
     const stateIdentifiers: StateIdentifiers = { apiKey: "apikey-identifier" };
-    const algorithmConfig: LimitPolicies<FakeConfig> = {
+    const algorithmConfig: Policies<FakeConfig> = {
       apiKey: { key: "example-config-key" },
     };
 
@@ -82,7 +82,7 @@ describe("limit service", () => {
       ip: "ip-identifier",
       tenant: "tenant-identifier",
     };
-    const algorithmConfig: LimitPolicies<FakeConfig> = {
+    const algorithmConfig: Policies<FakeConfig> = {
       apiKey: { key: "api-config" },
       ip: { key: "ip-config" },
       tenant: { key: "tenant-config" },

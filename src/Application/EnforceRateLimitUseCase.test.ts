@@ -4,10 +4,10 @@ import { rateLimiterService } from "../Domain/Service/RateLimiterService.ts";
 import {
   EnforcementDecision,
   LimitDecisions,
-  LimitPolicies,
+  Policies,
 } from "../Domain/types.ts";
 import { EnforceRateLimitUseCase } from "./EnforceRateLimitUseCase.ts";
-import { Identifier, IdentifierScope, UserIdentity } from "./types.ts";
+import { Identifier, IdentifierScope, Identities } from "./types.ts";
 
 type FakeState = {
   key: string;
@@ -19,12 +19,12 @@ type FakePolicy = {
 
 describe("enforce rate limit use case", () => {
   test("should return the enforcement decision for the requested user identities", async () => {
-    const userIdentity: UserIdentity = {
+    const userIdentity: Identities = {
       apiKey: "fake-api-key",
       ip: "fake-ip",
       tenant: "fake-tenant",
     };
-    const policies: LimitPolicies<FakePolicy> = {
+    const policies: Policies<FakePolicy> = {
       apiKey: { key: "api-key-policy" },
       ip: { key: "ip-policy" },
       tenant: { key: "tenant-policy" },
@@ -93,8 +93,8 @@ describe("enforce rate limit use case", () => {
   });
 
   test("should reject requests when the api key identity is missing", async () => {
-    const userIdentity = {} as UserIdentity;
-    const policies: LimitPolicies<FakePolicy> = {
+    const userIdentity = {} as Identities;
+    const policies: Policies<FakePolicy> = {
       apiKey: { key: "api-key-policy" },
     };
     const identifierBuilder = vi.fn(
@@ -123,10 +123,10 @@ describe("enforce rate limit use case", () => {
   });
 
   test("should reject requests when the api key policy is missing", async () => {
-    const userIdentity: UserIdentity = {
+    const userIdentity: Identities = {
       apiKey: "fake-api-key",
     };
-    const policies = {} as LimitPolicies<FakePolicy>;
+    const policies = {} as Policies<FakePolicy>;
     const identifierBuilder = vi.fn(
       (scope: IdentifierScope): Identifier => ({
         ownedBy: vi.fn(

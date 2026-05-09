@@ -2,7 +2,7 @@ import { RateLimiterInterface } from "../Algorithm/RateLimiterInterface.ts";
 import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
 import {
   Decision,
-  LimitPolicies,
+  Policies,
   LimitDecisions,
   StateIdentifiers,
 } from "../types.ts";
@@ -15,7 +15,7 @@ export class rateLimiterService<State, Policy> {
 
   async execute(
     identifiers: StateIdentifiers,
-    policies: LimitPolicies<Policy>,
+    policies: Policies<Policy>,
     requestedAt: number,
   ): Promise<LimitDecisions<State>> {
     const limitDecisions: LimitDecisions<State> = {
