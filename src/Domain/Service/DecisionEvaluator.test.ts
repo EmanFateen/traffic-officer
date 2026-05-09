@@ -2,32 +2,13 @@ import { describe, expect, test } from "vitest";
 import { LimitDecisions } from "../types.ts";
 import { DecisionEvaluator } from "./DecisionEvaluator.ts";
 
-type FakeState = {
-  key: string;
-};
-
 describe("decision evaluator", () => {
-  test("should return an allowed enforcement decision when all evaluated dimensions are allowed", () => {
-    const decisions: LimitDecisions<FakeState> = {
-      apiKey: {
-        allowed: true,
-        retryAfter: 0,
-        remaining: 9,
-        nextState: { key: "api-key-state" },
-      },
-      ip: {
-        allowed: true,
-        retryAfter: 0,
-        remaining: 4,
-        nextState: { key: "ip-state" },
-      },
-      tenant: {
-        allowed: true,
-        retryAfter: 0,
-        remaining: 19,
-        nextState: { key: "tenant-state" },
-      },
-    };
+  test("should return an allowed enforcement decision when all dimensions are allowed", () => {
+    const decisions = {
+      apiKey: { allowed: true, retryAfter: 0 },
+      ip: { allowed: true, retryAfter: 0 },
+      tenant: { allowed: true, retryAfter: 0 },
+    } as unknown as LimitDecisions<never>;
     const evaluator = new DecisionEvaluator();
 
     const actualDecision = evaluator.evaluate(decisions);
@@ -38,27 +19,12 @@ describe("decision evaluator", () => {
     });
   });
 
-  test("should return a rejected enforcement decision when any evaluated dimension is rejected", () => {
-    const decisions: LimitDecisions<FakeState> = {
-      apiKey: {
-        allowed: true,
-        retryAfter: 0,
-        remaining: 9,
-        nextState: { key: "api-key-state" },
-      },
-      ip: {
-        allowed: false,
-        retryAfter: 500,
-        remaining: 0,
-        nextState: { key: "ip-state" },
-      },
-      tenant: {
-        allowed: true,
-        retryAfter: 0,
-        remaining: 19,
-        nextState: { key: "tenant-state" },
-      },
-    };
+  test("should return a rejected enforcement decision when any dimension is rejected", () => {
+    const decisions = {
+      apiKey: { allowed: true, retryAfter: 0 },
+      ip: { allowed: false, retryAfter: 500 },
+      tenant: { allowed: true, retryAfter: 0 },
+    } as unknown as LimitDecisions<never>;
     const evaluator = new DecisionEvaluator();
 
     const actualDecision = evaluator.evaluate(decisions);
@@ -70,26 +36,11 @@ describe("decision evaluator", () => {
   });
 
   test("should return the maximum retry after from rejected dimensions", () => {
-    const decisions: LimitDecisions<FakeState> = {
-      apiKey: {
-        allowed: false,
-        retryAfter: 200,
-        remaining: 0,
-        nextState: { key: "api-key-state" },
-      },
-      ip: {
-        allowed: false,
-        retryAfter: 500,
-        remaining: 0,
-        nextState: { key: "ip-state" },
-      },
-      tenant: {
-        allowed: true,
-        retryAfter: 0,
-        remaining: 19,
-        nextState: { key: "tenant-state" },
-      },
-    };
+    const decisions = {
+      apiKey: { allowed: false, retryAfter: 200 },
+      ip: { allowed: false, retryAfter: 500 },
+      tenant: { allowed: true, retryAfter: 0 },
+    } as unknown as LimitDecisions<never>;
     const evaluator = new DecisionEvaluator();
 
     const actualDecision = evaluator.evaluate(decisions);
@@ -101,14 +52,9 @@ describe("decision evaluator", () => {
   });
 
   test("should ignore dimensions that were not evaluated", () => {
-    const decisions: LimitDecisions<FakeState> = {
-      apiKey: {
-        allowed: true,
-        retryAfter: 0,
-        remaining: 9,
-        nextState: { key: "api-key-state" },
-      },
-    };
+    const decisions = {
+      apiKey: { allowed: true, retryAfter: 0 },
+    } as unknown as LimitDecisions<never>;
     const evaluator = new DecisionEvaluator();
 
     const actualDecision = evaluator.evaluate(decisions);
