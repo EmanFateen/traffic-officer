@@ -6,11 +6,11 @@ export function stateIdentifierFactory(
   userIdentity: UserIdentity,
 ): StateIdentifiers {
   if (!userIdentity.apiKey) {
-    throw new Error("apikey is required to generate the identifiers");
+    throw new Error("apiKey is required to generate the identifiers");
   }
 
   const keys: StateIdentifiers = {
-    apikey: identifierBuilder("user").ownedBy(userIdentity.apiKey),
+    apiKey: identifierBuilder("user").ownedBy(userIdentity.apiKey),
   };
 
   if (userIdentity.ip !== undefined) {

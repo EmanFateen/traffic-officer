@@ -23,7 +23,7 @@ export type LimitPolicies<Policy> = {
 };
 
 export type StateIdentifiers = {
-  apikey: string;
+  apiKey: string;
   ip?: string;
   tenant?: string;
 };

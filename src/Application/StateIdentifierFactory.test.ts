@@ -14,7 +14,7 @@ describe("state identifier factory", () => {
     );
 
     expect(actualKeys).toEqual({
-      apikey: `build-example-user-for-${userIdentity.apiKey}`,
+      apiKey: `build-example-user-for-${userIdentity.apiKey}`,
     });
   });
 
@@ -23,7 +23,7 @@ describe("state identifier factory", () => {
 
     expect(() =>
       stateIdentifierFactory(ExampleIdentifierBuilder, userIdentity),
-    ).toThrow("apikey is required to generate the identifiers");
+    ).toThrow("apiKey is required to generate the identifiers");
   });
 
   test.each([
@@ -33,7 +33,7 @@ describe("state identifier factory", () => {
         ip: "fake-ip",
       },
       expectedKeys: {
-        apikey: "build-example-user-for-fake-api-key",
+        apiKey: "build-example-user-for-fake-api-key",
         ip: "build-example-ip-for-fake-ip",
       },
     },
@@ -43,7 +43,7 @@ describe("state identifier factory", () => {
         tenant: "fake-tenant",
       },
       expectedKeys: {
-        apikey: "build-example-user-for-fake-api-key",
+        apiKey: "build-example-user-for-fake-api-key",
         tenant: "build-example-tenant-for-fake-tenant",
       },
     },
@@ -54,7 +54,7 @@ describe("state identifier factory", () => {
         tenant: "fake-tenant",
       },
       expectedKeys: {
-        apikey: "build-example-user-for-fake-api-key",
+        apiKey: "build-example-user-for-fake-api-key",
         ip: "build-example-ip-for-fake-ip",
         tenant: "build-example-tenant-for-fake-tenant",
       },

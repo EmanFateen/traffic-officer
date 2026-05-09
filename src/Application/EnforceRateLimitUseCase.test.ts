@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 import { DecisionEvaluator } from "../Domain/Service/DecisionEvaluator.ts";
-import { LimitService } from "../Domain/Service/LimitService.ts";
+import { rateLimiterService } from "../Domain/Service/RateLimiterService.ts";
 import {
   EnforcementDecision,
   LimitDecisions,
@@ -63,7 +63,7 @@ describe("enforce rate limit use case", () => {
     );
     const limitService = {
       execute: vi.fn().mockResolvedValue(expectedDecisions),
-    } as unknown as LimitService<FakeState, FakePolicy>;
+    } as unknown as rateLimiterService<FakeState, FakePolicy>;
     const decisionEvaluator = {
       evaluate: vi.fn().mockReturnValue(expectedEnforcementDecision),
     } as unknown as DecisionEvaluator;
@@ -82,7 +82,7 @@ describe("enforce rate limit use case", () => {
     expect(actualDecision).toEqual(expectedEnforcementDecision);
     expect(limitService.execute).toHaveBeenCalledWith(
       {
-        apikey: "example-user-for-fake-api-key",
+        apiKey: "example-user-for-fake-api-key",
         ip: "example-ip-for-fake-ip",
         tenant: "example-tenant-for-fake-tenant",
       },
@@ -106,7 +106,7 @@ describe("enforce rate limit use case", () => {
     );
     const limitService = {
       execute: vi.fn(),
-    } as unknown as LimitService<FakeState, FakePolicy>;
+    } as unknown as rateLimiterService<FakeState, FakePolicy>;
     const decisionEvaluator = {
       evaluate: vi.fn(),
     } as unknown as DecisionEvaluator;
@@ -136,7 +136,7 @@ describe("enforce rate limit use case", () => {
     );
     const limitService = {
       execute: vi.fn(),
-    } as unknown as LimitService<FakeState, FakePolicy>;
+    } as unknown as rateLimiterService<FakeState, FakePolicy>;
     const decisionEvaluator = {
       evaluate: vi.fn(),
     } as unknown as DecisionEvaluator;

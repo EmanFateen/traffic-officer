@@ -7,7 +7,7 @@ import {
   StateIdentifiers,
 } from "../types.ts";
 
-export class LimitService<State, Policy> {
+export class rateLimiterService<State, Policy> {
   constructor(
     private readonly stateRepository: StateRepositoryInterface<State>,
     private readonly limitingAlgorithm: RateLimiterInterface<State, Policy>,
@@ -20,7 +20,7 @@ export class LimitService<State, Policy> {
   ): Promise<LimitDecisions<State>> {
     const limitDecisions: LimitDecisions<State> = {
       apiKey: await this.attempt(
-        identifiers.apikey,
+        identifiers.apiKey,
         policies.apiKey,
         requestedAt,
       ),
