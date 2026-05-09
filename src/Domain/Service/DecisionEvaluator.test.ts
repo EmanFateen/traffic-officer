@@ -37,4 +37,35 @@ describe("decision evaluator", () => {
       retryAfter: 0,
     });
   });
+
+  test("should return a rejected enforcement decision when any evaluated dimension is rejected", () => {
+    const decisions: LimitDecisions<FakeState> = {
+      apiKey: {
+        allowed: true,
+        retryAfter: 0,
+        remaining: 9,
+        nextState: { key: "api-key-state" },
+      },
+      ip: {
+        allowed: false,
+        retryAfter: 500,
+        remaining: 0,
+        nextState: { key: "ip-state" },
+      },
+      tenant: {
+        allowed: true,
+        retryAfter: 0,
+        remaining: 19,
+        nextState: { key: "tenant-state" },
+      },
+    };
+    const evaluator = new DecisionEvaluator();
+
+    const actualDecision = evaluator.evaluate(decisions);
+
+    expect(actualDecision).toEqual({
+      allowed: false,
+      retryAfter: 500,
+    });
+  });
 });
