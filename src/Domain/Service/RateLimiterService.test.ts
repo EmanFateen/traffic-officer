@@ -30,7 +30,10 @@ describe("limit service", () => {
     const MockedAlgorithm: RateLimiterInterface<FakeState, FakeConfig> = {
       attempt: vi.fn().mockReturnValue(expectedDecision),
     };
-    const limitService = new rateLimiterService(mockedRepository, MockedAlgorithm);
+    const limitService = new rateLimiterService(
+      mockedRepository,
+      MockedAlgorithm,
+    );
     const stateIdentifiers: StateIdentifiers = { apiKey: "apikey-identifier" };
     const algorithmConfig: Policies<FakeConfig> = {
       apiKey: { key: "example-config-key" },
@@ -76,7 +79,10 @@ describe("limit service", () => {
         .mockReturnValueOnce(expectedDecisions.ip)
         .mockReturnValueOnce(expectedDecisions.tenant),
     };
-    const limitService = new rateLimiterService(mockedRepository, MockedAlgorithm);
+    const limitService = new rateLimiterService(
+      mockedRepository,
+      MockedAlgorithm,
+    );
     const stateIdentifiers: StateIdentifiers = {
       apiKey: "apikey-identifier",
       ip: "ip-identifier",
