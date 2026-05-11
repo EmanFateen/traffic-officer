@@ -16,3 +16,14 @@ The codebase follows Clean Architecture principles to ensure maintainability, te
 ## Practices & Methodologies
 * Domain-Driven Design (DDD)
 * Test-Driven Development (TDD)
+
+## How to use 
+```
+const officer = new TrafficOfficer(...);
+
+const decision = await officer.enforce(...);
+
+if (!decision.allowed) {
+   throw new TooManyRequestsError();
+}
+```
