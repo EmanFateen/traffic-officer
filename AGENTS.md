@@ -40,7 +40,7 @@ Before implementing any change:
     - Arrange
     - Act
     - Assert
-- Keep changes small and focused.
+- Keep changes small and focused and cherry-pickable.
 - Prefer incremental changes over large rewrites.
 - Do not introduce abstractions before they are needed.
 - Do not mix unrelated refactors with feature work.

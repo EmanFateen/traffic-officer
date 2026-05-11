@@ -1,5 +1,5 @@
 import { DecisionEvaluator } from "../Domain/Service/DecisionEvaluator.ts";
-import { rateLimiterService } from "../Domain/Service/RateLimiterService.ts";
+import { RateLimiterService } from "../Domain/Service/RateLimiterService.ts";
 import {
   EnforcementDecision,
   Policies,
@@ -11,7 +11,7 @@ import { IdentifierBuilder, Identities } from "./types.ts";
 export class EnforceRateLimitUseCase<State, Policy> {
   constructor(
     private readonly identifierBuilder: IdentifierBuilder,
-    private readonly rateLimiterService: rateLimiterService<State, Policy>,
+    private readonly rateLimiterService: RateLimiterService<State, Policy>,
     private readonly decisionEvaluator: DecisionEvaluator,
   ) {}
 

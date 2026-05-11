@@ -7,7 +7,7 @@ import {
   StateIdentifiers,
 } from "../types.ts";
 
-export class rateLimiterService<State, Policy> {
+export class RateLimiterService<State, Policy> {
   constructor(
     private readonly stateRepository: StateRepositoryInterface<State>,
     private readonly limitingAlgorithm: RateLimiterInterface<State, Policy>,

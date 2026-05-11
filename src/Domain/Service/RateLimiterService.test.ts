@@ -6,7 +6,7 @@ import {
   LimitDecisions,
   StateIdentifiers,
 } from "../types.ts";
-import { rateLimiterService } from "./RateLimiterService.ts";
+import { RateLimiterService } from "./RateLimiterService.ts";
 import { RateLimiterInterface } from "../Algorithm/RateLimiterInterface.ts";
 
 type FakeState = {
@@ -30,7 +30,7 @@ describe("limit service", () => {
     const MockedAlgorithm: RateLimiterInterface<FakeState, FakeConfig> = {
       attempt: vi.fn().mockReturnValue(expectedDecision),
     };
-    const limitService = new rateLimiterService(
+    const limitService = new RateLimiterService(
       mockedRepository,
       MockedAlgorithm,
     );
@@ -79,7 +79,7 @@ describe("limit service", () => {
         .mockReturnValueOnce(expectedDecisions.ip)
         .mockReturnValueOnce(expectedDecisions.tenant),
     };
-    const limitService = new rateLimiterService(
+    const limitService = new RateLimiterService(
       mockedRepository,
       MockedAlgorithm,
     );
