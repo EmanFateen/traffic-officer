@@ -5,7 +5,7 @@ import type { TokenBucketPolicy } from "./Domain/Algorithm/types.ts";
 import { DecisionEvaluator } from "./Domain/Service/DecisionEvaluator.ts";
 import { RateLimiterService } from "./Domain/Service/RateLimiterService.ts";
 import type { EnforcementDecision, Policies } from "./Domain/types.ts";
-import { createClient } from "./Infrastructure/Cache/Redis/Client/createClient.ts";
+import { configureRedis } from "./Infrastructure/Cache/Redis/Client/getClient.ts";
 import { RedisIdentifierBuilder } from "./Infrastructure/Cache/Redis/Identifier/RedisIdentifierBuilder.ts";
 import { tokenBucketStateRepository } from "./Infrastructure/Cache/Redis/Repository/TokenBucketStateRepository.ts";
 
@@ -25,7 +25,7 @@ export type TrafficOfficer = {
 export function createTrafficOfficer(
   config: TrafficOfficerConfig,
 ): TrafficOfficer {
-  createClient({ url: config.dbUrl });
+  configureRedis({ url: config.dbUrl });
 
   const rateLimiterService = new RateLimiterService(
     new tokenBucketStateRepository(),

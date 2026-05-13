@@ -4,8 +4,13 @@ import { createClient } from "./createClient.ts";
 export type RedisClient = Awaited<ReturnType<typeof createClient>>;
 
 let clientPromise: Promise<RedisClient> | undefined;
+let redisConfig: Config = config;
 
-export function getClient(redisConfig: Config = config): Promise<RedisClient> {
+export function configureRedis(redisSettings: Config): void {
+  redisConfig = redisSettings;
+}
+
+export function getClient(): Promise<RedisClient> {
   clientPromise ??= createClient(redisConfig).catch((error: unknown) => {
     clientPromise = undefined;
     throw error;
