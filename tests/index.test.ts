@@ -504,4 +504,40 @@ describe("traffic officer public API", () => {
     expect(ipState).toBeNull();
     expect(tenantState).toBeNull();
   });
+
+  test("should persist rate limit state across traffic officer instances", async () => {
+    const user = `persisted-state-${Date.now()}`;
+    const identities: Identities = {
+      apiKey: user,
+    };
+    const policies = {
+      apiKey: {
+        bucketCapacityLimit: 1,
+        refillRate: {
+          amount: 1,
+          perMs: 1_000,
+        },
+      },
+    };
+    const requestedAt = 13_000;
+    redisKeysToDelete = [`ratelimit:user:${user}:tokens`];
+    const firstTrafficOfficer = createTrafficOfficer({
+      dbUrl: "redis://127.0.0.1:6379",
+    });
+    await firstTrafficOfficer.enforce(identities, policies, requestedAt);
+    const secondTrafficOfficer = createTrafficOfficer({
+      dbUrl: "redis://127.0.0.1:6379",
+    });
+
+    const actualDecision = await secondTrafficOfficer.enforce(
+      identities,
+      policies,
+      requestedAt,
+    );
+
+    expect(actualDecision).toEqual({
+      allowed: false,
+      retryAfter: 1_000,
+    });
+  });
 });
