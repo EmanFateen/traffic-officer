@@ -17,6 +17,10 @@ The codebase follows Clean Architecture principles to ensure maintainability, te
 * Domain-Driven Design (DDD)
 * Test-Driven Development (TDD)
 
+# Requirements
+
+- TrafficOfficer requires access to a Redis server.
+
 ## How to use 
 ```
 const officer = new TrafficOfficer(...);
@@ -26,4 +30,16 @@ const decision = await officer.enforce(...);
 if (!decision.allowed) {
    throw new TooManyRequestsError();
 }
+```
+
+# Local development
+
+This project requires a running Redis server.
+
+Start Redis with Docker:
+
+```bash
+docker run --name traffic-officer-redis -p 6379:6379 -d redis:latest
+docker ps
+docker exec -it traffic-officer-redis redis-cli
 ```

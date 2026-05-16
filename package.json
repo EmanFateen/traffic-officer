@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit",
     "eslint": "npx eslint .",
     "eslint-fix": "npx eslint . --fix",
-    "cc": "npm run build && npm run eslint && npm run eslint-fix"
+    "cc": "npm run build && npm run eslint-fix && npm run eslint"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

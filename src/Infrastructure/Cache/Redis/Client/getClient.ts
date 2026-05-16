@@ -17,3 +17,10 @@ export function getClient(): Promise<RedisClientType> {
 
   return clientPromise;
 }
+
+export async function closeClient(): Promise<void> {
+  const client = await clientPromise;
+  clientPromise = undefined;
+
+  await client?.close();
+}
