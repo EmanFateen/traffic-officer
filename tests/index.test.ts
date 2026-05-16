@@ -10,9 +10,11 @@ describe("traffic officer e2e", () => {
   let redisKeysToDelete: string[] = [];
 
   afterEach(async () => {
-    const client = await getClient();
+    if (redisKeysToDelete.length > 0) {
+      const client = await getClient();
+      await client.del(redisKeysToDelete);
+    }
 
-    if (redisKeysToDelete.length > 0) await client.del(redisKeysToDelete);
     redisKeysToDelete = [];
 
     await closeClient();
@@ -272,5 +274,27 @@ describe("traffic officer e2e", () => {
       allowed: true,
       retryAfter: 0,
     });
+  });
+
+  test("should reject requests when the api key identity is missing", async () => {
+    const identities = {} as unknown as Identities;
+    const policies = {
+      apiKey: {
+        bucketCapacityLimit: 1,
+        refillRate: {
+          amount: 1,
+          perMs: 1_000,
+        },
+      },
+    };
+    const requestedAt = 7_000;
+    const trafficOfficer = createTrafficOfficer({
+      dbUrl: "redis://127.0.0.1:6379",
+      algorithm: "TokenBucket",
+    });
+
+    await expect(
+      trafficOfficer.enforce(identities, policies, requestedAt),
+    ).rejects.toThrow("apikey is required to enforce rate limits");
   });
 });
