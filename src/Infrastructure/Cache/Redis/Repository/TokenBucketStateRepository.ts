@@ -18,6 +18,6 @@ export class tokenBucketStateRepository implements StateRepositoryInterface<Toke
   async save(key: string, state: TokenBucketState): Promise<void> {
     const client: RedisClient = await getClient();
 
-    await client.set(key, JSON.stringify(state));
+    await client?.set(key, JSON.stringify(state));
   }
 }

@@ -10,7 +10,7 @@ vi.mock("./createClient.ts", () => ({
   createClient: vi.fn(),
 }));
 
-describe("Redis client singleton", () => {
+describe("Redis client singleton and race condition handling", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.resetModules();
@@ -52,7 +52,7 @@ describe("Redis client singleton", () => {
     expect(createClient).toHaveBeenCalledWith(config);
   });
 
-  test("should share pending Redis client creation between concurrent calls", async () => {
+  test("should prevent race condition by sharing pending Redis client creation between concurrent calls", async () => {
     const config: Config = { url: "redis://localhost:6379" };
     const client = { id: "redis-client" } as unknown as RedisClient;
     vi.mocked(createClient).mockResolvedValue(client);
