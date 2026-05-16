@@ -40,6 +40,9 @@ Before implementing any change:
     - Arrange
     - Act
     - Assert
+- Keep test cases isolated from each other.
+- Do not use helper functions for test arrange blocks; keep arrange data explicit inside each test case.
+- Do not use `try`, `catch`, or `finally` blocks in test cases; move teardown concerns to lifecycle hooks such as `afterEach`.
 - Keep changes small and focused and cherry-pickable.
 - Prefer incremental changes over large rewrites.
 - Do not introduce abstractions before they are needed.
