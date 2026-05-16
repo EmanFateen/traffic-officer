@@ -11,7 +11,7 @@ describe("TokenBucket", () => {
       { tokensCount: 3, lastUpdatedAtInMs: 1_000 },
       {
         refillRate: { amount: 2, perMs: 5_000 },
-        bucketCapacity: 3,
+        bucketCapacityLimit: 3,
       },
       1_000,
     );
@@ -26,7 +26,7 @@ describe("TokenBucket", () => {
       { tokensCount: 1, lastUpdatedAtInMs: 1_000 },
       {
         refillRate: { amount: 2, perMs: 5_000 },
-        bucketCapacity: 3,
+        bucketCapacityLimit: 3,
       },
       1_000,
     );
@@ -42,7 +42,7 @@ describe("TokenBucket", () => {
       { tokensCount: 0, lastUpdatedAtInMs: 1_000 },
       {
         refillRate: { amount: 2, perMs: 5_000 },
-        bucketCapacity: 3,
+        bucketCapacityLimit: 3,
       },
       1_000,
     );
@@ -58,7 +58,7 @@ describe("TokenBucket", () => {
       { tokensCount: availableTokens, lastUpdatedAtInMs: 1_000 },
       {
         refillRate: { amount: 2, perMs: 5_000 },
-        bucketCapacity: 3,
+        bucketCapacityLimit: 3,
       },
       1_000,
     );
@@ -74,7 +74,7 @@ describe("TokenBucket", () => {
       { tokensCount: 0, lastUpdatedAtInMs: 0 },
       {
         refillRate: { amount: 2, perMs: 1_000 },
-        bucketCapacity: 2,
+        bucketCapacityLimit: 2,
       },
       requestedAtInMs,
     );
@@ -100,7 +100,7 @@ describe("TokenBucket", () => {
       },
       {
         refillRate,
-        bucketCapacity,
+        bucketCapacityLimit: bucketCapacity,
       },
       requestedAtInMs,
     );
@@ -113,7 +113,7 @@ describe("TokenBucket", () => {
       },
       {
         refillRate,
-        bucketCapacity,
+        bucketCapacityLimit: bucketCapacity,
       },
       requestedAtInMs,
     );
@@ -128,7 +128,7 @@ describe("TokenBucket", () => {
       },
       {
         refillRate,
-        bucketCapacity,
+        bucketCapacityLimit: bucketCapacity,
       },
       requestedAtInMs,
     );
@@ -150,7 +150,7 @@ describe("TokenBucket", () => {
       },
       {
         refillRate,
-        bucketCapacity,
+        bucketCapacityLimit: bucketCapacity,
       },
       requestedAtInMs,
     );
@@ -164,7 +164,7 @@ describe("TokenBucket", () => {
       },
       {
         refillRate,
-        bucketCapacity,
+        bucketCapacityLimit: bucketCapacity,
       },
       requestedAtInMs,
     );
@@ -179,7 +179,7 @@ describe("TokenBucket", () => {
       },
       {
         refillRate,
-        bucketCapacity,
+        bucketCapacityLimit: bucketCapacity,
       },
       requestedAtInMs,
     );
@@ -198,7 +198,7 @@ describe("TokenBucket", () => {
       { tokensCount: 5, lastUpdatedAtInMs: 1_000 },
       {
         refillRate: { amount: 1, perMs: 5_000 },
-        bucketCapacity: 100,
+        bucketCapacityLimit: 100,
       },
       2_000,
     );
@@ -215,7 +215,7 @@ describe("TokenBucket", () => {
       { tokensCount: 5, lastUpdatedAtInMs: 1_000 },
       {
         refillRate: { amount: 1, perMs: 5_000 },
-        bucketCapacity: 100,
+        bucketCapacityLimit: 100,
       },
       900,
     );
@@ -233,7 +233,7 @@ describe("TokenBucket", () => {
       { tokensCount: 80, lastUpdatedAtInMs: 700 },
       {
         refillRate: { amount: 100, perMs: 500 },
-        bucketCapacity,
+        bucketCapacityLimit: bucketCapacity,
       },
       1_500,
     );
@@ -250,7 +250,7 @@ describe("TokenBucket", () => {
       undefined,
       {
         refillRate: { amount: 1, perMs: 1_000 },
-        bucketCapacity: 5,
+        bucketCapacityLimit: 5,
       },
       requestedAtInMs,
     );
