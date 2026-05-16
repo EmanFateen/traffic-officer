@@ -316,4 +316,49 @@ describe("traffic officer e2e", () => {
       trafficOfficer.enforce(identities, policies, requestedAt),
     ).rejects.toThrow("api key policy is required to enforce rate limits");
   });
+
+  test("should ignore optional identities when their policies are not configured", async () => {
+    const user = `e2e-${Date.now()}-optional-identities-without-policies`;
+    const ip = `e2e-${Date.now()}-203.0.113.30`;
+    const tenant = `e2e-${Date.now()}-tenant-without-policies`;
+    const identities: Identities = {
+      apiKey: user,
+      ip,
+      tenant,
+    };
+    const policies = {
+      apiKey: {
+        bucketCapacityLimit: 2,
+        refillRate: {
+          amount: 1,
+          perMs: 1_000,
+        },
+      },
+    };
+    const requestedAt = 9_000;
+    const userStateKey = `ratelimit:user:${user}:tokens`;
+    const ipStateKey = `ratelimit:ip:${ip}:tokens`;
+    const tenantStateKey = `ratelimit:tenant:${tenant}:tokens`;
+    redisKeysToDelete = [userStateKey, ipStateKey, tenantStateKey];
+    const trafficOfficer = createTrafficOfficer({
+      dbUrl: "redis://127.0.0.1:6379",
+      algorithm: "TokenBucket",
+    });
+
+    const actualDecision = await trafficOfficer.enforce(
+      identities,
+      policies,
+      requestedAt,
+    );
+    const client = await getClient();
+    const ipState = await client.get(ipStateKey);
+    const tenantState = await client.get(tenantStateKey);
+
+    expect(actualDecision).toEqual({
+      allowed: true,
+      retryAfter: 0,
+    });
+    expect(ipState).toBeNull();
+    expect(tenantState).toBeNull();
+  });
 });
