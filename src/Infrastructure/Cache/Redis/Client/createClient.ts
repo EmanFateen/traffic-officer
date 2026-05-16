@@ -1,15 +1,15 @@
-import { createClient as redisClient } from "redis";
+import { createClient as redisClient, RedisClientType } from "redis";
 
 import { config, type Config } from "./config.ts";
 
 export async function createClient(
   redisConfig: Config = config,
-): Promise<ReturnType<typeof redisClient>> {
+): Promise<RedisClientType> {
   if (redisConfig.url === undefined) {
     throw new Error("REDIS_URL is required to connect to Redis");
   }
 
-  const client = redisClient({ url: redisConfig.url });
+  const client: RedisClientType = redisClient({ url: redisConfig.url });
 
   await client.connect();
 
