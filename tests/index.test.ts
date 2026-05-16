@@ -540,4 +540,39 @@ describe("traffic officer public API", () => {
       retryAfter: 1_000,
     });
   });
+
+  test("should not refill tokens when requested time is earlier than the previous request", async () => {
+    const user = `earlier-request-time-${Date.now()}`;
+    const identities: Identities = {
+      apiKey: user,
+    };
+    const policies = {
+      apiKey: {
+        bucketCapacityLimit: 2,
+        refillRate: {
+          amount: 1,
+          perMs: 1_000,
+        },
+      },
+    };
+    const firstRequestedAt = 14_000;
+    const earlierRequestedAt = 13_500;
+    redisKeysToDelete = [`ratelimit:user:${user}:tokens`];
+    const trafficOfficer = createTrafficOfficer({
+      dbUrl: "redis://127.0.0.1:6379",
+    });
+    await trafficOfficer.enforce(identities, policies, firstRequestedAt);
+    await trafficOfficer.enforce(identities, policies, firstRequestedAt);
+
+    const actualDecision = await trafficOfficer.enforce(
+      identities,
+      policies,
+      earlierRequestedAt,
+    );
+
+    expect(actualDecision).toEqual({
+      allowed: false,
+      retryAfter: 1_000,
+    });
+  });
 });
