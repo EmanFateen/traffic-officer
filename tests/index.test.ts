@@ -393,4 +393,59 @@ describe("traffic officer public API", () => {
       retryAfter: 0,
     });
   });
+
+  test("should reject requests when the tenant limit is exceeded", async () => {
+    const user = `tenant-limit-${Date.now()}`;
+    const ip = `203.0.113.40-${Date.now()}`;
+    const tenant = `tenant-limit-scope-${Date.now()}`;
+    const identities: Identities = {
+      apiKey: user,
+      ip,
+      tenant,
+    };
+    const policies = {
+      apiKey: {
+        bucketCapacityLimit: 10,
+        refillRate: {
+          amount: 1,
+          perMs: 1_000,
+        },
+      },
+      ip: {
+        bucketCapacityLimit: 10,
+        refillRate: {
+          amount: 1,
+          perMs: 1_000,
+        },
+      },
+      tenant: {
+        bucketCapacityLimit: 1,
+        refillRate: {
+          amount: 1,
+          perMs: 2_000,
+        },
+      },
+    };
+    const requestedAt = 11_000;
+    redisKeysToDelete = [
+      `ratelimit:user:${user}:tokens`,
+      `ratelimit:ip:${ip}:tokens`,
+      `ratelimit:tenant:${tenant}:tokens`,
+    ];
+    const trafficOfficer = createTrafficOfficer({
+      dbUrl: "redis://127.0.0.1:6379",
+    });
+    await trafficOfficer.enforce(identities, policies, requestedAt);
+
+    const actualDecision = await trafficOfficer.enforce(
+      identities,
+      policies,
+      requestedAt,
+    );
+
+    expect(actualDecision).toEqual({
+      allowed: false,
+      retryAfter: 2_000,
+    });
+  });
 });
