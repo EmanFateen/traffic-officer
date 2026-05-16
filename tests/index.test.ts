@@ -341,6 +341,49 @@ describe("traffic officer public API", () => {
     ).rejects.toThrow("apikey is required to enforce rate limits");
   });
 
+  test("should not refill beyond the configured bucket capacity after a long delay", async () => {
+    const user = `bucket-capacity-cap-${Date.now()}`;
+    const identities: Identities = {
+      apiKey: user,
+    };
+    const policies = {
+      apiKey: {
+        bucketCapacityLimit: 1,
+        refillRate: {
+          amount: 1,
+          perMs: 1_000,
+        },
+      },
+    };
+    const initialRequestedAt = 15_000;
+    const laterRequestedAt = 60_000;
+    redisKeysToDelete = [`ratelimit:user:${user}:tokens`];
+    const trafficOfficer = createTrafficOfficer({
+      dbUrl: "redis://127.0.0.1:6379",
+    });
+    await trafficOfficer.enforce(identities, policies, initialRequestedAt);
+
+    const firstDecisionAfterDelay = await trafficOfficer.enforce(
+      identities,
+      policies,
+      laterRequestedAt,
+    );
+    const secondDecisionAfterDelay = await trafficOfficer.enforce(
+      identities,
+      policies,
+      laterRequestedAt,
+    );
+
+    expect(firstDecisionAfterDelay).toEqual({
+      allowed: true,
+      retryAfter: 0,
+    });
+    expect(secondDecisionAfterDelay).toEqual({
+      allowed: false,
+      retryAfter: 1_000,
+    });
+  });
+
   test("should ignore optional identities when their policies are not configured", async () => {
     const user = `optional-identities-without-policies-${Date.now()}`;
     const ip = `203.0.113.30-${Date.now()}`;
