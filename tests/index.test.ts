@@ -317,6 +317,30 @@ describe("traffic officer public API", () => {
     ).rejects.toThrow("api key policy is required to enforce rate limits");
   });
 
+  test("should reject requests when the api key identity is an empty string", async () => {
+    const identities = {
+      apiKey: "",
+    } as unknown as Identities;
+    const policies = {
+      apiKey: {
+        bucketCapacityLimit: 1,
+        refillRate: {
+          amount: 1,
+          perMs: 1_000,
+        },
+      },
+    };
+    const requestedAt = 8_500;
+    const trafficOfficer = createTrafficOfficer({
+      dbUrl: "redis://127.0.0.1:6379",
+      algorithm: "TokenBucket",
+    });
+
+    await expect(
+      trafficOfficer.enforce(identities, policies, requestedAt),
+    ).rejects.toThrow("apikey is required to enforce rate limits");
+  });
+
   test("should ignore optional identities when their policies are not configured", async () => {
     const user = `optional-identities-without-policies-${Date.now()}`;
     const ip = `203.0.113.30-${Date.now()}`;
