@@ -8,7 +8,7 @@ import {
 } from "../src/Infrastructure/Cache/Redis/Client/getClient.ts";
 import { createTrafficOfficer } from "../src";
 
-describe("traffic officer e2e", () => {
+describe("traffic officer public API", () => {
   let redisKeysToDelete: string[] = [];
 
   afterEach(async () => {
@@ -23,7 +23,7 @@ describe("traffic officer e2e", () => {
   });
 
   test("should allow requests within the configured api key limit", async () => {
-    const user = `e2e-${Date.now()}-allowed-api-key`;
+    const user = `allowed-api-key-${Date.now()}`;
     const identities: Identities = {
       apiKey: user,
     };
@@ -56,7 +56,7 @@ describe("traffic officer e2e", () => {
   });
 
   test("should reject requests when the api key limit is exceeded", async () => {
-    const user = `e2e-${Date.now()}-exceeded-api-key`;
+    const user = `exceeded-api-key-${Date.now()}`;
     const identities: Identities = {
       apiKey: user,
     };
@@ -90,7 +90,7 @@ describe("traffic officer e2e", () => {
   });
 
   test("should allow requests again after tokens refill over time", async () => {
-    const user = `e2e-${Date.now()}-refilled-api-key`;
+    const user = `refilled-api-key-${Date.now()}`;
     const identities: Identities = {
       apiKey: user,
     };
@@ -125,9 +125,9 @@ describe("traffic officer e2e", () => {
   });
 
   test("should reject requests when one configured identity limit is exceeded", async () => {
-    const user = `e2e-${Date.now()}-api-key-with-ip-limit`;
-    const ip = `e2e-${Date.now()}-203.0.113.10`;
-    const tenant = `e2e-${Date.now()}-tenant-with-ip-limit`;
+    const user = `api-key-with-ip-limit-${Date.now()}`;
+    const ip = `203.0.113.10-${Date.now()}`;
+    const tenant = `tenant-with-ip-limit-${Date.now()}`;
     const identities: Identities = { apiKey: user, ip, tenant };
     const policies = {
       apiKey: {
@@ -177,9 +177,9 @@ describe("traffic officer e2e", () => {
   });
 
   test("should use the longest retry delay when multiple configured identity limits are exceeded", async () => {
-    const user = `e2e-${Date.now()}-api-key-with-multiple-limits`;
-    const ip = `e2e-${Date.now()}-203.0.113.20`;
-    const tenant = `e2e-${Date.now()}-tenant-with-multiple-limits`;
+    const user = `api-key-with-multiple-limits-${Date.now()}`;
+    const ip = `203.0.113.20-${Date.now()}`;
+    const tenant = `tenant-with-multiple-limits-${Date.now()}`;
     const identities: Identities = { apiKey: user, ip, tenant };
     const policies = {
       apiKey: {
@@ -229,8 +229,8 @@ describe("traffic officer e2e", () => {
   });
 
   test("should track rate limits independently for different users", async () => {
-    const firstUser = `e2e-${Date.now()}-first-api-key`;
-    const secondUser = `e2e-${Date.now()}-second-api-key`;
+    const firstUser = `first-api-key-${Date.now()}`;
+    const secondUser = `second-api-key-${Date.now()}`;
     const firstIdentities: Identities = {
       apiKey: firstUser,
     };
@@ -301,7 +301,7 @@ describe("traffic officer e2e", () => {
   });
 
   test("should reject requests when the api key policy is missing", async () => {
-    const user = `e2e-${Date.now()}-missing-api-key-policy`;
+    const user = `missing-api-key-policy-${Date.now()}`;
     const identities: Identities = {
       apiKey: user,
     };
@@ -318,9 +318,9 @@ describe("traffic officer e2e", () => {
   });
 
   test("should ignore optional identities when their policies are not configured", async () => {
-    const user = `e2e-${Date.now()}-optional-identities-without-policies`;
-    const ip = `e2e-${Date.now()}-203.0.113.30`;
-    const tenant = `e2e-${Date.now()}-tenant-without-policies`;
+    const user = `optional-identities-without-policies-${Date.now()}`;
+    const ip = `203.0.113.30-${Date.now()}`;
+    const tenant = `tenant-without-policies-${Date.now()}`;
     const identities: Identities = {
       apiKey: user,
       ip,
@@ -360,5 +360,37 @@ describe("traffic officer e2e", () => {
     });
     expect(ipState).toBeNull();
     expect(tenantState).toBeNull();
+  });
+
+  test("should use the default algorithm when no algorithm is configured", async () => {
+    const user = `default-algorithm-${Date.now()}`;
+    const identities: Identities = {
+      apiKey: user,
+    };
+    const policies = {
+      apiKey: {
+        bucketCapacityLimit: 2,
+        refillRate: {
+          amount: 1,
+          perMs: 1_000,
+        },
+      },
+    };
+    const requestedAt = 10_000;
+    redisKeysToDelete = [`ratelimit:user:${user}:tokens`];
+    const trafficOfficer = createTrafficOfficer({
+      dbUrl: "redis://127.0.0.1:6379",
+    });
+
+    const actualDecision = await trafficOfficer.enforce(
+      identities,
+      policies,
+      requestedAt,
+    );
+
+    expect(actualDecision).toEqual({
+      allowed: true,
+      retryAfter: 0,
+    });
   });
 });
