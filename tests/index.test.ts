@@ -187,4 +187,56 @@ describe("traffic officer e2e", () => {
       retryAfter: 1_500,
     });
   });
+
+  test("should use the longest retry delay when multiple configured identity limits are exceeded", async () => {
+    const apiKey = `e2e-${Date.now()}-api-key-with-multiple-limits`;
+    const ip = `e2e-${Date.now()}-203.0.113.20`;
+    const tenant = `e2e-${Date.now()}-tenant-with-multiple-limits`;
+    const identities: Identities = { apiKey, ip, tenant };
+    const policies = {
+      apiKey: {
+        bucketCapacityLimit: 10,
+        refillRate: {
+          amount: 1,
+          perMs: 1_000,
+        },
+      },
+      ip: {
+        bucketCapacityLimit: 1,
+        refillRate: {
+          amount: 1,
+          perMs: 1_000,
+        },
+      },
+      tenant: {
+        bucketCapacityLimit: 1,
+        refillRate: {
+          amount: 1,
+          perMs: 3_000,
+        },
+      },
+    };
+    const requestedAt = 5_000;
+    redisKeysToDelete = [
+      `ratelimit:user:${apiKey}:tokens`,
+      `ratelimit:ip:${ip}:tokens`,
+      `ratelimit:tenant:${tenant}:tokens`,
+    ];
+    const trafficOfficer = createTrafficOfficer({
+      dbUrl: "redis://127.0.0.1:6379",
+      algorithm: "TokenBucket",
+    });
+    await trafficOfficer.enforce(identities, policies, requestedAt);
+
+    const actualDecision = await trafficOfficer.enforce(
+      identities,
+      policies,
+      requestedAt,
+    );
+
+    expect(actualDecision).toEqual({
+      allowed: false,
+      retryAfter: 3_000,
+    });
+  });
 });
