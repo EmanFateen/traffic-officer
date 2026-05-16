@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, test } from "vitest";
 import type { Identities } from "../src/Application/types.ts";
+import type { TokenBucketPolicy } from "../src/Domain/Algorithm/types.ts";
+import type { Policies } from "../src/Domain/types.ts";
 import {
   closeClient,
   getClient,
@@ -296,5 +298,22 @@ describe("traffic officer e2e", () => {
     await expect(
       trafficOfficer.enforce(identities, policies, requestedAt),
     ).rejects.toThrow("apikey is required to enforce rate limits");
+  });
+
+  test("should reject requests when the api key policy is missing", async () => {
+    const user = `e2e-${Date.now()}-missing-api-key-policy`;
+    const identities: Identities = {
+      apiKey: user,
+    };
+    const policies = {} as unknown as Policies<TokenBucketPolicy>;
+    const requestedAt = 8_000;
+    const trafficOfficer = createTrafficOfficer({
+      dbUrl: "redis://127.0.0.1:6379",
+      algorithm: "TokenBucket",
+    });
+
+    await expect(
+      trafficOfficer.enforce(identities, policies, requestedAt),
+    ).rejects.toThrow("api key policy is required to enforce rate limits");
   });
 });
