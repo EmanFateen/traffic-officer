@@ -448,4 +448,60 @@ describe("traffic officer public API", () => {
       retryAfter: 2_000,
     });
   });
+
+  test("should ignore optional policies when their identities are not present", async () => {
+    const user = `optional-policies-without-identities-${Date.now()}`;
+    const ip = `203.0.113.50-${Date.now()}`;
+    const tenant = `tenant-policy-without-identity-${Date.now()}`;
+    const identities: Identities = {
+      apiKey: user,
+    };
+    const policies = {
+      apiKey: {
+        bucketCapacityLimit: 2,
+        refillRate: {
+          amount: 1,
+          perMs: 1_000,
+        },
+      },
+      ip: {
+        bucketCapacityLimit: 1,
+        refillRate: {
+          amount: 1,
+          perMs: 1_000,
+        },
+      },
+      tenant: {
+        bucketCapacityLimit: 1,
+        refillRate: {
+          amount: 1,
+          perMs: 1_000,
+        },
+      },
+    };
+    const requestedAt = 12_000;
+    const userStateKey = `ratelimit:user:${user}:tokens`;
+    const ipStateKey = `ratelimit:ip:${ip}:tokens`;
+    const tenantStateKey = `ratelimit:tenant:${tenant}:tokens`;
+    redisKeysToDelete = [userStateKey, ipStateKey, tenantStateKey];
+    const trafficOfficer = createTrafficOfficer({
+      dbUrl: "redis://127.0.0.1:6379",
+    });
+
+    const actualDecision = await trafficOfficer.enforce(
+      identities,
+      policies,
+      requestedAt,
+    );
+    const client = await getClient();
+    const ipState = await client.get(ipStateKey);
+    const tenantState = await client.get(tenantStateKey);
+
+    expect(actualDecision).toEqual({
+      allowed: true,
+      retryAfter: 0,
+    });
+    expect(ipState).toBeNull();
+    expect(tenantState).toBeNull();
+  });
 });
