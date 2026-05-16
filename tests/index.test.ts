@@ -25,7 +25,7 @@ describe("traffic officer e2e", () => {
     };
     const policies = {
       apiKey: {
-        bucketCapacity: 2,
+        bucketCapacityLimit: 2,
         refillRate: {
           amount: 1,
           perMs: 1_000,
@@ -58,7 +58,7 @@ describe("traffic officer e2e", () => {
     };
     const policies = {
       apiKey: {
-        bucketCapacity: 1,
+        bucketCapacityLimit: 1,
         refillRate: {
           amount: 1,
           perMs: 1_000,
@@ -100,7 +100,7 @@ describe("traffic officer e2e", () => {
     };
     const policies = {
       apiKey: {
-        bucketCapacity: 1,
+        bucketCapacityLimit: 1,
         refillRate: {
           amount: 1,
           perMs: 1_000,
@@ -133,6 +133,58 @@ describe("traffic officer e2e", () => {
     expect(refilledDecision).toEqual({
       allowed: true,
       retryAfter: 0,
+    });
+  });
+
+  test("should reject requests when one configured identity limit is exceeded", async () => {
+    const apiKey = `e2e-${Date.now()}-api-key-with-ip-limit`;
+    const ip = `e2e-${Date.now()}-203.0.113.10`;
+    const tenant = `e2e-${Date.now()}-tenant-with-ip-limit`;
+    const identities: Identities = { apiKey, ip, tenant };
+    const policies = {
+      apiKey: {
+        bucketCapacityLimit: 10,
+        refillRate: {
+          amount: 1,
+          perMs: 1_000,
+        },
+      },
+      ip: {
+        bucketCapacityLimit: 1,
+        refillRate: {
+          amount: 1,
+          perMs: 1_500,
+        },
+      },
+      tenant: {
+        bucketCapacityLimit: 10,
+        refillRate: {
+          amount: 1,
+          perMs: 1_000,
+        },
+      },
+    };
+    const requestedAt = 4_000;
+    redisKeysToDelete = [
+      `ratelimit:user:${apiKey}:tokens`,
+      `ratelimit:ip:${ip}:tokens`,
+      `ratelimit:tenant:${tenant}:tokens`,
+    ];
+    const trafficOfficer = createTrafficOfficer({
+      dbUrl: "redis://127.0.0.1:6379",
+      algorithm: "TokenBucket",
+    });
+    await trafficOfficer.enforce(identities, policies, requestedAt);
+
+    const actualDecision = await trafficOfficer.enforce(
+      identities,
+      policies,
+      requestedAt,
+    );
+
+    expect(actualDecision).toEqual({
+      allowed: false,
+      retryAfter: 1_500,
     });
   });
 });
