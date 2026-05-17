@@ -1,5 +1,5 @@
-import { Decision } from "../types.ts";
 import { RateLimiterInterface } from "./RateLimiterInterface.ts";
+import { Decision } from "../Decision.ts";
 
 export type TokenBucketState = {
   tokensCount: number;

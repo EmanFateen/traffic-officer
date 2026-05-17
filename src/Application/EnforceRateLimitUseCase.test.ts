@@ -1,9 +1,9 @@
 import { describe, expect, test, vi } from "vitest";
 import { DecisionEvaluator } from "../Domain/Service/DecisionEvaluator.ts";
 import { RateLimiterService } from "../Domain/Service/RateLimiterService.ts";
-import { Policies } from "../Domain/types.ts";
 import { EnforceRateLimitUseCase } from "./EnforceRateLimitUseCase.ts";
 import { Identifier, IdentifierScope, Identities } from "./Identities.ts";
+import { Policies } from "../Domain/Policies.ts";
 
 type FakeState = {
   key: string;

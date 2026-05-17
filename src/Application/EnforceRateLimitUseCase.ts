@@ -3,9 +3,10 @@ import {
   EvaluatedDecision,
 } from "../Domain/Service/DecisionEvaluator.ts";
 import { RateLimiterService } from "../Domain/Service/RateLimiterService.ts";
-import { Policies, StateIdentifiers } from "../Domain/types.ts";
 import { stateIdentifierFactory } from "./StateIdentifierFactory.ts";
 import { IdentifierBuilder, Identities } from "./Identities.ts";
+import { Policies } from "../Domain/Policies.ts";
+import { StateIdentifiers } from "../Domain/StateIdentifiers.ts";
 
 export class EnforceRateLimitUseCase<State, Policy> {
   constructor(

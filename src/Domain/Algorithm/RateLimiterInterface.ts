@@ -1,4 +1,4 @@
-import { Decision } from "../types.ts";
+import { Decision } from "../Decision.ts";
 
 export interface RateLimiterInterface<State, Policy> {
   attempt(

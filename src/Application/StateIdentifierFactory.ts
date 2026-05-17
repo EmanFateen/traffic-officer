@@ -1,5 +1,6 @@
 import { IdentifierBuilder, Identities } from "./Identities.ts";
-import { StateIdentifiers } from "../Domain/types.ts";
+
+import { StateIdentifiers } from "../Domain/StateIdentifiers.ts";
 
 export function stateIdentifierFactory(
   identifierBuilder: IdentifierBuilder,

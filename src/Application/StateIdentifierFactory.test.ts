@@ -1,14 +1,14 @@
 import { describe, expect, test } from "vitest";
 import { stateIdentifierFactory } from "./StateIdentifierFactory.ts";
 import { Identifier, IdentifierScope, Identities } from "./Identities.ts";
-import { StateIdentifiers } from "../Domain/types.ts";
+
 describe("state identifier factory", () => {
   test("it must have api key at least", () => {
     const userIdentity: Identities = {
       apiKey: "fake-api-key",
     };
 
-    const actualKeys: StateIdentifiers = stateIdentifierFactory(
+    const actualKeys = stateIdentifierFactory(
       ExampleIdentifierBuilder,
       userIdentity,
     );
@@ -62,7 +62,7 @@ describe("state identifier factory", () => {
   ])(
     "it creates only keys for provided optional user identity fields",
     ({ userIdentity, expectedKeys }) => {
-      const actualKeys: StateIdentifiers = stateIdentifierFactory(
+      const actualKeys = stateIdentifierFactory(
         ExampleIdentifierBuilder,
         userIdentity,
       );

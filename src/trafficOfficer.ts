@@ -10,10 +10,10 @@ import {
   EvaluatedDecision,
 } from "./Domain/Service/DecisionEvaluator.ts";
 import { RateLimiterService } from "./Domain/Service/RateLimiterService.ts";
-import type { Policies } from "./Domain/types.ts";
 import { configureRedis } from "./Infrastructure/Cache/Redis/Client/getClient.ts";
 import { RedisIdentifierBuilder } from "./Infrastructure/Cache/Redis/Identifier/RedisIdentifierBuilder.ts";
 import { stateRepository } from "./Infrastructure/Cache/Redis/Repository/stateRepository.ts";
+import { Policies } from "./Domain/Policies.ts";
 
 export type TrafficOfficerConfig = {
   dbUrl: string;

@@ -1,6 +1,8 @@
 import { RateLimiterInterface } from "../Algorithm/RateLimiterInterface.ts";
 import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
-import { Decision, Policies, StateIdentifiers } from "../types.ts";
+import { Decision } from "../Decision.ts";
+import { Policies } from "../Policies.ts";
+import { StateIdentifiers } from "../StateIdentifiers.ts";
 
 export type LimitDecisions<State> = {
   apiKey: Decision<State>;
