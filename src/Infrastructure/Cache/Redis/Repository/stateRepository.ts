@@ -1,9 +1,8 @@
 import type { StateRepositoryInterface } from "../../../../Domain/Repository/StateRepositoryInterface.ts";
 import { getClient } from "../Client/getClient.ts";
-import { TokenBucketState } from "../../../../Domain/Algorithm/types.ts";
 
-export class tokenBucketStateRepository implements StateRepositoryInterface<TokenBucketState> {
-  async findOneBy(key: string): Promise<TokenBucketState | null> {
+export class stateRepository<State> implements StateRepositoryInterface<State> {
+  async findOneBy(key: string): Promise<State | null> {
     const client = await getClient();
 
     const state = await client?.get(key);
@@ -12,10 +11,10 @@ export class tokenBucketStateRepository implements StateRepositoryInterface<Toke
       return null;
     }
 
-    return JSON.parse(state) as TokenBucketState;
+    return JSON.parse(state) as State;
   }
 
-  async save(key: string, state: TokenBucketState): Promise<void> {
+  async save(key: string, state: State): Promise<void> {
     const client = await getClient();
 
     await client?.set(key, JSON.stringify(state));
