@@ -7,7 +7,7 @@ import {
   Policies,
 } from "../Domain/types.ts";
 import { EnforceRateLimitUseCase } from "./EnforceRateLimitUseCase.ts";
-import { Identifier, IdentifierScope, Identities } from "./types.ts";
+import { Identifier, IdentifierScope, Identities } from "./Identities.ts";
 
 type FakeState = {
   key: string;
@@ -82,7 +82,7 @@ describe("enforce rate limit use case", () => {
     expect(actualDecision).toEqual(expectedEnforcementDecision);
     expect(limitService.execute).toHaveBeenCalledWith(
       {
-        apiKey: "example-user-for-fake-api-key",
+        apiKey: "example-apiKey-for-fake-api-key",
         ip: "example-ip-for-fake-ip",
         tenant: "example-tenant-for-fake-tenant",
       },

@@ -1,5 +1,5 @@
 import { EnforceRateLimitUseCase } from "./Application/EnforceRateLimitUseCase.ts";
-import type { Identities } from "./Application/types.ts";
+import type { Identities } from "./Application/Identities.ts";
 import {
   AlgorithmName,
   AlgorithmsMap,

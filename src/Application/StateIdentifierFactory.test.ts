@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { stateIdentifierFactory } from "./StateIdentifierFactory.ts";
-import { Identifier, IdentifierScope, Identities } from "./types.ts";
+import { Identifier, IdentifierScope, Identities } from "./Identities.ts";
 import { StateIdentifiers } from "../Domain/types.ts";
 describe("state identifier factory", () => {
   test("it must have api key at least", () => {
@@ -14,7 +14,7 @@ describe("state identifier factory", () => {
     );
 
     expect(actualKeys).toEqual({
-      apiKey: `build-example-user-for-${userIdentity.apiKey}`,
+      apiKey: `build-example-apiKey-for-${userIdentity.apiKey}`,
     });
   });
 
@@ -33,7 +33,7 @@ describe("state identifier factory", () => {
         ip: "fake-ip",
       },
       expectedKeys: {
-        apiKey: "build-example-user-for-fake-api-key",
+        apiKey: "build-example-apiKey-for-fake-api-key",
         ip: "build-example-ip-for-fake-ip",
       },
     },
@@ -43,7 +43,7 @@ describe("state identifier factory", () => {
         tenant: "fake-tenant",
       },
       expectedKeys: {
-        apiKey: "build-example-user-for-fake-api-key",
+        apiKey: "build-example-apiKey-for-fake-api-key",
         tenant: "build-example-tenant-for-fake-tenant",
       },
     },
@@ -54,7 +54,7 @@ describe("state identifier factory", () => {
         tenant: "fake-tenant",
       },
       expectedKeys: {
-        apiKey: "build-example-user-for-fake-api-key",
+        apiKey: "build-example-apiKey-for-fake-api-key",
         ip: "build-example-ip-for-fake-ip",
         tenant: "build-example-tenant-for-fake-tenant",
       },

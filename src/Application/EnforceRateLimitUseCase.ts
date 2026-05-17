@@ -6,7 +6,7 @@ import {
   StateIdentifiers,
 } from "../Domain/types.ts";
 import { stateIdentifierFactory } from "./StateIdentifierFactory.ts";
-import { IdentifierBuilder, Identities } from "./types.ts";
+import { IdentifierBuilder, Identities } from "./Identities.ts";
 
 export class EnforceRateLimitUseCase<State, Policy> {
   constructor(

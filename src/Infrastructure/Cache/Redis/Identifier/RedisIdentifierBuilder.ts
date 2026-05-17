@@ -1,4 +1,7 @@
-import { Identifier, IdentifierScope } from "../../../../Application/types.ts";
+import {
+  Identifier,
+  IdentifierScope,
+} from "../../../../Application/Identities.ts";
 
 const PREFIX = `ratelimit`;
 const SUFFIX = `tokens`;
