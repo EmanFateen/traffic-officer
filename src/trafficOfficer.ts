@@ -20,7 +20,7 @@ export type TrafficOfficerConfig = {
 export type TrafficOfficer<name extends AlgorithmName> = {
   enforce(
     identities: Identities,
-    policies: Policies<AlgorithmsMap[name]["policy"]>,
+    policies: Policies<AlgorithmsMap[name]["policyType"]>,
     requestedAt: number,
   ): Promise<EnforcementDecision>;
 };
@@ -31,7 +31,7 @@ export function createTrafficOfficer<name extends AlgorithmName>(
   configureRedis({ url: config.dbUrl });
 
   const rateLimiterService = new RateLimiterService(
-    new stateRepository<AlgorithmsMap[name]["state"]>(),
+    new stateRepository<AlgorithmsMap[name]["stateType"]>(),
     rateLimiterFactory(config.algorithm ?? "TokenBucket"),
   );
 
