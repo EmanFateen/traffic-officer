@@ -5,9 +5,12 @@ import {
   AlgorithmsMap,
   rateLimiterFactory,
 } from "./Domain/Algorithm/RateLimiterFactory.ts";
-import { DecisionEvaluator } from "./Domain/Service/DecisionEvaluator.ts";
+import {
+  DecisionEvaluator,
+  EvaluatedDecision,
+} from "./Domain/Service/DecisionEvaluator.ts";
 import { RateLimiterService } from "./Domain/Service/RateLimiterService.ts";
-import type { EnforcementDecision, Policies } from "./Domain/types.ts";
+import type { Policies } from "./Domain/types.ts";
 import { configureRedis } from "./Infrastructure/Cache/Redis/Client/getClient.ts";
 import { RedisIdentifierBuilder } from "./Infrastructure/Cache/Redis/Identifier/RedisIdentifierBuilder.ts";
 import { stateRepository } from "./Infrastructure/Cache/Redis/Repository/stateRepository.ts";
@@ -22,7 +25,7 @@ export type TrafficOfficer<name extends AlgorithmName> = {
     identities: Identities,
     policies: Policies<AlgorithmsMap[name]["policyType"]>,
     requestedAt: number,
-  ): Promise<EnforcementDecision>;
+  ): Promise<EvaluatedDecision>;
 };
 
 export function createTrafficOfficer<name extends AlgorithmName>(

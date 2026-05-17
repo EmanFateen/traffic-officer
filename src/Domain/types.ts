@@ -5,11 +5,6 @@ export type Decision<State> = {
   nextState: State;
 };
 
-export type EnforcementDecision = {
-  allowed: boolean;
-  retryAfter: number;
-};
-
 export type LimitDecisions<State> = {
   apiKey: Decision<State>;
   ip?: Decision<State>;

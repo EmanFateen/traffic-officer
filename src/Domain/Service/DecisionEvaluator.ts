@@ -1,7 +1,12 @@
-import { EnforcementDecision, LimitDecisions } from "../types.ts";
+import { LimitDecisions } from "../types.ts";
+
+export type EvaluatedDecision = {
+  allowed: boolean;
+  retryAfter: number;
+};
 
 export class DecisionEvaluator {
-  evaluate<State>(decisions: LimitDecisions<State>): EnforcementDecision {
+  evaluate<State>(decisions: LimitDecisions<State>): EvaluatedDecision {
     const allDecisions = [
       decisions.apiKey,
       decisions.ip,

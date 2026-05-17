@@ -1,11 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import { DecisionEvaluator } from "../Domain/Service/DecisionEvaluator.ts";
 import { RateLimiterService } from "../Domain/Service/RateLimiterService.ts";
-import {
-  EnforcementDecision,
-  LimitDecisions,
-  Policies,
-} from "../Domain/types.ts";
+import { Policies } from "../Domain/types.ts";
 import { EnforceRateLimitUseCase } from "./EnforceRateLimitUseCase.ts";
 import { Identifier, IdentifierScope, Identities } from "./Identities.ts";
 
@@ -30,7 +26,7 @@ describe("enforce rate limit use case", () => {
       tenant: { key: "tenant-policy" },
     };
     const requestedAt = 1_000;
-    const expectedDecisions: LimitDecisions<FakeState> = {
+    const expectedDecisions = {
       apiKey: {
         allowed: true,
         retryAfter: 0,
@@ -50,7 +46,7 @@ describe("enforce rate limit use case", () => {
         nextState: { key: "tenant-state" },
       },
     };
-    const expectedEnforcementDecision: EnforcementDecision = {
+    const expectedEvaluatedDecision = {
       allowed: false,
       retryAfter: 500,
     };
@@ -65,7 +61,7 @@ describe("enforce rate limit use case", () => {
       execute: vi.fn().mockResolvedValue(expectedDecisions),
     } as unknown as RateLimiterService<FakeState, FakePolicy>;
     const decisionEvaluator = {
-      evaluate: vi.fn().mockReturnValue(expectedEnforcementDecision),
+      evaluate: vi.fn().mockReturnValue(expectedEvaluatedDecision),
     } as unknown as DecisionEvaluator;
     const useCase = new EnforceRateLimitUseCase(
       identifierBuilder,
@@ -79,7 +75,7 @@ describe("enforce rate limit use case", () => {
       requestedAt,
     );
 
-    expect(actualDecision).toEqual(expectedEnforcementDecision);
+    expect(actualDecision).toEqual(expectedEvaluatedDecision);
     expect(limitService.execute).toHaveBeenCalledWith(
       {
         apiKey: "example-apiKey-for-fake-api-key",
