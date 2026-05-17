@@ -1,11 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
 import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
-import {
-  Decision,
-  Policies,
-  LimitDecisions,
-  StateIdentifiers,
-} from "../types.ts";
 import { RateLimiterService } from "./RateLimiterService.ts";
 import { RateLimiterInterface } from "../Algorithm/RateLimiterInterface.ts";
 
@@ -26,7 +20,7 @@ describe("limit service", () => {
     };
     const expectedDecision = {
       nextState: { key: "new-state-key" },
-    } as Decision<FakeState>;
+    };
     const MockedAlgorithm: RateLimiterInterface<FakeState, FakeConfig> = {
       attempt: vi.fn().mockReturnValue(expectedDecision),
     };
@@ -34,13 +28,16 @@ describe("limit service", () => {
       mockedRepository,
       MockedAlgorithm,
     );
-    const stateIdentifiers: StateIdentifiers = { apiKey: "apikey-identifier" };
-    const algorithmConfig: Policies<FakeConfig> = {
+    const stateIdentifiers = { apiKey: "apikey-identifier" };
+    const algorithmConfig = {
       apiKey: { key: "example-config-key" },
     };
 
-    const actualDecisions: LimitDecisions<FakeState> =
-      await limitService.execute(stateIdentifiers, algorithmConfig, 1_000);
+    const actualDecisions = await limitService.execute(
+      stateIdentifiers,
+      algorithmConfig,
+      1_000,
+    );
 
     expect(actualDecisions).toEqual({ apiKey: expectedDecision });
     expect(mockedRepository.findOneBy).toHaveBeenCalledWith(
@@ -63,14 +60,14 @@ describe("limit service", () => {
         } as FakeState),
       save: vi.fn().mockResolvedValue(undefined),
     };
-    const expectedDecisions: LimitDecisions<FakeState> = {
+    const expectedDecisions = {
       apiKey: {
         nextState: { key: "new-apiKey-state-key" },
-      } as Decision<FakeState>,
-      ip: { nextState: { key: "new-ip-state-key" } } as Decision<FakeState>,
+      },
+      ip: { nextState: { key: "new-ip-state-key" } },
       tenant: {
         nextState: { key: "new-tenant-state-key" },
-      } as Decision<FakeState>,
+      },
     };
     const MockedAlgorithm: RateLimiterInterface<FakeState, FakeConfig> = {
       attempt: vi
@@ -83,12 +80,12 @@ describe("limit service", () => {
       mockedRepository,
       MockedAlgorithm,
     );
-    const stateIdentifiers: StateIdentifiers = {
+    const stateIdentifiers = {
       apiKey: "apikey-identifier",
       ip: "ip-identifier",
       tenant: "tenant-identifier",
     };
-    const algorithmConfig: Policies<FakeConfig> = {
+    const algorithmConfig = {
       apiKey: { key: "api-config" },
       ip: { key: "ip-config" },
       tenant: { key: "tenant-config" },

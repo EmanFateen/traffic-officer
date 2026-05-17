@@ -5,7 +5,7 @@ describe("key builder", () => {
   const cases = [
     {
       identity: "fake-user-id",
-      key: "user",
+      key: "apiKey",
     },
     {
       identity: "fake-ip",

@@ -1,12 +1,12 @@
-import { DecisionEvaluator } from "../Domain/Service/DecisionEvaluator.ts";
-import { RateLimiterService } from "../Domain/Service/RateLimiterService.ts";
 import {
-  EnforcementDecision,
-  Policies,
-  StateIdentifiers,
-} from "../Domain/types.ts";
+  DecisionEvaluator,
+  EvaluatedDecision,
+} from "../Domain/Service/DecisionEvaluator.ts";
+import { RateLimiterService } from "../Domain/Service/RateLimiterService.ts";
 import { stateIdentifierFactory } from "./StateIdentifierFactory.ts";
-import { IdentifierBuilder, Identities } from "./types.ts";
+import { IdentifierBuilder, Identities } from "./Identities.ts";
+import { Policies } from "../Domain/Policies.ts";
+import { StateIdentifiers } from "../Domain/StateIdentifiers.ts";
 
 export class EnforceRateLimitUseCase<State, Policy> {
   constructor(
@@ -19,7 +19,7 @@ export class EnforceRateLimitUseCase<State, Policy> {
     identities: Identities,
     policies: Policies<Policy>,
     requestedAt: number,
-  ): Promise<EnforcementDecision> {
+  ): Promise<EvaluatedDecision> {
     if (!identities.apiKey) {
       throw new Error("apikey is required to enforce rate limits");
     }

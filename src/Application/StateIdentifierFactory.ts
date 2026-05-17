@@ -1,5 +1,6 @@
-import { IdentifierBuilder, Identities } from "./types.ts";
-import { StateIdentifiers } from "../Domain/types.ts";
+import { IdentifierBuilder, Identities } from "./Identities.ts";
+
+import { StateIdentifiers } from "../Domain/StateIdentifiers.ts";
 
 export function stateIdentifierFactory(
   identifierBuilder: IdentifierBuilder,
@@ -10,7 +11,7 @@ export function stateIdentifierFactory(
   }
 
   const keys: StateIdentifiers = {
-    apiKey: identifierBuilder("user").ownedBy(identities.apiKey),
+    apiKey: identifierBuilder("apiKey").ownedBy(identities.apiKey),
   };
 
   if (identities.ip !== undefined) {

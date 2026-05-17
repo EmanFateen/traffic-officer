@@ -1,13 +1,11 @@
 import { describe, expect, test } from "vitest";
-import { Decision } from "../types.ts";
 import { TokenBucket } from "./TokenBucket.ts";
-import { TokenBucketState } from "./types.ts";
 
 describe("TokenBucket", () => {
   test("allows a request when there are enough tokens", () => {
     const tokenBucket = new TokenBucket();
 
-    const actualDecision: Decision<TokenBucketState> = tokenBucket.attempt(
+    const actualDecision = tokenBucket.attempt(
       { tokensCount: 3, lastUpdatedAtInMs: 1_000 },
       {
         refillRate: { amount: 2, perMs: 5_000 },
@@ -22,7 +20,7 @@ describe("TokenBucket", () => {
   test("should allow request when tokens exactly equal cost", () => {
     const tokenBucket = new TokenBucket();
 
-    const actualDecision: Decision<TokenBucketState> = tokenBucket.attempt(
+    const actualDecision = tokenBucket.attempt(
       { tokensCount: 1, lastUpdatedAtInMs: 1_000 },
       {
         refillRate: { amount: 2, perMs: 5_000 },
@@ -38,7 +36,7 @@ describe("TokenBucket", () => {
   test("denies a request when no available tokens", () => {
     const tokenBucket = new TokenBucket();
 
-    const actualDecision: Decision<TokenBucketState> = tokenBucket.attempt(
+    const actualDecision = tokenBucket.attempt(
       { tokensCount: 0, lastUpdatedAtInMs: 1_000 },
       {
         refillRate: { amount: 2, perMs: 5_000 },
@@ -54,7 +52,7 @@ describe("TokenBucket", () => {
     const availableTokens = 3;
     const tokenBucket = new TokenBucket();
 
-    const actualDecision: Decision<TokenBucketState> = tokenBucket.attempt(
+    const actualDecision = tokenBucket.attempt(
       { tokensCount: availableTokens, lastUpdatedAtInMs: 1_000 },
       {
         refillRate: { amount: 2, perMs: 5_000 },
@@ -70,7 +68,7 @@ describe("TokenBucket", () => {
     const requestedAtInMs = 500;
     const tokenBucket = new TokenBucket();
 
-    const actualDecision: Decision<TokenBucketState> = tokenBucket.attempt(
+    const actualDecision = tokenBucket.attempt(
       { tokensCount: 0, lastUpdatedAtInMs: 0 },
       {
         refillRate: { amount: 2, perMs: 1_000 },
@@ -93,7 +91,7 @@ describe("TokenBucket", () => {
     let lastRefillInMs = 0;
     let requestedAtInMs = 1_000;
     const tokenBucket = new TokenBucket();
-    const firstDecision: Decision<TokenBucketState> = tokenBucket.attempt(
+    const firstDecision = tokenBucket.attempt(
       {
         tokensCount: currentTokens,
         lastUpdatedAtInMs: lastRefillInMs,
@@ -106,7 +104,7 @@ describe("TokenBucket", () => {
     );
     currentTokens = firstDecision.remaining;
     lastRefillInMs = firstDecision.nextState.lastUpdatedAtInMs;
-    const secondDecision: Decision<TokenBucketState> = tokenBucket.attempt(
+    const secondDecision = tokenBucket.attempt(
       {
         tokensCount: currentTokens,
         lastUpdatedAtInMs: lastRefillInMs,
@@ -121,7 +119,7 @@ describe("TokenBucket", () => {
     lastRefillInMs = secondDecision.nextState.lastUpdatedAtInMs;
     requestedAtInMs = 1_500;
 
-    const actualDecision: Decision<TokenBucketState> = tokenBucket.attempt(
+    const actualDecision = tokenBucket.attempt(
       {
         tokensCount: currentTokens,
         lastUpdatedAtInMs: lastRefillInMs,
@@ -143,7 +141,7 @@ describe("TokenBucket", () => {
     let lastRefillInMs = 0;
     let requestedAtInMs = 1_000;
     const tokenBucket = new TokenBucket();
-    const firstDecision: Decision<TokenBucketState> = tokenBucket.attempt(
+    const firstDecision = tokenBucket.attempt(
       {
         tokensCount: currentTokens,
         lastUpdatedAtInMs: lastRefillInMs,
@@ -157,7 +155,7 @@ describe("TokenBucket", () => {
     currentTokens = firstDecision.remaining;
     lastRefillInMs = firstDecision.nextState.lastUpdatedAtInMs;
     requestedAtInMs = 2_000;
-    const secondDecision: Decision<TokenBucketState> = tokenBucket.attempt(
+    const secondDecision = tokenBucket.attempt(
       {
         tokensCount: currentTokens,
         lastUpdatedAtInMs: lastRefillInMs,
@@ -172,7 +170,7 @@ describe("TokenBucket", () => {
     lastRefillInMs = secondDecision.nextState.lastUpdatedAtInMs;
     requestedAtInMs = 2_300;
 
-    const actualDecision: Decision<TokenBucketState> = tokenBucket.attempt(
+    const actualDecision = tokenBucket.attempt(
       {
         tokensCount: currentTokens,
         lastUpdatedAtInMs: lastRefillInMs,
@@ -194,7 +192,7 @@ describe("TokenBucket", () => {
   test("remaining tokens should stay integers", () => {
     const tokenBucket = new TokenBucket();
 
-    const actualDecision: Decision<TokenBucketState> = tokenBucket.attempt(
+    const actualDecision = tokenBucket.attempt(
       { tokensCount: 5, lastUpdatedAtInMs: 1_000 },
       {
         refillRate: { amount: 1, perMs: 5_000 },
@@ -211,7 +209,7 @@ describe("TokenBucket", () => {
   test("should not refill when requested time is earlier than last update", () => {
     const tokenBucket = new TokenBucket();
 
-    const actualDecision: Decision<TokenBucketState> = tokenBucket.attempt(
+    const actualDecision = tokenBucket.attempt(
       { tokensCount: 5, lastUpdatedAtInMs: 1_000 },
       {
         refillRate: { amount: 1, perMs: 5_000 },
@@ -229,7 +227,7 @@ describe("TokenBucket", () => {
     const bucketCapacity = 100;
     const tokenBucket = new TokenBucket();
 
-    const actualDecision: Decision<TokenBucketState> = tokenBucket.attempt(
+    const actualDecision = tokenBucket.attempt(
       { tokensCount: 80, lastUpdatedAtInMs: 700 },
       {
         refillRate: { amount: 100, perMs: 500 },
@@ -246,7 +244,7 @@ describe("TokenBucket", () => {
     const requestedAtInMs = 1_000;
     const tokenBucket = new TokenBucket();
 
-    const actualDecision: Decision<TokenBucketState> = tokenBucket.attempt(
+    const actualDecision = tokenBucket.attempt(
       undefined,
       {
         refillRate: { amount: 1, perMs: 1_000 },

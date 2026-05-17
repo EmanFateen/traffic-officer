@@ -1,11 +1,10 @@
 import { describe, expect, test } from "vitest";
 import { TokenBucket } from "./TokenBucket.ts";
-import { rateLimiterFactory } from "./RateLimiterFactory.ts";
-import { AlgorithmName } from "./types.ts";
+import { AlgorithmName, rateLimiterFactory } from "./RateLimiterFactory.ts";
 
 describe("RateLimiter Algorithm Factory", () => {
   test("returns TokenBucket instance when algorithm name is TokenBucket", () => {
-    const algorithmName: AlgorithmName = "TokenBucket";
+    const algorithmName = "TokenBucket";
 
     const actual = rateLimiterFactory(algorithmName);
 

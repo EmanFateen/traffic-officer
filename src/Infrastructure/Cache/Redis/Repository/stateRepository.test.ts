@@ -1,13 +1,16 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-
 import { getClient } from "../Client/getClient.ts";
-import { tokenBucketStateRepository } from "./TokenBucketStateRepository.ts";
-import { TokenBucketState } from "../../../../Domain/Algorithm/types.ts";
+import { stateRepository } from "./stateRepository.ts";
 import { RedisClientType } from "redis";
 
 vi.mock("../Client/getClient.ts", () => ({
   getClient: vi.fn(),
 }));
+
+type mockState = {
+  name: string;
+  lastUpdatedAtInMs: number;
+};
 
 describe("Redis bucket repository", () => {
   beforeEach(() => {
@@ -21,10 +24,9 @@ describe("Redis bucket repository", () => {
     } as unknown as RedisClientType;
     vi.mocked(getClient).mockResolvedValue(redisClient);
 
-    const repository = new tokenBucketStateRepository();
+    const repository = new stateRepository<mockState>();
 
-    const bucketState: TokenBucketState | null =
-      await repository.findOneBy(key);
+    const bucketState: mockState | null = await repository.findOneBy(key);
 
     expect(bucketState).toBeNull();
     expect(redisClient.get).toHaveBeenCalledWith(key);
@@ -32,31 +34,30 @@ describe("Redis bucket repository", () => {
 
   test("returns bucket state when bucket exists", async () => {
     const key = "bucket:user:123";
-    const expectedBucketState = {
-      tokensCount: 3,
+    const expectedState: mockState = {
+      name: "exmaple-name",
       lastUpdatedAtInMs: 1_000,
     };
     const redisClient = {
-      get: vi.fn().mockResolvedValue(JSON.stringify(expectedBucketState)),
+      get: vi.fn().mockResolvedValue(JSON.stringify(expectedState)),
       set: vi.fn(),
     } as unknown as RedisClientType;
     vi.mocked(getClient).mockResolvedValue(redisClient);
-    const repository = new tokenBucketStateRepository();
+    const repository = new stateRepository<mockState>();
 
-    const bucketState: TokenBucketState | null =
-      await repository.findOneBy(key);
+    const bucketState: mockState | null = await repository.findOneBy(key);
 
-    expect(bucketState?.tokensCount).toEqual(expectedBucketState.tokensCount);
+    expect(bucketState?.name).toEqual(expectedState.name);
     expect(bucketState?.lastUpdatedAtInMs).toEqual(
-      expectedBucketState.lastUpdatedAtInMs,
+      expectedState.lastUpdatedAtInMs,
     );
     expect(redisClient.get).toHaveBeenCalledWith(key);
   });
 
   test("sets bucket state as json", async () => {
     const key = "bucket:user:123";
-    const bucketState = {
-      tokensCount: 2,
+    const bucketState: mockState = {
+      name: "exmaple-name",
       lastUpdatedAtInMs: 2_000,
     };
     const redisClient = {
@@ -64,7 +65,7 @@ describe("Redis bucket repository", () => {
       set: vi.fn(),
     } as unknown as RedisClientType;
     vi.mocked(getClient).mockResolvedValue(redisClient);
-    const repository = new tokenBucketStateRepository();
+    const repository = new stateRepository<mockState>();
 
     await repository.save(key, bucketState);
 
