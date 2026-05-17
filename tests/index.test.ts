@@ -40,7 +40,6 @@ describe("traffic officer public API", () => {
     redisKeysToDelete = [`ratelimit:user:${user}:tokens`];
     const trafficOfficer = createTrafficOfficer({
       dbUrl: "redis://127.0.0.1:6379",
-      algorithm: "TokenBucket",
     });
 
     const decision = await trafficOfficer.enforce(
@@ -73,7 +72,6 @@ describe("traffic officer public API", () => {
     redisKeysToDelete = [`ratelimit:user:${user}:tokens`];
     const trafficOfficer = createTrafficOfficer({
       dbUrl: "redis://127.0.0.1:6379",
-      algorithm: "TokenBucket",
     });
     await trafficOfficer.enforce(identities, policies, requestedAt);
     await trafficOfficer.enforce(identities, policies, requestedAt);
@@ -114,9 +112,9 @@ describe("traffic officer public API", () => {
     await trafficOfficer.enforce(identities, policies, firstRequestedAt);
 
     const actualDecision = await trafficOfficer.enforce(
-        identities,
-        policies,
-        earlierRequestedAt,
+      identities,
+      policies,
+      earlierRequestedAt,
     );
 
     expect(actualDecision).toEqual({
@@ -220,7 +218,6 @@ describe("traffic officer public API", () => {
       ];
       const trafficOfficer = createTrafficOfficer({
         dbUrl: "redis://127.0.0.1:6379",
-        algorithm: "TokenBucket",
       });
       await trafficOfficer.enforce(identities, policies, requestedAt);
 
@@ -273,41 +270,8 @@ describe("traffic officer public API", () => {
     ];
     const trafficOfficer = createTrafficOfficer({
       dbUrl: "redis://127.0.0.1:6379",
-      algorithm: "TokenBucket",
     });
     await trafficOfficer.enforce(identities, policies, requestedAt);
-
-    const actualDecision = await trafficOfficer.enforce(
-        identities,
-        policies,
-        requestedAt,
-    );
-
-    expect(actualDecision).toEqual({
-      allowed: false,
-      retryAfter: 3_000,
-    });
-  });
-
-  test("should use the default algorithm when no algorithm is configured", async () => {
-    const user = `default-algorithm-${Date.now()}`;
-    const identities: Identities = {
-      apiKey: user,
-    };
-    const policies = {
-      apiKey: {
-        bucketCapacityLimit: 2,
-        refillRate: {
-          amount: 1,
-          perMs: 1_000,
-        },
-      },
-    };
-    const requestedAt = 10_000;
-    redisKeysToDelete = [`ratelimit:user:${user}:tokens`];
-    const trafficOfficer = createTrafficOfficer({
-      dbUrl: "redis://127.0.0.1:6379",
-    });
 
     const actualDecision = await trafficOfficer.enforce(
       identities,
@@ -316,34 +280,12 @@ describe("traffic officer public API", () => {
     );
 
     expect(actualDecision).toEqual({
-      allowed: true,
-      retryAfter: 0,
+      allowed: false,
+      retryAfter: 3_000,
     });
   });
 
   describe("api key is required", () => {
-    test("should reject requests when the api key identity is missing", async () => {
-      const identities = {} as unknown as Identities;
-      const policies = {
-        apiKey: {
-          bucketCapacityLimit: 1,
-          refillRate: {
-            amount: 1,
-            perMs: 1_000,
-          },
-        },
-      };
-      const requestedAt = 7_000;
-      const trafficOfficer = createTrafficOfficer({
-        dbUrl: "redis://127.0.0.1:6379",
-        algorithm: "TokenBucket",
-      });
-
-      await expect(
-        trafficOfficer.enforce(identities, policies, requestedAt),
-      ).rejects.toThrow("apikey is required to enforce rate limits");
-    });
-
     test("should reject requests when the api key policy is missing", async () => {
       const user = `missing-api-key-policy-${Date.now()}`;
       const identities: Identities = {
@@ -353,7 +295,6 @@ describe("traffic officer public API", () => {
       const requestedAt = 8_000;
       const trafficOfficer = createTrafficOfficer({
         dbUrl: "redis://127.0.0.1:6379",
-        algorithm: "TokenBucket",
       });
 
       await expect(
@@ -361,32 +302,34 @@ describe("traffic officer public API", () => {
       ).rejects.toThrow("api key policy is required to enforce rate limits");
     });
 
-    test("should reject requests when the api key identity is an empty string", async () => {
-      const identities = {
-        apiKey: "",
-      } as unknown as Identities;
-      const policies = {
-        apiKey: {
-          bucketCapacityLimit: 1,
-          refillRate: {
-            amount: 1,
-            perMs: 1_000,
+    test.each([undefined, ""])(
+      "should reject requests when the api key identity is invalid: %p",
+      async (apiKey) => {
+        const identities = {
+          apiKey,
+        } as unknown as Identities;
+        const policies = {
+          apiKey: {
+            bucketCapacityLimit: 1,
+            refillRate: {
+              amount: 1,
+              perMs: 1_000,
+            },
           },
-        },
-      };
-      const requestedAt = 8_500;
-      const trafficOfficer = createTrafficOfficer({
-        dbUrl: "redis://127.0.0.1:6379",
-        algorithm: "TokenBucket",
-      });
+        };
+        const requestedAt = 7_000;
+        const trafficOfficer = createTrafficOfficer({
+          dbUrl: "redis://127.0.0.1:6379",
+        });
 
-      await expect(
-        trafficOfficer.enforce(identities, policies, requestedAt),
-      ).rejects.toThrow("apikey is required to enforce rate limits");
-    });
+        await expect(
+          trafficOfficer.enforce(identities, policies, requestedAt),
+        ).rejects.toThrow("apikey is required to enforce rate limits");
+      },
+    );
   });
 
-  describe("each configured dimension must have identity and policy", async () => {
+  describe("each configured dimension must have identity and policy", () => {
     test("should ignore optional dimensions when their policies are not configured", async () => {
       const user = `optional-identities-without-policies-${Date.now()}`;
       const ip = `203.0.113.30-${Date.now()}`;
@@ -412,7 +355,6 @@ describe("traffic officer public API", () => {
       redisKeysToDelete = [userStateKey, ipStateKey, tenantStateKey];
       const trafficOfficer = createTrafficOfficer({
         dbUrl: "redis://127.0.0.1:6379",
-        algorithm: "TokenBucket",
       });
 
       const actualDecision = await trafficOfficer.enforce(
