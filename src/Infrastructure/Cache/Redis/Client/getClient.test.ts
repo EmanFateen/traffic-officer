@@ -5,16 +5,18 @@ import { createClient } from "./createClient.ts";
 type RedisClient = Awaited<ReturnType<typeof createClient>>;
 let getClient: typeof import("./getClient.ts").getClient;
 let configureRedis: typeof import("./getClient.ts").configureRedis;
+let closeClient: typeof import("./getClient.ts").closeClient;
 
 vi.mock("./createClient.ts", () => ({
   createClient: vi.fn(),
 }));
 
-describe("Redis client singleton", () => {
+describe("Redis client singleton and race condition handling", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.resetModules();
-    ({ getClient, configureRedis } = await import("./getClient.ts"));
+    ({ getClient, configureRedis, closeClient } =
+      await import("./getClient.ts"));
   });
 
   test("should create Redis client only once", async () => {
@@ -52,7 +54,7 @@ describe("Redis client singleton", () => {
     expect(createClient).toHaveBeenCalledWith(config);
   });
 
-  test("should share pending Redis client creation between concurrent calls", async () => {
+  test("should prevent race condition by sharing pending Redis client creation between concurrent calls", async () => {
     const config: Config = { url: "redis://localhost:6379" };
     const client = { id: "redis-client" } as unknown as RedisClient;
     vi.mocked(createClient).mockResolvedValue(client);
@@ -97,5 +99,30 @@ describe("Redis client singleton", () => {
 
     expect(createClient).toHaveBeenCalledTimes(2);
     expect(createClient).toHaveBeenCalledWith(config);
+  });
+
+  test("should close the Redis client and create a new one for the next request", async () => {
+    const config: Config = { url: "redis://localhost:6379" };
+    const firstClient = {
+      id: "first-redis-client",
+      close: vi.fn().mockResolvedValue(undefined),
+    } as unknown as RedisClient;
+    const secondClient = {
+      id: "second-redis-client",
+      close: vi.fn(),
+    } as unknown as RedisClient;
+    vi.mocked(createClient)
+      .mockResolvedValueOnce(firstClient)
+      .mockResolvedValueOnce(secondClient);
+    configureRedis(config);
+
+    const currentClient = await getClient();
+    await closeClient();
+    const nextClient = await getClient();
+
+    expect(currentClient).toBe(firstClient);
+    expect(firstClient.close).toHaveBeenCalledOnce();
+    expect(nextClient).toBe(secondClient);
+    expect(createClient).toHaveBeenCalledTimes(2);
   });
 });

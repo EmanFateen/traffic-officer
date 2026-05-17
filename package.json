@@ -13,7 +13,9 @@
     "start": "tsx src/index.ts",
     "typecheck": "tsc --noEmit",
     "eslint": "npx eslint .",
-    "eslint-fix": "npx eslint . --fix"
+    "eslint-fix": "npx eslint . --fix",
+    "test": "npx vitest run test .",
+    "cc": "npm run build && npm run eslint-fix && npm run eslint && npm run test"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

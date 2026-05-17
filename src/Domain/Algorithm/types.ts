@@ -4,7 +4,7 @@ export type TokenBucketState = {
 };
 
 export type TokenBucketPolicy = {
-  bucketCapacity: number;
+  bucketCapacityLimit: number;
   refillRate: Rate;
 };
 

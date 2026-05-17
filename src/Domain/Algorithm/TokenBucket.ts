@@ -52,7 +52,7 @@ export class TokenBucket implements RateLimiterInterface<
     requestedAtInMs: number,
   ): number {
     const currentBucketState: TokenBucketState = state ?? {
-      tokensCount: policy.bucketCapacity,
+      tokensCount: policy.bucketCapacityLimit,
       lastUpdatedAtInMs: requestedAtInMs,
     };
 
@@ -64,7 +64,7 @@ export class TokenBucket implements RateLimiterInterface<
       elapsedInMs * (policy.refillRate.amount / policy.refillRate.perMs);
 
     return Math.min(
-      policy.bucketCapacity,
+      policy.bucketCapacityLimit,
       currentBucketState.tokensCount + refilledTokens,
     );
   }
