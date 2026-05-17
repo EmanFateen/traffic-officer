@@ -6,7 +6,7 @@ import {
   closeClient,
   getClient,
 } from "../src/Infrastructure/Cache/Redis/Client/getClient.ts";
-import { createTrafficOfficer } from "../src/trafficOfficer";
+import { createTrafficOfficer } from "../src";
 
 describe("traffic officer public API", () => {
   let redisKeysToDelete: string[] = [];
