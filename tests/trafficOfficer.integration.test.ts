@@ -1,14 +1,11 @@
 import { afterEach, describe, expect, test } from "vitest";
-import type { Identities } from "../src/Application/types.ts";
-import type { TokenBucketPolicy } from "../src/Domain/Algorithm/types.ts";
-import type { Policies } from "../src/Domain/types.ts";
 import {
   closeClient,
   getClient,
 } from "../src/Infrastructure/Cache/Redis/Client/getClient.ts";
 import { createTrafficOfficer } from "../src";
 
-describe("traffic officer public API", () => {
+describe("traffic officer", () => {
   let redisKeysToDelete: string[] = [];
 
   afterEach(async () => {
@@ -24,7 +21,7 @@ describe("traffic officer public API", () => {
 
   test("should allow requests within the configured api key limit", async () => {
     const user = `allowed-api-key-${Date.now()}`;
-    const identities: Identities = {
+    const identities = {
       apiKey: user,
     };
     const policies = {
@@ -56,7 +53,7 @@ describe("traffic officer public API", () => {
 
   test("should allow requests again after tokens refill over time", async () => {
     const user = `refilled-api-key-${Date.now()}`;
-    const identities: Identities = {
+    const identities = {
       apiKey: user,
     };
     const policies = {
@@ -90,7 +87,7 @@ describe("traffic officer public API", () => {
 
   test("should not refill tokens when requested time is earlier than the previous request", async () => {
     const user = `earlier-request-time-${Date.now()}`;
-    const identities: Identities = {
+    const identities = {
       apiKey: user,
     };
     const policies = {
@@ -208,7 +205,7 @@ describe("traffic officer public API", () => {
       const user = `api-key-with-ip-limit-${Date.now()}`;
       const ip = `203.0.113.10-${Date.now()}`;
       const tenant = `tenant-with-ip-limit-${Date.now()}`;
-      const identities: Identities = { apiKey: user, ip, tenant };
+      const identities = { apiKey: user, ip, tenant };
       const policies = policy;
       const requestedAt = 4_000;
       redisKeysToDelete = [
@@ -238,7 +235,7 @@ describe("traffic officer public API", () => {
     const user = `api-key-with-multiple-limits-${Date.now()}`;
     const ip = `203.0.113.20-${Date.now()}`;
     const tenant = `tenant-with-multiple-limits-${Date.now()}`;
-    const identities: Identities = { apiKey: user, ip, tenant };
+    const identities = { apiKey: user, ip, tenant };
     const policies = {
       apiKey: {
         bucketCapacityLimit: 10,
@@ -288,17 +285,16 @@ describe("traffic officer public API", () => {
   describe("api key is required", () => {
     test("should reject requests when the api key policy is missing", async () => {
       const user = `missing-api-key-policy-${Date.now()}`;
-      const identities: Identities = {
+      const identities = {
         apiKey: user,
       };
-      const policies = {} as unknown as Policies<TokenBucketPolicy>;
       const requestedAt = 8_000;
       const trafficOfficer = createTrafficOfficer({
         dbUrl: "redis://127.0.0.1:6379",
       });
 
       await expect(
-        trafficOfficer.enforce(identities, policies, requestedAt),
+        trafficOfficer.enforce(identities, {} as any, requestedAt),
       ).rejects.toThrow("api key policy is required to enforce rate limits");
     });
 
@@ -307,7 +303,7 @@ describe("traffic officer public API", () => {
       async (apiKey) => {
         const identities = {
           apiKey,
-        } as unknown as Identities;
+        } as any;
         const policies = {
           apiKey: {
             bucketCapacityLimit: 1,
@@ -334,7 +330,7 @@ describe("traffic officer public API", () => {
       const user = `optional-identities-without-policies-${Date.now()}`;
       const ip = `203.0.113.30-${Date.now()}`;
       const tenant = `tenant-without-policies-${Date.now()}`;
-      const identities: Identities = {
+      const identities = {
         apiKey: user,
         ip,
         tenant,
@@ -378,7 +374,7 @@ describe("traffic officer public API", () => {
       const user = `optional-policies-without-identities-${Date.now()}`;
       const ip = `203.0.113.50-${Date.now()}`;
       const tenant = `tenant-policy-without-identity-${Date.now()}`;
-      const identities: Identities = {
+      const identities = {
         apiKey: user,
       };
       const policies = {
@@ -434,10 +430,10 @@ describe("traffic officer public API", () => {
   test("should track rate limits independently for different users", async () => {
     const firstUser = `first-api-key-${Date.now()}`;
     const secondUser = `second-api-key-${Date.now()}`;
-    const firstIdentities: Identities = {
+    const firstIdentities = {
       apiKey: firstUser,
     };
-    const secondIdentities: Identities = {
+    const secondIdentities = {
       apiKey: secondUser,
     };
     const policies = {
@@ -483,7 +479,7 @@ describe("traffic officer public API", () => {
 
   test("should persist rate limit state across traffic officer instances", async () => {
     const user = `persisted-state-${Date.now()}`;
-    const identities: Identities = {
+    const identities = {
       apiKey: user,
     };
     const policies = {

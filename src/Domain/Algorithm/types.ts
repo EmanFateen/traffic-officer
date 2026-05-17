@@ -14,3 +14,10 @@ export type Rate = {
 };
 
 export type AlgorithmName = "TokenBucket";
+
+export type AlgorithmTypes = {
+  TokenBucket: {
+    state: TokenBucketState;
+    policy: TokenBucketPolicy;
+  };
+};
