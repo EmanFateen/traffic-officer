@@ -1,11 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
-import {
-  Decision,
-  Policies,
-  LimitDecisions,
-  StateIdentifiers,
-} from "../types.ts";
+import { Decision, Policies, StateIdentifiers } from "../types.ts";
 import { RateLimiterService } from "./RateLimiterService.ts";
 import { RateLimiterInterface } from "../Algorithm/RateLimiterInterface.ts";
 
@@ -39,8 +34,11 @@ describe("limit service", () => {
       apiKey: { key: "example-config-key" },
     };
 
-    const actualDecisions: LimitDecisions<FakeState> =
-      await limitService.execute(stateIdentifiers, algorithmConfig, 1_000);
+    const actualDecisions = await limitService.execute(
+      stateIdentifiers,
+      algorithmConfig,
+      1_000,
+    );
 
     expect(actualDecisions).toEqual({ apiKey: expectedDecision });
     expect(mockedRepository.findOneBy).toHaveBeenCalledWith(
@@ -63,7 +61,7 @@ describe("limit service", () => {
         } as FakeState),
       save: vi.fn().mockResolvedValue(undefined),
     };
-    const expectedDecisions: LimitDecisions<FakeState> = {
+    const expectedDecisions = {
       apiKey: {
         nextState: { key: "new-apiKey-state-key" },
       } as Decision<FakeState>,

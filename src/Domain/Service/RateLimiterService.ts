@@ -1,11 +1,12 @@
 import { RateLimiterInterface } from "../Algorithm/RateLimiterInterface.ts";
 import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
-import {
-  Decision,
-  Policies,
-  LimitDecisions,
-  StateIdentifiers,
-} from "../types.ts";
+import { Decision, Policies, StateIdentifiers } from "../types.ts";
+
+export type LimitDecisions<State> = {
+  apiKey: Decision<State>;
+  ip?: Decision<State>;
+  tenant?: Decision<State>;
+};
 
 export class RateLimiterService<State, Policy> {
   constructor(

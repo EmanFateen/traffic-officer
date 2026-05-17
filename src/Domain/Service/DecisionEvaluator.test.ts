@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { LimitDecisions } from "../types.ts";
 import { DecisionEvaluator } from "./DecisionEvaluator.ts";
+import { LimitDecisions } from "./RateLimiterService.ts";
 
 describe("decision evaluator", () => {
   test("should return an allowed enforcement decision when all dimensions are allowed", () => {

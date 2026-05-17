@@ -5,12 +5,6 @@ export type Decision<State> = {
   nextState: State;
 };
 
-export type LimitDecisions<State> = {
-  apiKey: Decision<State>;
-  ip?: Decision<State>;
-  tenant?: Decision<State>;
-};
-
 export type Policies<Policy> = {
   apiKey: Policy;
   ip?: Policy;
