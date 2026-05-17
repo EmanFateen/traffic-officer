@@ -1,17 +1,4 @@
-export type TokenBucketState = {
-  tokensCount: number;
-  lastUpdatedAtInMs: number;
-};
-
-export type TokenBucketPolicy = {
-  bucketCapacityLimit: number;
-  refillRate: Rate;
-};
-
-export type Rate = {
-  amount: number;
-  perMs: number;
-};
+import { TokenBucketPolicy, TokenBucketState } from "./TokenBucket.ts";
 
 export type AlgorithmName = "TokenBucket";
 

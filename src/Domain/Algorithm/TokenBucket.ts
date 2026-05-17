@@ -1,6 +1,17 @@
 import { Decision } from "../types.ts";
 import { RateLimiterInterface } from "./RateLimiterInterface.ts";
-import { TokenBucketPolicy, TokenBucketState } from "./types.ts";
+
+export type TokenBucketState = {
+  tokensCount: number;
+  lastUpdatedAtInMs: number;
+};
+export type TokenBucketPolicy = {
+  bucketCapacityLimit: number;
+  refillRate: {
+    amount: number;
+    perMs: number;
+  };
+};
 
 export class TokenBucket implements RateLimiterInterface<
   TokenBucketState,

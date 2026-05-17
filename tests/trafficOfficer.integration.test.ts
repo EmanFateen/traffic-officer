@@ -294,7 +294,7 @@ describe("traffic officer", () => {
       });
 
       await expect(
-        trafficOfficer.enforce(identities, {} as any, requestedAt),
+        trafficOfficer.enforce(identities, {} as never, requestedAt),
       ).rejects.toThrow("api key policy is required to enforce rate limits");
     });
 
@@ -303,7 +303,7 @@ describe("traffic officer", () => {
       async (apiKey) => {
         const identities = {
           apiKey,
-        } as any;
+        } as never;
         const policies = {
           apiKey: {
             bucketCapacityLimit: 1,
