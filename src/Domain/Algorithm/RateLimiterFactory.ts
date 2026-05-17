@@ -1,19 +1,25 @@
-import { TokenBucket } from "./TokenBucket.ts";
+import {
+  TokenBucket,
+  TokenBucketPolicy,
+  TokenBucketState,
+} from "./TokenBucket.ts";
 import { RateLimiterInterface } from "./RateLimiterInterface.ts";
-import { AlgorithmTypes } from "./types.ts";
 
-type AlgorithmsMap = {
-  TokenBucket: RateLimiterInterface<
-    AlgorithmTypes["TokenBucket"]["state"],
-    AlgorithmTypes["TokenBucket"]["policy"]
-  >;
+export type AlgorithmName = "TokenBucket";
+
+export type AlgorithmsMap = {
+  TokenBucket: {
+    algorithmType: RateLimiterInterface<TokenBucketState, TokenBucketPolicy>;
+    state: TokenBucketState;
+    policy: TokenBucketPolicy;
+  };
 };
 
 export function rateLimiterFactory<T extends keyof AlgorithmsMap>(
   algorithmName: T,
-): AlgorithmsMap[T] {
+): AlgorithmsMap[T]["algorithmType"] {
   if (algorithmName === "TokenBucket")
-    return new TokenBucket() as AlgorithmsMap[T];
+    return new TokenBucket() as AlgorithmsMap[T]["algorithmType"];
 
   throw new Error(`${algorithmName} is unsupported algorithm.`);
 }
