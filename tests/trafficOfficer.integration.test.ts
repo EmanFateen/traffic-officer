@@ -44,10 +44,9 @@ describe("traffic officer", () => {
 
   test("should allow requests again after tokens refill over time", async () => {
     const identities = { apiKey: `example-api-key` };
-    const policies = { apiKey: createPolicy(2, 1, 1_000) };
+    const policies = { apiKey: createPolicy(1, 1, 1_000) };
     const requestedAt = 3_000;
     const trafficOfficer = createTrafficOfficer({ dbUrl: redisUrl });
-    await trafficOfficer.enforce(identities, policies, requestedAt);
     await trafficOfficer.enforce(identities, policies, requestedAt);
 
     const refilledDecision = await trafficOfficer.enforce(
@@ -64,11 +63,10 @@ describe("traffic officer", () => {
 
   test("should not refill tokens when requested time is earlier than the previous request", async () => {
     const identities = { apiKey: `example-api-key` };
-    const policies = { apiKey: createPolicy(2, 1, 1_000) };
+    const policies = { apiKey: createPolicy(1, 1, 1_000) };
     const firstRequestedAt = 14_000;
     const earlierRequestedAt = 13_500;
     const trafficOfficer = createTrafficOfficer({ dbUrl: redisUrl });
-    await trafficOfficer.enforce(identities, policies, firstRequestedAt);
     await trafficOfficer.enforce(identities, policies, firstRequestedAt);
 
     const actualDecision = await trafficOfficer.enforce(
