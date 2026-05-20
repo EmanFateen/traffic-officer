@@ -6,295 +6,141 @@ import {
 import { createTrafficOfficer } from "../src";
 
 describe("traffic officer", () => {
-  let redisKeysToDelete: string[] = [];
-
   afterEach(async () => {
-    if (redisKeysToDelete.length > 0) {
-      const client = await getClient();
-      await client.del(redisKeysToDelete);
-    }
-
-    redisKeysToDelete = [];
+    const client = await getClient();
+    await client.del([
+      `ratelimit:apiKey:example-api-key:tokens`,
+      `ratelimit:apiKey:example-api-key-second:tokens`,
+      `ratelimit:ip:203.0.113.10:tokens`,
+      `ratelimit:tenant:tenant-example:tokens`,
+    ]);
 
     await closeClient();
   });
 
-  test("should allow requests within the configured api key limit", async () => {
-    const user = `allowed-api-key-${Date.now()}`;
-    const identities = {
-      apiKey: user,
-    };
-    const policies = {
-      apiKey: {
-        bucketCapacityLimit: 2,
-        refillRate: {
-          amount: 1,
-          perMs: 1_000,
-        },
-      },
-    };
-    const requestedAt = 1_000;
-    redisKeysToDelete = [`ratelimit:user:${user}:tokens`];
-    const trafficOfficer = createTrafficOfficer({
-      dbUrl: "redis://127.0.0.1:6379",
+  describe("should allow requests", () => {
+    test("within the configured api key limit", async () => {
+      const officer = createOfficer();
+      const identities = { apiKey: `example-api-key` };
+      const policies = { apiKey: createPolicy(2, 1, 1_000) };
+      const requestedAt = 1_000;
+
+      const decision = await officer.enforce(identities, policies, requestedAt);
+
+      expectToBeAllowed(decision);
     });
 
-    const decision = await trafficOfficer.enforce(
-      identities,
-      policies,
-      requestedAt,
-    );
+    test("after retry after expires", async () => {
+      const officer = createOfficer();
+      const identities = { apiKey: `example-api-key` };
+      const policies = { apiKey: createPolicy(1, 1, 1_000) };
+      const requestedAt = 3_000;
+      await officer.enforce(identities, policies, requestedAt);
 
-    expect(decision).toEqual({
-      allowed: true,
-      retryAfter: 0,
+      const refilledDecision = await officer.enforce(
+        identities,
+        policies,
+        requestedAt + 1_000,
+      );
+
+      expectToBeAllowed(refilledDecision);
     });
   });
-
-  test("should allow requests again after tokens refill over time", async () => {
-    const user = `refilled-api-key-${Date.now()}`;
-    const identities = {
-      apiKey: user,
-    };
-    const policies = {
-      apiKey: {
-        bucketCapacityLimit: 1,
-        refillRate: {
-          amount: 1,
-          perMs: 1_000,
+  describe("should reject requests", () => {
+    test.each([
+      {
+        dimension: "api key",
+        policies: {
+          apiKey: createPolicy(1, 1, 1_500),
+          ip: createPolicy(10, 1, 1_000),
+          tenant: createPolicy(10, 1, 1_000),
         },
       },
-    };
-    const requestedAt = 3_000;
-    redisKeysToDelete = [`ratelimit:user:${user}:tokens`];
-    const trafficOfficer = createTrafficOfficer({
-      dbUrl: "redis://127.0.0.1:6379",
-    });
-    await trafficOfficer.enforce(identities, policies, requestedAt);
-    await trafficOfficer.enforce(identities, policies, requestedAt);
-
-    const refilledDecision = await trafficOfficer.enforce(
-      identities,
-      policies,
-      requestedAt + 1_000,
-    );
-
-    expect(refilledDecision).toEqual({
-      allowed: true,
-      retryAfter: 0,
-    });
-  });
-
-  test("should not refill tokens when requested time is earlier than the previous request", async () => {
-    const user = `earlier-request-time-${Date.now()}`;
-    const identities = {
-      apiKey: user,
-    };
-    const policies = {
-      apiKey: {
-        bucketCapacityLimit: 2,
-        refillRate: {
-          amount: 1,
-          perMs: 1_000,
+      {
+        dimension: "ip",
+        policies: {
+          apiKey: createPolicy(10, 1, 1_000),
+          ip: createPolicy(1, 1, 1_500),
+          tenant: createPolicy(10, 1, 1_000),
         },
       },
-    };
-    const firstRequestedAt = 14_000;
-    const earlierRequestedAt = 13_500;
-    redisKeysToDelete = [`ratelimit:user:${user}:tokens`];
-    const trafficOfficer = createTrafficOfficer({
-      dbUrl: "redis://127.0.0.1:6379",
-    });
-    await trafficOfficer.enforce(identities, policies, firstRequestedAt);
-    await trafficOfficer.enforce(identities, policies, firstRequestedAt);
-
-    const actualDecision = await trafficOfficer.enforce(
-      identities,
-      policies,
-      earlierRequestedAt,
-    );
-
-    expect(actualDecision).toEqual({
-      allowed: false,
-      retryAfter: 1_000,
-    });
-  });
-
-  test.each([
-    {
-      dimension: "api key",
-      policy: {
-        apiKey: {
-          bucketCapacityLimit: 1,
-          refillRate: {
-            amount: 1,
-            perMs: 1_500,
-          },
-        },
-        ip: {
-          bucketCapacityLimit: 10,
-          refillRate: {
-            amount: 1,
-            perMs: 1_000,
-          },
-        },
-        tenant: {
-          bucketCapacityLimit: 10,
-          refillRate: {
-            amount: 1,
-            perMs: 1_000,
-          },
+      {
+        dimension: "tenant",
+        policies: {
+          apiKey: createPolicy(10, 1, 1_000),
+          ip: createPolicy(10, 1, 1_000),
+          tenant: createPolicy(1, 1, 1_500),
         },
       },
-    },
-    {
-      dimension: "ip",
-      policy: {
-        apiKey: {
-          bucketCapacityLimit: 10,
-          refillRate: {
-            amount: 1,
-            perMs: 1_000,
-          },
-        },
-        ip: {
-          bucketCapacityLimit: 1,
-          refillRate: {
-            amount: 1,
-            perMs: 1_500,
-          },
-        },
-        tenant: {
-          bucketCapacityLimit: 10,
-          refillRate: {
-            amount: 1,
-            perMs: 1_000,
-          },
-        },
-      },
-    },
-    {
-      dimension: "tenant",
-      policy: {
-        apiKey: {
-          bucketCapacityLimit: 10,
-          refillRate: {
-            amount: 1,
-            perMs: 1_000,
-          },
-        },
-        ip: {
-          bucketCapacityLimit: 10,
-          refillRate: {
-            amount: 1,
-            perMs: 1_000,
-          },
-        },
-        tenant: {
-          bucketCapacityLimit: 1,
-          refillRate: {
-            amount: 1,
-            perMs: 1_500,
-          },
-        },
-      },
-    },
-  ])(
-    `should reject requests when $dimension limit is exceeded`,
-    async ({ policy }) => {
-      const user = `api-key-with-ip-limit-${Date.now()}`;
-      const ip = `203.0.113.10-${Date.now()}`;
-      const tenant = `tenant-with-ip-limit-${Date.now()}`;
-      const identities = { apiKey: user, ip, tenant };
-      const policies = policy;
+    ])(`when $dimension limit is exceeded`, async ({ policies }) => {
+      const officer = createOfficer();
+      const identities = {
+        apiKey: "example-api-key",
+        ip: `203.0.113.10`,
+        tenant: `tenant-example`,
+      };
       const requestedAt = 4_000;
-      redisKeysToDelete = [
-        `ratelimit:user:${user}:tokens`,
-        `ratelimit:ip:${ip}:tokens`,
-        `ratelimit:tenant:${tenant}:tokens`,
-      ];
-      const trafficOfficer = createTrafficOfficer({
-        dbUrl: "redis://127.0.0.1:6379",
-      });
-      await trafficOfficer.enforce(identities, policies, requestedAt);
+      await officer.enforce(identities, policies, requestedAt);
 
-      const actualDecision = await trafficOfficer.enforce(
+      const actualDecision = await officer.enforce(
         identities,
         policies,
         requestedAt,
       );
 
-      expect(actualDecision).toEqual({
-        allowed: false,
-        retryAfter: 1_500,
-      });
-    },
-  );
+      expectToBeRateLimited(actualDecision, 1_500);
+    });
 
-  test("should use the longest retry delay when multiple configured dimensions limits are exceeded", async () => {
-    const user = `api-key-with-multiple-limits-${Date.now()}`;
-    const ip = `203.0.113.20-${Date.now()}`;
-    const tenant = `tenant-with-multiple-limits-${Date.now()}`;
-    const identities = { apiKey: user, ip, tenant };
+    test("before retry after expires", async () => {
+      const officer = createOfficer();
+      const identities = { apiKey: `example-api-key` };
+      const policies = { apiKey: createPolicy(1, 1, 1_000) };
+      const requestedAt = 14_000;
+      await officer.enforce(identities, policies, requestedAt);
+
+      const actualDecision = await officer.enforce(
+        identities,
+        policies,
+        requestedAt - 500,
+      );
+
+      expectToBeRateLimited(actualDecision, 1_000);
+    });
+  });
+
+  test("should use the longest retry after when multiple limits are exceeded", async () => {
+    const officer = createOfficer();
+    const identities = {
+      apiKey: "example-api-key",
+      ip: `203.0.113.10`,
+      tenant: `tenant-example`,
+    };
     const policies = {
-      apiKey: {
-        bucketCapacityLimit: 10,
-        refillRate: {
-          amount: 1,
-          perMs: 1_000,
-        },
-      },
-      ip: {
-        bucketCapacityLimit: 1,
-        refillRate: {
-          amount: 1,
-          perMs: 1_000,
-        },
-      },
-      tenant: {
-        bucketCapacityLimit: 1,
-        refillRate: {
-          amount: 1,
-          perMs: 3_000,
-        },
-      },
+      apiKey: createPolicy(10, 1, 1_000),
+      ip: createPolicy(1, 1, 1_000),
+      tenant: createPolicy(1, 1, 3_000),
     };
     const requestedAt = 5_000;
-    redisKeysToDelete = [
-      `ratelimit:user:${user}:tokens`,
-      `ratelimit:ip:${ip}:tokens`,
-      `ratelimit:tenant:${tenant}:tokens`,
-    ];
-    const trafficOfficer = createTrafficOfficer({
-      dbUrl: "redis://127.0.0.1:6379",
-    });
-    await trafficOfficer.enforce(identities, policies, requestedAt);
+    await officer.enforce(identities, policies, requestedAt);
 
-    const actualDecision = await trafficOfficer.enforce(
+    const actualDecision = await officer.enforce(
       identities,
       policies,
       requestedAt,
     );
 
-    expect(actualDecision).toEqual({
-      allowed: false,
-      retryAfter: 3_000,
-    });
+    expectToBeRateLimited(actualDecision, 3_000);
   });
 
   describe("api key is required", () => {
     test("should reject requests when the api key policy is missing", async () => {
       const user = `missing-api-key-policy-${Date.now()}`;
-      const identities = {
-        apiKey: user,
-      };
+      const identities = { apiKey: user };
       const requestedAt = 8_000;
-      const trafficOfficer = createTrafficOfficer({
-        dbUrl: "redis://127.0.0.1:6379",
-      });
+      const officer = createOfficer();
 
       await expect(
-        trafficOfficer.enforce(identities, {} as never, requestedAt),
+        officer.enforce(identities, {} as never, requestedAt),
       ).rejects.toThrow("api key policy is required to enforce rate limits");
     });
 
@@ -314,202 +160,120 @@ describe("traffic officer", () => {
           },
         };
         const requestedAt = 7_000;
-        const trafficOfficer = createTrafficOfficer({
-          dbUrl: "redis://127.0.0.1:6379",
-        });
+        const officer = createOfficer();
 
         await expect(
-          trafficOfficer.enforce(identities, policies, requestedAt),
+          officer.enforce(identities, policies, requestedAt),
         ).rejects.toThrow("apikey is required to enforce rate limits");
       },
     );
   });
 
   describe("each configured dimension must have identity and policy", () => {
-    test("should ignore optional dimensions when their policies are not configured", async () => {
-      const user = `optional-identities-without-policies-${Date.now()}`;
-      const ip = `203.0.113.30-${Date.now()}`;
-      const tenant = `tenant-without-policies-${Date.now()}`;
-      const identities = {
-        apiKey: user,
-        ip,
-        tenant,
-      };
-      const policies = {
-        apiKey: {
-          bucketCapacityLimit: 2,
-          refillRate: {
-            amount: 1,
-            perMs: 1_000,
-          },
+    test.each([
+      {
+        label: "their policies are not configured",
+        identities: {
+          apiKey: "example-api-key",
+          ip: `203.0.113.10`,
+          tenant: `tenant-example`,
         },
-      };
-      const requestedAt = 9_000;
-      const userStateKey = `ratelimit:user:${user}:tokens`;
-      const ipStateKey = `ratelimit:ip:${ip}:tokens`;
-      const tenantStateKey = `ratelimit:tenant:${tenant}:tokens`;
-      redisKeysToDelete = [userStateKey, ipStateKey, tenantStateKey];
-      const trafficOfficer = createTrafficOfficer({
-        dbUrl: "redis://127.0.0.1:6379",
-      });
-
-      const actualDecision = await trafficOfficer.enforce(
-        identities,
-        policies,
-        requestedAt,
-      );
-      const client = await getClient();
-      const ipState = await client.get(ipStateKey);
-      const tenantState = await client.get(tenantStateKey);
-
-      expect(actualDecision).toEqual({
-        allowed: true,
-        retryAfter: 0,
-      });
-      expect(ipState).toBeNull();
-      expect(tenantState).toBeNull();
-    });
-
-    test("should ignore optional dimensions when their identities are not present", async () => {
-      const user = `optional-policies-without-identities-${Date.now()}`;
-      const ip = `203.0.113.50-${Date.now()}`;
-      const tenant = `tenant-policy-without-identity-${Date.now()}`;
-      const identities = {
-        apiKey: user,
-      };
-      const policies = {
-        apiKey: {
-          bucketCapacityLimit: 2,
-          refillRate: {
-            amount: 1,
-            perMs: 1_000,
-          },
+        policies: { apiKey: createPolicy(2, 1, 1_000) },
+      },
+      {
+        label: "their identities are not present",
+        identities: { apiKey: "example-api-key" },
+        policies: {
+          apiKey: createPolicy(2, 1, 1_000),
+          ip: createPolicy(1, 1, 1_000),
+          tenant: createPolicy(1, 1, 1_000),
         },
-        ip: {
-          bucketCapacityLimit: 1,
-          refillRate: {
-            amount: 1,
-            perMs: 1_000,
-          },
-        },
-        tenant: {
-          bucketCapacityLimit: 1,
-          refillRate: {
-            amount: 1,
-            perMs: 1_000,
-          },
-        },
-      };
-      const requestedAt = 12_000;
-      const userStateKey = `ratelimit:user:${user}:tokens`;
-      const ipStateKey = `ratelimit:ip:${ip}:tokens`;
-      const tenantStateKey = `ratelimit:tenant:${tenant}:tokens`;
-      redisKeysToDelete = [userStateKey, ipStateKey, tenantStateKey];
-      const trafficOfficer = createTrafficOfficer({
-        dbUrl: "redis://127.0.0.1:6379",
-      });
+      },
+    ])(
+      `should ignore optional dimensions when $label`,
+      async ({ identities, policies }) => {
+        const requestedAt = 9_000;
+        const officer = createOfficer();
 
-      const actualDecision = await trafficOfficer.enforce(
-        identities,
-        policies,
-        requestedAt,
-      );
-      const client = await getClient();
-      const ipState = await client.get(ipStateKey);
-      const tenantState = await client.get(tenantStateKey);
+        const actualDecision = await officer.enforce(
+          identities,
+          policies,
+          requestedAt,
+        );
 
-      expect(actualDecision).toEqual({
-        allowed: true,
-        retryAfter: 0,
-      });
-      expect(ipState).toBeNull();
-      expect(tenantState).toBeNull();
-    });
+        expectToBeAllowed(actualDecision);
+        expect(await getStateIdentifier("203.0.113.10")).toBeNull();
+        expect(await getStateIdentifier("tenant-example")).toBeNull();
+      },
+    );
   });
 
   test("should track rate limits independently for different users", async () => {
-    const firstUser = `first-api-key-${Date.now()}`;
-    const secondUser = `second-api-key-${Date.now()}`;
-    const firstIdentities = {
-      apiKey: firstUser,
-    };
-    const secondIdentities = {
-      apiKey: secondUser,
-    };
-    const policies = {
-      apiKey: {
-        bucketCapacityLimit: 1,
-        refillRate: {
-          amount: 1,
-          perMs: 1_000,
-        },
-      },
-    };
+    const officer = createOfficer();
+    const firstIdentities = { apiKey: "example-api-key" };
+    const policies = { apiKey: createPolicy(1, 1, 1_000) };
     const requestedAt = 6_000;
-    redisKeysToDelete = [
-      `ratelimit:user:${firstUser}:tokens`,
-      `ratelimit:user:${secondUser}:tokens`,
-    ];
-    const trafficOfficer = createTrafficOfficer({
-      dbUrl: "redis://127.0.0.1:6379",
-      algorithm: "TokenBucket",
-    });
-    await trafficOfficer.enforce(firstIdentities, policies, requestedAt);
-    const secondCallDecisionForFirstUser = await trafficOfficer.enforce(
-      firstIdentities,
-      policies,
-      requestedAt,
-    );
+    await officer.enforce(firstIdentities, policies, requestedAt);
+    const secondIdentities = { apiKey: "example-api-key-second" };
 
-    const secondUserDecision = await trafficOfficer.enforce(
+    const secondUserDecision = await officer.enforce(
       secondIdentities,
       policies,
       requestedAt,
     );
 
-    expect(secondCallDecisionForFirstUser).toEqual({
-      allowed: false,
-      retryAfter: 1_000,
-    });
-    expect(secondUserDecision).toEqual({
-      allowed: true,
-      retryAfter: 0,
-    });
+    expectToBeAllowed(secondUserDecision);
   });
 
   test("should persist rate limit state across traffic officer instances", async () => {
-    const user = `persisted-state-${Date.now()}`;
-    const identities = {
-      apiKey: user,
-    };
-    const policies = {
-      apiKey: {
-        bucketCapacityLimit: 1,
-        refillRate: {
-          amount: 1,
-          perMs: 1_000,
-        },
-      },
-    };
+    const firstOfficer = createOfficer();
+    const identities = { apiKey: "example-api-key" };
+    const policies = { apiKey: createPolicy(1, 1, 1_000) };
     const requestedAt = 13_000;
-    redisKeysToDelete = [`ratelimit:user:${user}:tokens`];
-    const firstTrafficOfficer = createTrafficOfficer({
-      dbUrl: "redis://127.0.0.1:6379",
-    });
-    await firstTrafficOfficer.enforce(identities, policies, requestedAt);
-    const secondTrafficOfficer = createTrafficOfficer({
-      dbUrl: "redis://127.0.0.1:6379",
-    });
+    await firstOfficer.enforce(identities, policies, requestedAt);
+    const secondOfficer = createOfficer();
 
-    const actualDecision = await secondTrafficOfficer.enforce(
+    const actualDecision = await secondOfficer.enforce(
       identities,
       policies,
       requestedAt,
     );
 
-    expect(actualDecision).toEqual({
-      allowed: false,
-      retryAfter: 1_000,
-    });
+    expectToBeRateLimited(actualDecision, 1_000);
   });
+
+  function createPolicy(limit: number, amount: number, perMs: number) {
+    return {
+      bucketCapacityLimit: limit,
+      refillRate: {
+        amount,
+        perMs,
+      },
+    };
+  }
+
+  function expectToBeAllowed(decision: object) {
+    expect(decision).toEqual({
+      allowed: true,
+      retryAfter: 0,
+    });
+  }
+
+  function expectToBeRateLimited(decision: object, retryAfter: number) {
+    expect(decision).toEqual({
+      allowed: false,
+      retryAfter,
+    });
+  }
+
+  async function getStateIdentifier(
+    identifier: string,
+  ): Promise<string | null> {
+    const client = await getClient();
+    return await client.get(`ratelimit:ip:${identifier}:state`);
+  }
+
+  function createOfficer() {
+    return createTrafficOfficer({ dbUrl: "redis://127.0.0.1:6379" });
+  }
 });
