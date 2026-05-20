@@ -7,14 +7,7 @@ import { createTrafficOfficer } from "../src";
 
 describe("traffic officer", () => {
   afterEach(async () => {
-    const client = await getClient();
-    await client.del([
-      `ratelimit:apiKey:example-api-key:tokens`,
-      `ratelimit:apiKey:example-api-key-second:tokens`,
-      `ratelimit:ip:203.0.113.10:tokens`,
-      `ratelimit:tenant:tenant-example:tokens`,
-    ]);
-
+    await (await getClient()).flushDb();
     await closeClient();
   });
 
