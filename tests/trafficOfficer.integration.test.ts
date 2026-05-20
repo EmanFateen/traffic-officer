@@ -36,10 +36,7 @@ describe("traffic officer", () => {
       requestedAt,
     );
 
-    expect(decision).toEqual({
-      allowed: true,
-      retryAfter: 0,
-    });
+    expectToBeAllowed(decision);
   });
 
   test("should allow requests again after tokens refill over time", async () => {
@@ -55,10 +52,7 @@ describe("traffic officer", () => {
       requestedAt + 1_000,
     );
 
-    expect(refilledDecision).toEqual({
-      allowed: true,
-      retryAfter: 0,
-    });
+    expectToBeAllowed(refilledDecision);
   });
 
   test("should not refill tokens when requested time is earlier than the previous request", async () => {
@@ -227,10 +221,7 @@ describe("traffic officer", () => {
       const tenantState = await client.get(
         `ratelimit:tenant:${identities["tenant"]}:tokens`,
       );
-      expect(actualDecision).toEqual({
-        allowed: true,
-        retryAfter: 0,
-      });
+      expectToBeAllowed(actualDecision);
       expect(ipState).toBeNull();
       expect(tenantState).toBeNull();
     });
@@ -258,10 +249,7 @@ describe("traffic officer", () => {
       const tenantState = await client.get(
         `ratelimit:tenant:tenant-example:tokens`,
       );
-      expect(actualDecision).toEqual({
-        allowed: true,
-        retryAfter: 0,
-      });
+      expectToBeAllowed(actualDecision);
       expect(ipState).toBeNull();
       expect(tenantState).toBeNull();
     });
@@ -281,10 +269,7 @@ describe("traffic officer", () => {
       requestedAt,
     );
 
-    expect(secondUserDecision).toEqual({
-      allowed: true,
-      retryAfter: 0,
-    });
+    expectToBeAllowed(secondUserDecision);
   });
 
   test("should persist rate limit state across traffic officer instances", async () => {
@@ -319,5 +304,12 @@ describe("traffic officer", () => {
         perMs,
       },
     };
+  }
+
+  function expectToBeAllowed(decision: object) {
+    expect(decision).toEqual({
+      allowed: true,
+      retryAfter: 0,
+    });
   }
 });
