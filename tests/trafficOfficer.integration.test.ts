@@ -69,10 +69,7 @@ describe("traffic officer", () => {
       earlierRequestedAt,
     );
 
-    expect(actualDecision).toEqual({
-      allowed: false,
-      retryAfter: 1_000,
-    });
+    expectToBeDeclined(actualDecision, 1_000);
   });
 
   test.each([
@@ -118,10 +115,7 @@ describe("traffic officer", () => {
         requestedAt,
       );
 
-      expect(actualDecision).toEqual({
-        allowed: false,
-        retryAfter: 1_500,
-      });
+      expectToBeDeclined(actualDecision, 1_500);
     },
   );
 
@@ -146,10 +140,7 @@ describe("traffic officer", () => {
       requestedAt,
     );
 
-    expect(actualDecision).toEqual({
-      allowed: false,
-      retryAfter: 3_000,
-    });
+    expectToBeDeclined(actualDecision, 3_000);
   });
 
   describe("api key is required", () => {
@@ -286,10 +277,7 @@ describe("traffic officer", () => {
       requestedAt,
     );
 
-    expect(actualDecision).toEqual({
-      allowed: false,
-      retryAfter: 1_000,
-    });
+    expectToBeDeclined(actualDecision, 1_000);
   });
 
   function createPolicy(
@@ -310,6 +298,13 @@ describe("traffic officer", () => {
     expect(decision).toEqual({
       allowed: true,
       retryAfter: 0,
+    });
+  }
+
+  function expectToBeDeclined(decision: object, retryAfter: number) {
+    expect(decision).toEqual({
+      allowed: false,
+      retryAfter,
     });
   }
 });
