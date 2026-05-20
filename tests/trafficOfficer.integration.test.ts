@@ -30,7 +30,7 @@ describe("traffic officer", () => {
       expectToBeAllowed(decision);
     });
 
-    test("once again after tokens refill over time", async () => {
+    test("after retry after expires", async () => {
       const officer = createOfficer();
       const identities = { apiKey: `example-api-key` };
       const policies = { apiKey: createPolicy(1, 1, 1_000) };
@@ -46,7 +46,7 @@ describe("traffic officer", () => {
       expectToBeAllowed(refilledDecision);
     });
   });
-  describe("should reject requests when", () => {
+  describe("should reject requests", () => {
     test.each([
       {
         dimension: "api key",
@@ -72,7 +72,7 @@ describe("traffic officer", () => {
           tenant: createPolicy(1, 1, 1_500),
         },
       },
-    ])(`$dimension limit is exceeded`, async ({ policies }) => {
+    ])(`when $dimension limit is exceeded`, async ({ policies }) => {
       const officer = createOfficer();
       const identities = {
         apiKey: "example-api-key",
@@ -88,10 +88,10 @@ describe("traffic officer", () => {
         requestedAt,
       );
 
-      expectToBeDeclined(actualDecision, 1_500);
+      expectToBeRateLimited(actualDecision, 1_500);
     });
 
-    test("the request is made before retry after expires", async () => {
+    test("before retry after expires", async () => {
       const officer = createOfficer();
       const identities = { apiKey: `example-api-key` };
       const policies = { apiKey: createPolicy(1, 1, 1_000) };
@@ -104,11 +104,11 @@ describe("traffic officer", () => {
         requestedAt - 500,
       );
 
-      expectToBeDeclined(actualDecision, 1_000);
+      expectToBeRateLimited(actualDecision, 1_000);
     });
   });
 
-  test("should use the longest retry delay when multiple configured dimensions limits are exceeded", async () => {
+  test("should use the longest retry after when multiple limits are exceeded", async () => {
     const officer = createOfficer();
     const identities = {
       apiKey: "example-api-key",
@@ -129,7 +129,7 @@ describe("traffic officer", () => {
       requestedAt,
     );
 
-    expectToBeDeclined(actualDecision, 3_000);
+    expectToBeRateLimited(actualDecision, 3_000);
   });
 
   describe("api key is required", () => {
@@ -239,16 +239,12 @@ describe("traffic officer", () => {
       requestedAt,
     );
 
-    expectToBeDeclined(actualDecision, 1_000);
+    expectToBeRateLimited(actualDecision, 1_000);
   });
 
-  function createPolicy(
-    bucketCapacityLimit: number,
-    amount: number,
-    perMs: number,
-  ) {
+  function createPolicy(limit: number, amount: number, perMs: number) {
     return {
-      bucketCapacityLimit,
+      bucketCapacityLimit: limit,
       refillRate: {
         amount,
         perMs,
@@ -263,7 +259,7 @@ describe("traffic officer", () => {
     });
   }
 
-  function expectToBeDeclined(decision: object, retryAfter: number) {
+  function expectToBeRateLimited(decision: object, retryAfter: number) {
     expect(decision).toEqual({
       allowed: false,
       retryAfter,
@@ -274,7 +270,7 @@ describe("traffic officer", () => {
     identifier: string,
   ): Promise<string | null> {
     const client = await getClient();
-    return await client.get(`ratelimit:ip:${identifier}:tokens`);
+    return await client.get(`ratelimit:ip:${identifier}:state`);
   }
 
   function createOfficer() {

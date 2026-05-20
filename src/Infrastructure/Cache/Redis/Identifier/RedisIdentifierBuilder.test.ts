@@ -19,6 +19,6 @@ describe("key builder", () => {
   test.each(cases)("builds token key for $key", ({ identity, key }) => {
     const actual = RedisIdentifierBuilder(key).ownedBy(identity);
 
-    expect(actual).toEqual(`ratelimit:${key}:${identity}:tokens`);
+    expect(actual).toEqual(`ratelimit:${key}:${identity}:state`);
   });
 });

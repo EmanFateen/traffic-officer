@@ -4,7 +4,7 @@ import {
 } from "../../../../Application/Identities.ts";
 
 const PREFIX = `ratelimit`;
-const SUFFIX = `tokens`;
+const SUFFIX = `state`;
 
 export function RedisIdentifierBuilder(scope: IdentifierScope): Identifier {
   return {
