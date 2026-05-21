@@ -34,7 +34,7 @@ describe("rate limit service", () => {
     const mockedAlgorithm = mockAlgorithm(expectedDecision);
     const limitService = new RateLimiterService(mockedRepository, mockedAlgorithm);
     const identifiers = { apiKey: "apikey-identifier" };
-    const policies = { apiKey: { name: "example-apikey-policy" } };
+    const policies = { apiKey: {} };
 
     const actualDecisions = await limitService.execute(identifiers, policies, 1_000);
 
@@ -54,38 +54,34 @@ describe("rate limit service", () => {
       { state: "current-tenant-state" },
     ];
     const mockedRepository = mockRepository(currentStates);
-    const expectedDecisions = {
+    const mockedExpectedDecisions = {
       apiKey: { nextState: { state: "new-apiKey-state" } },
       ip: { nextState: { state: "new-ip-state" } },
       tenant: { nextState: { state: "new-tenant-state" } },
     };
-    const mockedAlgorithm = mockAlgorithm(expectedDecisions);
+    const mockedAlgorithm = mockAlgorithm(mockedExpectedDecisions);
     const limitService = new RateLimiterService(mockedRepository, mockedAlgorithm);
     const identifiers = {
       apiKey: "apikey-identifier",
       ip: "ip-identifier",
       tenant: "tenant-identifier",
     };
-    const policies = {
-      apiKey: { name: "example-apikey-policy" },
-      ip: { name: "example-ip-policy" },
-      tenant: { name: "example-tenant-policy" },
-    };
+    const policies = { apiKey: {}, ip: {}, tenant: {} };
 
     const actualDecisions = await limitService.execute(identifiers, policies, 1_000);
 
-    expect(actualDecisions).toEqual(expectedDecisions);
+    expect(actualDecisions).toEqual(mockedExpectedDecisions);
     expect(mockedRepository.findOneBy).toHaveBeenCalledTimes(3);
     expect(mockedRepository.save).toHaveBeenCalledTimes(3);
     expect(mockedAlgorithm.attempt).toHaveBeenCalledTimes(3);
     expect(mockedRepository.findOneBy).toHaveBeenCalledWith(identifiers.apiKey);
     expect(mockedAlgorithm.attempt).toHaveBeenCalledWith(currentStates[0], policies.apiKey, 1_000);
-    expect(mockedRepository.save).toHaveBeenCalledWith(identifiers.apiKey, expectedDecisions.apiKey.nextState);
+    expect(mockedRepository.save).toHaveBeenCalledWith(identifiers.apiKey, mockedExpectedDecisions.apiKey.nextState);
     expect(mockedRepository.findOneBy).toHaveBeenCalledWith(identifiers.ip);
     expect(mockedAlgorithm.attempt).toHaveBeenCalledWith(currentStates[1], policies.ip, 1_000);
-    expect(mockedRepository.save).toHaveBeenCalledWith(identifiers.ip, expectedDecisions.ip?.nextState);
+    expect(mockedRepository.save).toHaveBeenCalledWith(identifiers.ip, mockedExpectedDecisions.ip?.nextState);
     expect(mockedRepository.findOneBy).toHaveBeenCalledWith(identifiers.tenant);
     expect(mockedAlgorithm.attempt).toHaveBeenCalledWith(currentStates[2], policies.tenant, 1_000);
-    expect(mockedRepository.save).toHaveBeenCalledWith(identifiers.tenant, expectedDecisions.tenant?.nextState);
+    expect(mockedRepository.save).toHaveBeenCalledWith(identifiers.tenant, mockedExpectedDecisions.tenant?.nextState);
   });
 });
