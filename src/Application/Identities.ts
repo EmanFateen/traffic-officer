@@ -1,13 +1,13 @@
+import { DimensionsType } from "../Domain/Service/Dimensions.ts";
+
 export type Identities = {
   apiKey: string;
   ip?: string;
   tenant?: string;
 };
 
-export type IdentifierScope = keyof Identities;
-
 export type Identifier = {
   ownedBy(identity: string): string;
 };
 
-export type IdentifierBuilder = (scope: IdentifierScope) => Identifier;
+export type IdentifierBuilder = (scope: DimensionsType) => Identifier;

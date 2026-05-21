@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { stateIdentifierFactory } from "./StateIdentifierFactory.ts";
-import { Identifier, IdentifierScope, Identities } from "./Identities.ts";
+import { Identifier, Identities } from "./Identities.ts";
+import { DimensionsType } from "../Domain/Service/Dimensions.ts";
 
 describe("state identifier factory", () => {
   test("it must have api key at least", () => {
@@ -63,7 +64,7 @@ describe("state identifier factory", () => {
   });
 });
 
-function ExampleIdentifierBuilder(key: IdentifierScope): Identifier {
+function ExampleIdentifierBuilder(key: DimensionsType): Identifier {
   return {
     ownedBy(identity: string): string {
       return `build-example-${key}-for-${identity}`;

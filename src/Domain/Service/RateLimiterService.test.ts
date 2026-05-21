@@ -79,7 +79,7 @@ describe("rate limit service", () => {
       policies: { apiKey: policies["apiKey"] },
     },
     {
-      missing: "identities",
+      missing: "identifiers",
       identifiers: { apiKey: identifiers["apiKey"] },
       policies: policies,
     },

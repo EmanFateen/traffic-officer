@@ -2,8 +2,9 @@ import { describe, expect, test, vi } from "vitest";
 import { DecisionEvaluator } from "../Domain/Service/DecisionEvaluator.ts";
 import { RateLimiterService } from "../Domain/Service/RateLimiterService.ts";
 import { EnforceRateLimitUseCase } from "./EnforceRateLimitUseCase.ts";
-import { Identifier, IdentifierScope, Identities } from "./Identities.ts";
+import { Identifier, Identities } from "./Identities.ts";
 import { Policies } from "../Domain/Policies.ts";
+import { DimensionsType } from "../Domain/Service/Dimensions.ts";
 
 type FakeState = {
   key: string;
@@ -51,7 +52,7 @@ describe("enforce rate limit use case", () => {
       retryAfter: 500,
     };
     const identifierBuilder = vi.fn(
-      (scope: IdentifierScope): Identifier => ({
+      (scope: DimensionsType): Identifier => ({
         ownedBy: vi.fn((identity: string) => `example-${scope}-for-${identity}`),
       }),
     );
@@ -84,7 +85,7 @@ describe("enforce rate limit use case", () => {
       apiKey: { key: "api-key-policy" },
     };
     const identifierBuilder = vi.fn(
-      (scope: IdentifierScope): Identifier => ({
+      (scope: DimensionsType): Identifier => ({
         ownedBy: vi.fn((identity: string) => `example-${scope}-for-${identity}`),
       }),
     );
@@ -108,7 +109,7 @@ describe("enforce rate limit use case", () => {
     };
     const policies = {} as Policies<FakePolicy>;
     const identifierBuilder = vi.fn(
-      (scope: IdentifierScope): Identifier => ({
+      (scope: DimensionsType): Identifier => ({
         ownedBy: vi.fn((identity: string) => `example-${scope}-for-${identity}`),
       }),
     );

@@ -3,15 +3,13 @@ import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface
 import { Decision } from "../Decision.ts";
 import { Policies } from "../Policies.ts";
 import { StateIdentifiers } from "../StateIdentifiers.ts";
+import { dimensions, DimensionsType } from "./Dimensions.ts";
 
 export type Decisions<State> = {
   apiKey: Decision<State>;
   ip?: Decision<State>;
   tenant?: Decision<State>;
 };
-
-const dimensions = ["apiKey", "ip", "tenant"] as const;
-type DimensionsType = "apiKey" | "ip" | "tenant";
 
 export class RateLimiterService<State, Policy> {
   constructor(
