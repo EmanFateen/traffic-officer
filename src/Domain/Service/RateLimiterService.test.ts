@@ -1,4 +1,4 @@
-import {afterEach, describe, expect, MockedFunction, test, vi} from "vitest";
+import { afterEach, describe, expect, MockedFunction, test, vi } from "vitest";
 import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
 import { RateLimiterService } from "./RateLimiterService.ts";
 import { RateLimiterInterface } from "../Algorithm/RateLimiterInterface.ts";
@@ -16,7 +16,6 @@ const policies = {
 };
 
 describe("rate limit service", () => {
-
   afterEach(() => {
     vi.clearAllMocks();
   });

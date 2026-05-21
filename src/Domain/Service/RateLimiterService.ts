@@ -10,6 +10,9 @@ export type Decisions<State> = {
   tenant?: Decision<State>;
 };
 
+const dimensions = ["apiKey", "ip", "tenant"] as const;
+type DimensionsType = "apiKey" | "ip" | "tenant";
+
 export class RateLimiterService<State, Policy> {
   constructor(
     private readonly stateRepository: StateRepositoryInterface<State>,
@@ -21,23 +24,21 @@ export class RateLimiterService<State, Policy> {
     policies: Policies<Policy>,
     requestedAt: number,
   ): Promise<Decisions<State>> {
-    const decisions: Decisions<State> = {
-      apiKey: await this.attempt("apiKey", identifiers, policies, requestedAt),
-    };
+    const decisions = {} as Decisions<State>;
 
-    if (identifiers.ip !== undefined && policies.ip !== undefined) {
-      decisions.ip = await this.attempt("ip", identifiers, policies, requestedAt);
-    }
+    for (const dimension of dimensions) {
+      if (identifiers[dimension] === undefined || policies[dimension] === undefined) {
+        continue;
+      }
 
-    if (identifiers.tenant !== undefined && policies.tenant !== undefined) {
-      decisions.tenant = await this.attempt("tenant", identifiers, policies, requestedAt);
+      decisions[dimension] = await this.attempt(dimension, identifiers, policies, requestedAt);
     }
 
     return decisions;
   }
 
   private async attempt(
-    dimension: "apiKey" | "ip" | "tenant",
+    dimension: DimensionsType,
     identifiers: StateIdentifiers,
     policies: Policies<Policy>,
     requestedAt: number,

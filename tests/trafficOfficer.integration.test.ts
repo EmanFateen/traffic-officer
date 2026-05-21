@@ -113,7 +113,7 @@ describe("traffic officer", () => {
       const requestedAt = 8_000;
       const officer = createOfficer();
 
-      expect(officer.enforce(identities, {} as never, requestedAt)).rejects.toThrow(
+      await expect(officer.enforce(identities, {} as never, requestedAt)).rejects.toThrow(
         "apiKey policy is required to enforce rate limits",
       );
     });
