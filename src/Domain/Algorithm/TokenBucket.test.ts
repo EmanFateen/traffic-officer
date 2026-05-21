@@ -261,6 +261,7 @@ describe("TokenBucket", () => {
         tokensCount: 4,
         lastUpdatedAtInMs: requestedAtInMs,
       },
+      stateExpiresInMs: 0,
     });
   });
 });

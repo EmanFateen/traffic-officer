@@ -33,6 +33,7 @@ export class TokenBucket implements RateLimiterInterface<TokenBucketState, Token
           tokensCount: truncatedRemainingTokens,
           lastUpdatedAtInMs: requestedAtInMs,
         },
+        stateExpiresInMs: 0,
       };
     }
 
@@ -44,6 +45,7 @@ export class TokenBucket implements RateLimiterInterface<TokenBucketState, Token
         tokensCount: Math.trunc(availableTokens * 100) / 100,
         lastUpdatedAtInMs: requestedAtInMs,
       },
+      stateExpiresInMs: 0,
     };
   }
 
