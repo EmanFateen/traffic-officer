@@ -14,8 +14,6 @@ describe("RateLimiter Algorithm Factory", () => {
   test("throws error if the algorithm name is unsupported", () => {
     const algorithmName = "fake-algorithm-name" as AlgorithmName;
 
-    expect(() => rateLimiterFactory(algorithmName)).toThrow(
-      "fake-algorithm-name is unsupported algorithm",
-    );
+    expect(() => rateLimiterFactory(algorithmName)).toThrow("fake-algorithm-name is unsupported algorithm");
   });
 });

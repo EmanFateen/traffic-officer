@@ -7,17 +7,12 @@ export type EvaluatedDecision = {
 
 export class DecisionEvaluator {
   evaluate<State>(decisions: LimitDecisions<State>): EvaluatedDecision {
-    const allDecisions = [
-      decisions.apiKey,
-      decisions.ip,
-      decisions.tenant,
-    ].filter((decision) => decision !== undefined);
+    const allDecisions = [decisions.apiKey, decisions.ip, decisions.tenant].filter(
+      (decision) => decision !== undefined,
+    );
 
     const allowed = allDecisions.every((decision) => decision.allowed);
-    const retryAfter = Math.max(
-      0,
-      ...allDecisions.map((decision) => decision.retryAfter),
-    );
+    const retryAfter = Math.max(0, ...allDecisions.map((decision) => decision.retryAfter));
 
     return {
       allowed,

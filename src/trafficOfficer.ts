@@ -1,14 +1,7 @@
 import { EnforceRateLimitUseCase } from "./Application/EnforceRateLimitUseCase.ts";
 import type { Identities } from "./Application/Identities.ts";
-import {
-  AlgorithmName,
-  AlgorithmsMap,
-  rateLimiterFactory,
-} from "./Domain/Algorithm/RateLimiterFactory.ts";
-import {
-  DecisionEvaluator,
-  EvaluatedDecision,
-} from "./Domain/Service/DecisionEvaluator.ts";
+import { AlgorithmName, AlgorithmsMap, rateLimiterFactory } from "./Domain/Algorithm/RateLimiterFactory.ts";
+import { DecisionEvaluator, EvaluatedDecision } from "./Domain/Service/DecisionEvaluator.ts";
 import { RateLimiterService } from "./Domain/Service/RateLimiterService.ts";
 import { configureRedis } from "./Infrastructure/Cache/Redis/Client/getClient.ts";
 import { RedisIdentifierBuilder } from "./Infrastructure/Cache/Redis/Identifier/RedisIdentifierBuilder.ts";
@@ -28,9 +21,7 @@ export type TrafficOfficer<name extends AlgorithmName> = {
   ): Promise<EvaluatedDecision>;
 };
 
-export function createTrafficOfficer<name extends AlgorithmName>(
-  config: TrafficOfficerConfig,
-): TrafficOfficer<name> {
+export function createTrafficOfficer<name extends AlgorithmName>(config: TrafficOfficerConfig): TrafficOfficer<name> {
   configureRedis({ url: config.dbUrl });
 
   const rateLimiterService = new RateLimiterService(

@@ -1,8 +1,5 @@
 import { afterEach, describe, expect, test } from "vitest";
-import {
-  closeClient,
-  getClient,
-} from "../src/Infrastructure/Cache/Redis/Client/getClient.ts";
+import { closeClient, getClient } from "../src/Infrastructure/Cache/Redis/Client/getClient.ts";
 import { createTrafficOfficer } from "../src";
 
 describe("traffic officer", () => {
@@ -30,11 +27,7 @@ describe("traffic officer", () => {
       const requestedAt = 3_000;
       await officer.enforce(identities, policies, requestedAt);
 
-      const refilledDecision = await officer.enforce(
-        identities,
-        policies,
-        requestedAt + 1_000,
-      );
+      const refilledDecision = await officer.enforce(identities, policies, requestedAt + 1_000);
 
       expectToBeAllowed(refilledDecision);
     });
@@ -75,11 +68,7 @@ describe("traffic officer", () => {
       const requestedAt = 4_000;
       await officer.enforce(identities, policies, requestedAt);
 
-      const actualDecision = await officer.enforce(
-        identities,
-        policies,
-        requestedAt,
-      );
+      const actualDecision = await officer.enforce(identities, policies, requestedAt);
 
       expectToBeRateLimited(actualDecision, 1_500);
     });
@@ -91,11 +80,7 @@ describe("traffic officer", () => {
       const requestedAt = 14_000;
       await officer.enforce(identities, policies, requestedAt);
 
-      const actualDecision = await officer.enforce(
-        identities,
-        policies,
-        requestedAt - 500,
-      );
+      const actualDecision = await officer.enforce(identities, policies, requestedAt - 500);
 
       expectToBeRateLimited(actualDecision, 1_000);
     });
@@ -116,11 +101,7 @@ describe("traffic officer", () => {
     const requestedAt = 5_000;
     await officer.enforce(identities, policies, requestedAt);
 
-    const actualDecision = await officer.enforce(
-      identities,
-      policies,
-      requestedAt,
-    );
+    const actualDecision = await officer.enforce(identities, policies, requestedAt);
 
     expectToBeRateLimited(actualDecision, 3_000);
   });
@@ -132,34 +113,31 @@ describe("traffic officer", () => {
       const requestedAt = 8_000;
       const officer = createOfficer();
 
-      await expect(
-        officer.enforce(identities, {} as never, requestedAt),
-      ).rejects.toThrow("api key policy is required to enforce rate limits");
+      expect(officer.enforce(identities, {} as never, requestedAt)).rejects.toThrow(
+        "apiKey policy is required to enforce rate limits",
+      );
     });
 
-    test.each([undefined, ""])(
-      "should reject requests when the api key identity is invalid: %p",
-      async (apiKey) => {
-        const identities = {
-          apiKey,
-        } as never;
-        const policies = {
-          apiKey: {
-            bucketCapacityLimit: 1,
-            refillRate: {
-              amount: 1,
-              perMs: 1_000,
-            },
+    test.each([undefined, ""])("should reject requests when the api key identity is invalid: %p", async (apiKey) => {
+      const identities = {
+        apiKey,
+      } as never;
+      const policies = {
+        apiKey: {
+          bucketCapacityLimit: 1,
+          refillRate: {
+            amount: 1,
+            perMs: 1_000,
           },
-        };
-        const requestedAt = 7_000;
-        const officer = createOfficer();
+        },
+      };
+      const requestedAt = 7_000;
+      const officer = createOfficer();
 
-        await expect(
-          officer.enforce(identities, policies, requestedAt),
-        ).rejects.toThrow("apikey is required to enforce rate limits");
-      },
-    );
+      await expect(officer.enforce(identities, policies, requestedAt)).rejects.toThrow(
+        "apiKey is required to enforce rate limits",
+      );
+    });
   });
 
   describe("each configured dimension must have identity and policy", () => {
@@ -182,23 +160,16 @@ describe("traffic officer", () => {
           tenant: createPolicy(1, 1, 1_000),
         },
       },
-    ])(
-      `should ignore optional dimensions when $label`,
-      async ({ identities, policies }) => {
-        const requestedAt = 9_000;
-        const officer = createOfficer();
+    ])(`should ignore optional dimensions when $label`, async ({ identities, policies }) => {
+      const requestedAt = 9_000;
+      const officer = createOfficer();
 
-        const actualDecision = await officer.enforce(
-          identities,
-          policies,
-          requestedAt,
-        );
+      const actualDecision = await officer.enforce(identities, policies, requestedAt);
 
-        expectToBeAllowed(actualDecision);
-        expect(await getStateIdentifier("203.0.113.10")).toBeNull();
-        expect(await getStateIdentifier("tenant-example")).toBeNull();
-      },
-    );
+      expectToBeAllowed(actualDecision);
+      expect(await getStateIdentifier("203.0.113.10")).toBeNull();
+      expect(await getStateIdentifier("tenant-example")).toBeNull();
+    });
   });
 
   test("should track rate limits independently for different users", async () => {
@@ -209,11 +180,7 @@ describe("traffic officer", () => {
     await officer.enforce(firstIdentities, policies, requestedAt);
     const secondIdentities = { apiKey: "example-api-key-second" };
 
-    const secondUserDecision = await officer.enforce(
-      secondIdentities,
-      policies,
-      requestedAt,
-    );
+    const secondUserDecision = await officer.enforce(secondIdentities, policies, requestedAt);
 
     expectToBeAllowed(secondUserDecision);
   });
@@ -226,11 +193,7 @@ describe("traffic officer", () => {
     await firstOfficer.enforce(identities, policies, requestedAt);
     const secondOfficer = createOfficer();
 
-    const actualDecision = await secondOfficer.enforce(
-      identities,
-      policies,
-      requestedAt,
-    );
+    const actualDecision = await secondOfficer.enforce(identities, policies, requestedAt);
 
     expectToBeRateLimited(actualDecision, 1_000);
   });
@@ -259,9 +222,7 @@ describe("traffic officer", () => {
     });
   }
 
-  async function getStateIdentifier(
-    identifier: string,
-  ): Promise<string | null> {
+  async function getStateIdentifier(identifier: string): Promise<string | null> {
     const client = await getClient();
     return await client.get(`ratelimit:ip:${identifier}:state`);
   }

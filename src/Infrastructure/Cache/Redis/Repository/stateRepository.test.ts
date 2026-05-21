@@ -48,9 +48,7 @@ describe("Redis bucket repository", () => {
     const bucketState: mockState | null = await repository.findOneBy(key);
 
     expect(bucketState?.name).toEqual(expectedState.name);
-    expect(bucketState?.lastUpdatedAtInMs).toEqual(
-      expectedState.lastUpdatedAtInMs,
-    );
+    expect(bucketState?.lastUpdatedAtInMs).toEqual(expectedState.lastUpdatedAtInMs);
     expect(redisClient.get).toHaveBeenCalledWith(key);
   });
 
@@ -69,9 +67,6 @@ describe("Redis bucket repository", () => {
 
     await repository.save(key, bucketState);
 
-    expect(redisClient.set).toHaveBeenCalledWith(
-      key,
-      JSON.stringify(bucketState),
-    );
+    expect(redisClient.set).toHaveBeenCalledWith(key, JSON.stringify(bucketState));
   });
 });

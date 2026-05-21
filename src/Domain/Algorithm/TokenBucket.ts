@@ -13,20 +13,13 @@ export type TokenBucketPolicy = {
   };
 };
 
-export class TokenBucket implements RateLimiterInterface<
-  TokenBucketState,
-  TokenBucketPolicy
-> {
+export class TokenBucket implements RateLimiterInterface<TokenBucketState, TokenBucketPolicy> {
   attempt(
     state: TokenBucketState | null | undefined,
     policy: TokenBucketPolicy,
     requestedAtInMs: number,
   ): Decision<TokenBucketState> {
-    const availableTokens: number = this.getAvailableTokens(
-      state,
-      policy,
-      requestedAtInMs,
-    );
+    const availableTokens: number = this.getAvailableTokens(state, policy, requestedAtInMs);
 
     const remainingTokens: number = this.consume(availableTokens);
 
@@ -45,10 +38,7 @@ export class TokenBucket implements RateLimiterInterface<
 
     return {
       allowed: false,
-      retryAfter: Math.ceil(
-        (remainingTokens * -1 * policy.refillRate.perMs) /
-          policy.refillRate.amount,
-      ),
+      retryAfter: Math.ceil((remainingTokens * -1 * policy.refillRate.perMs) / policy.refillRate.amount),
       remaining: 0,
       nextState: {
         tokensCount: Math.trunc(availableTokens * 100) / 100,
@@ -67,17 +57,10 @@ export class TokenBucket implements RateLimiterInterface<
       lastUpdatedAtInMs: requestedAtInMs,
     };
 
-    const elapsedInMs: number = Math.max(
-      0,
-      requestedAtInMs - currentBucketState.lastUpdatedAtInMs,
-    );
-    const refilledTokens: number =
-      elapsedInMs * (policy.refillRate.amount / policy.refillRate.perMs);
+    const elapsedInMs: number = Math.max(0, requestedAtInMs - currentBucketState.lastUpdatedAtInMs);
+    const refilledTokens: number = elapsedInMs * (policy.refillRate.amount / policy.refillRate.perMs);
 
-    return Math.min(
-      policy.bucketCapacityLimit,
-      currentBucketState.tokensCount + refilledTokens,
-    );
+    return Math.min(policy.bucketCapacityLimit, currentBucketState.tokensCount + refilledTokens);
   }
 
   private consume(availableTokens: number): number {

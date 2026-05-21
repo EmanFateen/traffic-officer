@@ -22,46 +22,35 @@ export class RateLimiterService<State, Policy> {
     requestedAt: number,
   ): Promise<LimitDecisions<State>> {
     const limitDecisions: LimitDecisions<State> = {
-      apiKey: await this.attempt(
-        identifiers.apiKey,
-        policies.apiKey,
-        requestedAt,
-      ),
+      apiKey: await this.attempt("apiKey", identifiers, policies, requestedAt),
     };
 
     if (identifiers.ip !== undefined && policies.ip !== undefined) {
-      limitDecisions.ip = await this.attempt(
-        identifiers.ip,
-        policies.ip,
-        requestedAt,
-      );
+      limitDecisions.ip = await this.attempt("ip", identifiers, policies, requestedAt);
     }
 
     if (identifiers.tenant !== undefined && policies.tenant !== undefined) {
-      limitDecisions.tenant = await this.attempt(
-        identifiers.tenant,
-        policies.tenant,
-        requestedAt,
-      );
+      limitDecisions.tenant = await this.attempt("tenant", identifiers, policies, requestedAt);
     }
 
     return limitDecisions;
   }
 
   private async attempt(
-    identifier: string,
-    policy: Policy,
+    key: "apiKey" | "ip" | "tenant",
+    identifiers: StateIdentifiers,
+    policies: Policies<Policy>,
     requestedAt: number,
   ): Promise<Decision<State>> {
-    const currentState = await this.stateRepository.findOneBy(identifier);
+    const currentState = await this.stateRepository.findOneBy(identifiers[key] as string);
 
     const decision: Decision<State> = this.limitingAlgorithm.attempt(
       currentState,
-      policy,
+      policies[key] as Policy,
       requestedAt,
     );
 
-    await this.stateRepository.save(identifier, decision.nextState);
+    await this.stateRepository.save(identifiers[key] as string, decision.nextState);
 
     return decision;
   }

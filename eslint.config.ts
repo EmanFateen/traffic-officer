@@ -14,4 +14,14 @@ export default defineConfig([
   },
   tseslint.configs.recommended,
   prettier,
+  {
+    rules: {
+      "prettier/prettier": [
+        "error",
+        {
+          printWidth: 120,
+        },
+      ],
+    },
+  },
 ]);

@@ -1,7 +1,4 @@
-import {
-  Identifier,
-  IdentifierScope,
-} from "../../../../Application/Identities.ts";
+import { Identifier, IdentifierScope } from "../../../../Application/Identities.ts";
 
 const PREFIX = `ratelimit`;
 const SUFFIX = `state`;

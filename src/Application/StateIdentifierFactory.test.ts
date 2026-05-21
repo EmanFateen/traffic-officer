@@ -8,10 +8,7 @@ describe("state identifier factory", () => {
       apiKey: "fake-api-key",
     };
 
-    const actualKeys = stateIdentifierFactory(
-      ExampleIdentifierBuilder,
-      userIdentity,
-    );
+    const actualKeys = stateIdentifierFactory(ExampleIdentifierBuilder, userIdentity);
 
     expect(actualKeys).toEqual({
       apiKey: `build-example-apiKey-for-${userIdentity.apiKey}`,
@@ -21,9 +18,9 @@ describe("state identifier factory", () => {
   test("it throws an exception when api key is missing", () => {
     const userIdentity = {} as Identities;
 
-    expect(() =>
-      stateIdentifierFactory(ExampleIdentifierBuilder, userIdentity),
-    ).toThrow("apiKey is required to generate the identifiers");
+    expect(() => stateIdentifierFactory(ExampleIdentifierBuilder, userIdentity)).toThrow(
+      "apiKey is required to generate the identifiers",
+    );
   });
 
   test.each([
@@ -59,17 +56,11 @@ describe("state identifier factory", () => {
         tenant: "build-example-tenant-for-fake-tenant",
       },
     },
-  ])(
-    "it creates only keys for provided optional user identity fields",
-    ({ userIdentity, expectedKeys }) => {
-      const actualKeys = stateIdentifierFactory(
-        ExampleIdentifierBuilder,
-        userIdentity,
-      );
+  ])("it creates only keys for provided optional user identity fields", ({ userIdentity, expectedKeys }) => {
+    const actualKeys = stateIdentifierFactory(ExampleIdentifierBuilder, userIdentity);
 
-      expect(actualKeys).toEqual(expectedKeys);
-    },
-  );
+    expect(actualKeys).toEqual(expectedKeys);
+  });
 });
 
 function ExampleIdentifierBuilder(key: IdentifierScope): Identifier {
