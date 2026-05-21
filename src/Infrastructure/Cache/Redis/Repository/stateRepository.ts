@@ -14,9 +14,11 @@ export class stateRepository<State> implements StateRepositoryInterface<State> {
     return JSON.parse(state) as State;
   }
 
-  async save(key: string, state: State): Promise<void> {
+  async save(key: string, state: State, ttl?: number): Promise<void> {
     const client = await getClient();
 
-    await client?.set(key, JSON.stringify(state));
+    const options = ttl !== undefined ? { PX: ttl } : undefined;
+
+    await client?.set(key, JSON.stringify(state), options);
   }
 }
