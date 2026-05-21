@@ -12,11 +12,11 @@ export class DecisionEvaluator {
     );
 
     const allowed = allDecisions.every((decision) => decision.allowed);
-    const retryAfter = Math.max(0, ...allDecisions.map((decision) => decision.retryAfter));
+    const maxRetryAfter = Math.max(0, ...allDecisions.map((decision) => decision.retryAfter));
 
     return {
       allowed,
-      retryAfter,
+      retryAfter: maxRetryAfter,
     };
   }
 }
