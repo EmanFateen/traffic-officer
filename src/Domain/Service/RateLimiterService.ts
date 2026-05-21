@@ -35,7 +35,7 @@ export class RateLimiterService<State, Policy> {
     return decisions;
   }
 
-  private async attempt(ss
+  private async attempt(
     dimension: DimensionsType,
     identifiers: StateIdentifiers,
     policies: Policies<Policy>,
