@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { stateIdentifierFactory } from "./StateIdentifierFactory.ts";
 import { Identifier, Identities } from "./Identities.ts";
-import { DimensionsType } from "../Domain/Service/Dimensions.ts";
+import { DimensionsType } from "../Domain/Dimensions.ts";
 
 describe("state identifier factory", () => {
   test("it must have api key at least", () => {

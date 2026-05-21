@@ -1,5 +1,5 @@
 import { Identifier } from "../../../../Application/Identities.ts";
-import { DimensionsType } from "../../../../Domain/Service/Dimensions.ts";
+import { DimensionsType } from "../../../../Domain/Dimensions.ts";
 
 const PREFIX = `ratelimit`;
 const SUFFIX = `state`;

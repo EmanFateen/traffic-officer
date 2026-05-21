@@ -1,4 +1,4 @@
-import { DimensionsType } from "../Domain/Service/Dimensions.ts";
+import { DimensionsType } from "../Domain/Dimensions.ts";
 
 export type Identities = {
   apiKey: string;

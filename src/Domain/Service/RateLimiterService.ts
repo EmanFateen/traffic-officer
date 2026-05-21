@@ -3,7 +3,7 @@ import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface
 import { Decision } from "../Decision.ts";
 import { Policies } from "../Policies.ts";
 import { StateIdentifiers } from "../StateIdentifiers.ts";
-import { dimensions, DimensionsType } from "./Dimensions.ts";
+import { dimensions, DimensionsType } from "../Dimensions.ts";
 
 export type Decisions<State> = {
   apiKey: Decision<State>;

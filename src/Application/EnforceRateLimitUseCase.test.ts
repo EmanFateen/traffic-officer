@@ -4,7 +4,7 @@ import { RateLimiterService } from "../Domain/Service/RateLimiterService.ts";
 import { EnforceRateLimitUseCase } from "./EnforceRateLimitUseCase.ts";
 import { Identifier, Identities } from "./Identities.ts";
 import { Policies } from "../Domain/Policies.ts";
-import { DimensionsType } from "../Domain/Service/Dimensions.ts";
+import { DimensionsType } from "../Domain/Dimensions.ts";
 
 type FakeState = {
   key: string;
