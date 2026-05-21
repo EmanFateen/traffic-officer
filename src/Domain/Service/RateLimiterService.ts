@@ -4,7 +4,7 @@ import { Decision } from "../Decision.ts";
 import { Policies } from "../Policies.ts";
 import { StateIdentifiers } from "../StateIdentifiers.ts";
 
-export type LimitDecisions<State> = {
+export type Decisions<State> = {
   apiKey: Decision<State>;
   ip?: Decision<State>;
   tenant?: Decision<State>;
@@ -20,20 +20,20 @@ export class RateLimiterService<State, Policy> {
     identifiers: StateIdentifiers,
     policies: Policies<Policy>,
     requestedAt: number,
-  ): Promise<LimitDecisions<State>> {
-    const limitDecisions: LimitDecisions<State> = {
+  ): Promise<Decisions<State>> {
+    const decisions: Decisions<State> = {
       apiKey: await this.attempt("apiKey", identifiers, policies, requestedAt),
     };
 
     if (identifiers.ip !== undefined && policies.ip !== undefined) {
-      limitDecisions.ip = await this.attempt("ip", identifiers, policies, requestedAt);
+      decisions.ip = await this.attempt("ip", identifiers, policies, requestedAt);
     }
 
     if (identifiers.tenant !== undefined && policies.tenant !== undefined) {
-      limitDecisions.tenant = await this.attempt("tenant", identifiers, policies, requestedAt);
+      decisions.tenant = await this.attempt("tenant", identifiers, policies, requestedAt);
     }
 
-    return limitDecisions;
+    return decisions;
   }
 
   private async attempt(

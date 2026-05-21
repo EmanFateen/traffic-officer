@@ -1,87 +1,91 @@
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, MockedFunction, test, vi } from "vitest";
 import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
 import { RateLimiterService } from "./RateLimiterService.ts";
 import { RateLimiterInterface } from "../Algorithm/RateLimiterInterface.ts";
 
-type FakeState = {
-  key: string;
-};
+function mockAlgorithm<State, Policy>(decisions: object): RateLimiterInterface<State, Policy> {
+  const attempt = vi.fn();
 
-type FakeConfig = {
-  key: string;
-};
-describe("limit service", () => {
-  test("limit returns a decision for the required api key identity", async () => {
-    const mockedRepository: StateRepositoryInterface<FakeState> = {
-      findOneBy: vi.fn().mockResolvedValue({ key: "current-state-key" } as FakeState),
-      save: vi.fn().mockResolvedValue(undefined),
-    };
-    const expectedDecision = {
-      nextState: { key: "new-state-key" },
-    };
-    const MockedAlgorithm: RateLimiterInterface<FakeState, FakeConfig> = {
-      attempt: vi.fn().mockReturnValue(expectedDecision),
-    };
-    const limitService = new RateLimiterService(mockedRepository, MockedAlgorithm);
-    const stateIdentifiers = { apiKey: "apikey-identifier" };
-    const algorithmConfig = {
-      apiKey: { key: "example-config-key" },
-    };
-
-    const actualDecisions = await limitService.execute(stateIdentifiers, algorithmConfig, 1_000);
-
-    expect(actualDecisions).toEqual({ apiKey: expectedDecision });
-    expect(mockedRepository.findOneBy).toHaveBeenCalledWith(stateIdentifiers.apiKey);
-    expect(mockedRepository.save).toHaveBeenCalledWith(stateIdentifiers.apiKey, expectedDecision.nextState);
+  Object.values(decisions).forEach((decision) => {
+    attempt.mockReturnValueOnce(decision);
   });
 
-  test("limit returns decisions for all the identities", async () => {
-    const mockedRepository: StateRepositoryInterface<FakeState> = {
-      findOneBy: vi
-        .fn()
-        .mockResolvedValueOnce({ key: "current-apiKey-state-key" } as FakeState)
-        .mockResolvedValueOnce({ key: "current-ip-state-key" } as FakeState)
-        .mockResolvedValueOnce({
-          key: "current-tenant-state-key",
-        } as FakeState),
-      save: vi.fn().mockResolvedValue(undefined),
-    };
+  return { attempt };
+}
+
+function mockRepository<State>(states: State[]): StateRepositoryInterface<State> {
+  const findOneBy = vi.fn() as MockedFunction<(key: string) => Promise<State | null>>;
+
+  states.forEach((state) => {
+    findOneBy.mockImplementationOnce(() => Promise.resolve(state));
+  });
+
+  return {
+    findOneBy,
+    save: vi.fn().mockResolvedValue(undefined),
+  };
+}
+
+describe("rate limit service", () => {
+  test("returns a decision for the required apiKey identity", async () => {
+    const currentStates = [{ key: "current-apiKey-state" }];
+    const mockedRepository = mockRepository(currentStates);
+    const expectedDecision = { apiKey: { nextState: { key: "new-apiKey-state" } } };
+    const mockedAlgorithm = mockAlgorithm(expectedDecision);
+    const limitService = new RateLimiterService(mockedRepository, mockedAlgorithm);
+    const identifiers = { apiKey: "apikey-identifier" };
+    const policies = { apiKey: { name: "example-apikey-policy" } };
+
+    const actualDecisions = await limitService.execute(identifiers, policies, 1_000);
+
+    expect(actualDecisions).toEqual(expectedDecision);
+    expect(mockedRepository.findOneBy).toHaveBeenCalledExactlyOnceWith(identifiers.apiKey);
+    expect(mockedAlgorithm.attempt).toHaveBeenCalledExactlyOnceWith(currentStates[0], policies.apiKey, 1_000);
+    expect(mockedRepository.save).toHaveBeenCalledExactlyOnceWith(
+      identifiers.apiKey,
+      expectedDecision.apiKey.nextState,
+    );
+  });
+
+  test("limit returns decisions for all optional dimensions", async () => {
+    const currentStates = [
+      { state: "current-apiKey-state" },
+      { state: "current-ip-state" },
+      { state: "current-tenant-state" },
+    ];
+    const mockedRepository = mockRepository(currentStates);
     const expectedDecisions = {
-      apiKey: {
-        nextState: { key: "new-apiKey-state-key" },
-      },
-      ip: { nextState: { key: "new-ip-state-key" } },
-      tenant: {
-        nextState: { key: "new-tenant-state-key" },
-      },
+      apiKey: { nextState: { state: "new-apiKey-state" } },
+      ip: { nextState: { state: "new-ip-state" } },
+      tenant: { nextState: { state: "new-tenant-state" } },
     };
-    const MockedAlgorithm: RateLimiterInterface<FakeState, FakeConfig> = {
-      attempt: vi
-        .fn()
-        .mockReturnValueOnce(expectedDecisions.apiKey)
-        .mockReturnValueOnce(expectedDecisions.ip)
-        .mockReturnValueOnce(expectedDecisions.tenant),
-    };
-    const limitService = new RateLimiterService(mockedRepository, MockedAlgorithm);
-    const stateIdentifiers = {
+    const mockedAlgorithm = mockAlgorithm(expectedDecisions);
+    const limitService = new RateLimiterService(mockedRepository, mockedAlgorithm);
+    const identifiers = {
       apiKey: "apikey-identifier",
       ip: "ip-identifier",
       tenant: "tenant-identifier",
     };
-    const algorithmConfig = {
-      apiKey: { key: "api-config" },
-      ip: { key: "ip-config" },
-      tenant: { key: "tenant-config" },
+    const policies = {
+      apiKey: { name: "example-apikey-policy" },
+      ip: { name: "example-ip-policy" },
+      tenant: { name: "example-tenant-policy" },
     };
 
-    const actualDecisions = await limitService.execute(stateIdentifiers, algorithmConfig, 1_000);
+    const actualDecisions = await limitService.execute(identifiers, policies, 1_000);
 
     expect(actualDecisions).toEqual(expectedDecisions);
-    expect(mockedRepository.findOneBy).toHaveBeenCalledWith(stateIdentifiers.apiKey);
-    expect(mockedRepository.findOneBy).toHaveBeenCalledWith(stateIdentifiers.ip);
-    expect(mockedRepository.findOneBy).toHaveBeenCalledWith(stateIdentifiers.tenant);
-    expect(mockedRepository.save).toHaveBeenCalledWith(stateIdentifiers.apiKey, expectedDecisions.apiKey.nextState);
-    expect(mockedRepository.save).toHaveBeenCalledWith(stateIdentifiers.ip, expectedDecisions.ip?.nextState);
-    expect(mockedRepository.save).toHaveBeenCalledWith(stateIdentifiers.tenant, expectedDecisions.tenant?.nextState);
+    expect(mockedRepository.findOneBy).toHaveBeenCalledTimes(3);
+    expect(mockedRepository.save).toHaveBeenCalledTimes(3);
+    expect(mockedAlgorithm.attempt).toHaveBeenCalledTimes(3);
+    expect(mockedRepository.findOneBy).toHaveBeenCalledWith(identifiers.apiKey);
+    expect(mockedAlgorithm.attempt).toHaveBeenCalledWith(currentStates[0], policies.apiKey, 1_000);
+    expect(mockedRepository.save).toHaveBeenCalledWith(identifiers.apiKey, expectedDecisions.apiKey.nextState);
+    expect(mockedRepository.findOneBy).toHaveBeenCalledWith(identifiers.ip);
+    expect(mockedAlgorithm.attempt).toHaveBeenCalledWith(currentStates[1], policies.ip, 1_000);
+    expect(mockedRepository.save).toHaveBeenCalledWith(identifiers.ip, expectedDecisions.ip?.nextState);
+    expect(mockedRepository.findOneBy).toHaveBeenCalledWith(identifiers.tenant);
+    expect(mockedAlgorithm.attempt).toHaveBeenCalledWith(currentStates[2], policies.tenant, 1_000);
+    expect(mockedRepository.save).toHaveBeenCalledWith(identifiers.tenant, expectedDecisions.tenant?.nextState);
   });
 });

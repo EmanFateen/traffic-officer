@@ -1,4 +1,4 @@
-import { LimitDecisions } from "./RateLimiterService.ts";
+import { Decisions } from "./RateLimiterService.ts";
 
 export type EvaluatedDecision = {
   allowed: boolean;
@@ -6,7 +6,7 @@ export type EvaluatedDecision = {
 };
 
 export class DecisionEvaluator {
-  evaluate<State>(decisions: LimitDecisions<State>): EvaluatedDecision {
+  evaluate<State>(decisions: Decisions<State>): EvaluatedDecision {
     const allDecisions = [decisions.apiKey, decisions.ip, decisions.tenant].filter(
       (decision) => decision !== undefined,
     );

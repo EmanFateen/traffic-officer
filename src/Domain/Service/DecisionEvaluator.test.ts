@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { DecisionEvaluator } from "./DecisionEvaluator.ts";
-import { LimitDecisions } from "./RateLimiterService.ts";
+import { Decisions } from "./RateLimiterService.ts";
 
 describe("decision evaluator", () => {
   test("should return an allowed enforcement decision when all dimensions are allowed", () => {
@@ -8,7 +8,7 @@ describe("decision evaluator", () => {
       apiKey: { allowed: true, retryAfter: 0 },
       ip: { allowed: true, retryAfter: 0 },
       tenant: { allowed: true, retryAfter: 0 },
-    } as unknown as LimitDecisions<never>;
+    } as unknown as Decisions<never>;
     const evaluator = new DecisionEvaluator();
 
     const actualDecision = evaluator.evaluate(decisions);
@@ -24,7 +24,7 @@ describe("decision evaluator", () => {
       apiKey: { allowed: true, retryAfter: 0 },
       ip: { allowed: false, retryAfter: 500 },
       tenant: { allowed: true, retryAfter: 0 },
-    } as unknown as LimitDecisions<never>;
+    } as unknown as Decisions<never>;
     const evaluator = new DecisionEvaluator();
 
     const actualDecision = evaluator.evaluate(decisions);
@@ -40,7 +40,7 @@ describe("decision evaluator", () => {
       apiKey: { allowed: false, retryAfter: 200 },
       ip: { allowed: false, retryAfter: 500 },
       tenant: { allowed: true, retryAfter: 0 },
-    } as unknown as LimitDecisions<never>;
+    } as unknown as Decisions<never>;
     const evaluator = new DecisionEvaluator();
 
     const actualDecision = evaluator.evaluate(decisions);
@@ -54,7 +54,7 @@ describe("decision evaluator", () => {
   test("should ignore dimensions that were not evaluated", () => {
     const decisions = {
       apiKey: { allowed: true, retryAfter: 0 },
-    } as unknown as LimitDecisions<never>;
+    } as unknown as Decisions<never>;
     const evaluator = new DecisionEvaluator();
 
     const actualDecision = evaluator.evaluate(decisions);
