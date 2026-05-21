@@ -37,20 +37,20 @@ export class RateLimiterService<State, Policy> {
   }
 
   private async attempt(
-    key: "apiKey" | "ip" | "tenant",
+    dimension: "apiKey" | "ip" | "tenant",
     identifiers: StateIdentifiers,
     policies: Policies<Policy>,
     requestedAt: number,
   ): Promise<Decision<State>> {
-    const currentState = await this.stateRepository.findOneBy(identifiers[key] as string);
+    const currentState = await this.stateRepository.findOneBy(identifiers[dimension] as string);
 
     const decision: Decision<State> = this.limitingAlgorithm.attempt(
       currentState,
-      policies[key] as Policy,
+      policies[dimension] as Policy,
       requestedAt,
     );
 
-    await this.stateRepository.save(identifiers[key] as string, decision.nextState);
+    await this.stateRepository.save(identifiers[dimension] as string, decision.nextState);
 
     return decision;
   }
