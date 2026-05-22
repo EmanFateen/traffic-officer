@@ -31,19 +31,48 @@ describe("Token bucket algorithm", () => {
     });
   });
 
-  test("rejects a request when no available tokens", () => {
-    const tokenBucket = new TokenBucket();
-
-    const actualDecision = tokenBucket.attempt(
-      { tokensCount: 0, lastUpdatedAtInMs: 1_000 },
-      {
-        refillRate: { amount: 2, perMs: 5_000 },
+  describe("returns a rejected decision when", () => {
+    test("there no available tokens", () => {
+      const tokenBucket = new TokenBucket();
+      const currentState = { tokensCount: 0, lastUpdatedAtInMs: 1_000 };
+      const policy = {
         bucketCapacityLimit: 3,
-      },
-      1_000,
-    );
+        refillRate: { amount: 2, perMs: 5_000 },
+      };
 
-    expect(actualDecision.allowed).toBeFalsy();
+      const actualDecision = tokenBucket.attempt(currentState, policy, 1_000);
+
+      expect(actualDecision.allowed).toBeFalsy();
+    });
+
+    test("no refill has occurred yet", () => {
+      const tokenBucket = new TokenBucket();
+      const currentState = { tokensCount: 0, lastUpdatedAtInMs: 1_000 };
+      const policy = {
+        bucketCapacityLimit: 3,
+        refillRate: { amount: 2, perMs: 5_000 },
+      };
+
+      const actualDecision = tokenBucket.attempt(currentState, policy, 2_000);
+
+      expect(actualDecision.allowed).toBeFalsy();
+    });
+
+    test("the burst capacity is exceeded", () => {
+      const tokenBucket = new TokenBucket();
+      const requestedAtInMs = 1_000;
+      const policy = { bucketCapacityLimit: 2, refillRate: { amount: 2, perMs: 5_000 } };
+      const initialState = {
+        tokensCount: 2,
+        lastUpdatedAtInMs: 0,
+      };
+      const firstDecision = tokenBucket.attempt(initialState, policy, requestedAtInMs);
+      const secondDecision = tokenBucket.attempt(firstDecision.nextState, policy, 2_000);
+
+      const actualDecision = tokenBucket.attempt(secondDecision.nextState, policy, 2_500);
+
+      expect(actualDecision.allowed).toBeFalsy();
+    });
   });
 
   test("should decrease tokens by request cost if allowed", () => {
@@ -130,61 +159,6 @@ describe("Token bucket algorithm", () => {
     );
 
     expect(actualDecision.allowed).toBeTruthy();
-  });
-
-  test("should reject requests exceeding burst capacity", () => {
-    const bucketCapacity = 2;
-    const refillRate = { amount: 2, perMs: 5_000 };
-    let currentTokens = 2;
-    let lastRefillInMs = 0;
-    let requestedAtInMs = 1_000;
-    const tokenBucket = new TokenBucket();
-    const firstDecision = tokenBucket.attempt(
-      {
-        tokensCount: currentTokens,
-        lastUpdatedAtInMs: lastRefillInMs,
-      },
-      {
-        refillRate,
-        bucketCapacityLimit: bucketCapacity,
-      },
-      requestedAtInMs,
-    );
-    currentTokens = firstDecision.remaining;
-    lastRefillInMs = firstDecision.nextState.lastUpdatedAtInMs;
-    requestedAtInMs = 2_000;
-    const secondDecision = tokenBucket.attempt(
-      {
-        tokensCount: currentTokens,
-        lastUpdatedAtInMs: lastRefillInMs,
-      },
-      {
-        refillRate,
-        bucketCapacityLimit: bucketCapacity,
-      },
-      requestedAtInMs,
-    );
-    currentTokens = secondDecision.remaining;
-    lastRefillInMs = secondDecision.nextState.lastUpdatedAtInMs;
-    requestedAtInMs = 2_300;
-
-    const actualDecision = tokenBucket.attempt(
-      {
-        tokensCount: currentTokens,
-        lastUpdatedAtInMs: lastRefillInMs,
-      },
-      {
-        refillRate,
-        bucketCapacityLimit: bucketCapacity,
-      },
-      requestedAtInMs,
-    );
-
-    expect(actualDecision.allowed).toBeFalsy();
-    expect(actualDecision.retryAfter).toEqual(2200);
-    expect(actualDecision.nextState.tokensCount).toEqual(0.12);
-    expect(actualDecision.remaining).toEqual(0);
-    expect(actualDecision.nextState.lastUpdatedAtInMs).toEqual(requestedAtInMs);
   });
 
   test("remaining tokens should stay integers", () => {

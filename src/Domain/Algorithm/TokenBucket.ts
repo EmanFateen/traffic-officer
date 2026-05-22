@@ -21,32 +21,31 @@ export class TokenBucket implements AlgorithmInterface<TokenBucketState, TokenBu
     policy: TokenBucketPolicy,
     requestedAtInMs: number,
   ): Decision<TokenBucketState> {
-    const availableTokens: number = getAvailableTokens();
+    const availableTokens: number = calculateAvailableTokens();
 
-    const remainingTokens: number = availableTokens - CONSUMPTION_AMOUNT;
+    const remainingTokens: number = Math.round((availableTokens - CONSUMPTION_AMOUNT) * 1000) / 1000;
 
     return remainingTokens >= 0 ? allowed() : rejected();
 
-    function getAvailableTokens(): number {
+    function calculateAvailableTokens(): number {
       const currentBucketState: TokenBucketState = state ?? {
         tokensCount: policy.bucketCapacityLimit,
-        lastUpdatedAtInMs: requestedAtInMs,
+        lastUpdatedAtInMs: 0,
       };
 
-      const elapsedInMs: number = Math.max(0, requestedAtInMs - currentBucketState.lastUpdatedAtInMs);
-      const refilledTokens: number = elapsedInMs * (policy.refillRate.amount / policy.refillRate.perMs);
+      const elapsedTime: number = Math.max(0, requestedAtInMs - currentBucketState.lastUpdatedAtInMs);
+      const tokensCountCanBeRefiled: number = elapsedTime * (policy.refillRate.amount / policy.refillRate.perMs);
 
-      return Math.min(policy.bucketCapacityLimit, currentBucketState.tokensCount + refilledTokens);
+      return Math.min(policy.bucketCapacityLimit, currentBucketState.tokensCount + tokensCountCanBeRefiled);
     }
 
     function allowed() {
-      const truncatedRemainingTokens = Math.trunc(remainingTokens * 100) / 100;
       return {
         allowed: true,
         retryAfter: 0,
-        remaining: Math.floor(truncatedRemainingTokens),
+        remaining: Math.floor(remainingTokens),
         nextState: {
-          tokensCount: truncatedRemainingTokens,
+          tokensCount: remainingTokens,
           lastUpdatedAtInMs: requestedAtInMs,
         },
         stateExpiresInMs: 0,
