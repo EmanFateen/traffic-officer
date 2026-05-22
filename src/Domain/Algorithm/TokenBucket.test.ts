@@ -1,34 +1,34 @@
 import { describe, expect, test } from "vitest";
 import { TokenBucket } from "./TokenBucket.ts";
 
-describe("TokenBucket", () => {
-  test("returns an allowed decision when there are enough tokens", () => {
-    const tokenBucket = new TokenBucket();
-    const currentState = { tokensCount: 3, lastUpdatedAtInMs: 1_000 };
-    const policy = {
-      bucketCapacityLimit: 3,
-      refillRate: { amount: 2, perMs: 5_000 },
-    };
-
-    const actualDecision = tokenBucket.attempt(currentState, policy, 1_000);
-
-    expect(actualDecision.allowed).toBeTruthy();
-  });
-
-  test("should allow request when tokens exactly equal cost", () => {
-    const tokenBucket = new TokenBucket();
-
-    const actualDecision = tokenBucket.attempt(
-      { tokensCount: 1, lastUpdatedAtInMs: 1_000 },
-      {
-        refillRate: { amount: 2, perMs: 5_000 },
+describe("Token bucket algorithm", () => {
+  describe("returns an allowed decision when", () => {
+    test("there are enough tokens", () => {
+      const tokenBucket = new TokenBucket();
+      const currentState = { tokensCount: 3, lastUpdatedAtInMs: 1_000 };
+      const policy = {
         bucketCapacityLimit: 3,
-      },
-      1_000,
-    );
+        refillRate: { amount: 2, perMs: 5_000 },
+      };
 
-    expect(actualDecision.allowed).toBeTruthy();
-    expect(actualDecision.remaining).toEqual(0);
+      const actualDecision = tokenBucket.attempt(currentState, policy, 1_000);
+
+      expect(actualDecision.allowed).toBeTruthy();
+    });
+
+    test("the available tokens exactly equals consumption amount", () => {
+      const tokenBucket = new TokenBucket();
+      const currentState = { tokensCount: 1, lastUpdatedAtInMs: 1_000 };
+      const policy = {
+        bucketCapacityLimit: 3,
+        refillRate: { amount: 2, perMs: 5_000 },
+      };
+
+      const actualDecision = tokenBucket.attempt(currentState, policy, 1_000);
+
+      expect(actualDecision.allowed).toBeTruthy();
+      expect(actualDecision.remaining).toEqual(0);
+    });
   });
 
   test("rejects a request when no available tokens", () => {

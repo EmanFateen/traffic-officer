@@ -13,7 +13,7 @@ export type TokenBucketPolicy = {
   };
 };
 
-const REQUEST_COST = 1;
+const CONSUMPTION_AMOUNT = 1;
 
 export class TokenBucket implements AlgorithmInterface<TokenBucketState, TokenBucketPolicy> {
   attempt(
@@ -23,7 +23,7 @@ export class TokenBucket implements AlgorithmInterface<TokenBucketState, TokenBu
   ): Decision<TokenBucketState> {
     const availableTokens: number = getAvailableTokens();
 
-    const remainingTokens: number = availableTokens - REQUEST_COST;
+    const remainingTokens: number = availableTokens - CONSUMPTION_AMOUNT;
 
     return remainingTokens >= 0 ? allowed() : rejected();
 
