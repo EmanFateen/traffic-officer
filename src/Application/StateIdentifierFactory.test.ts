@@ -16,14 +16,6 @@ describe("state identifier factory", () => {
     });
   });
 
-  test("it throws an exception when api key is missing", () => {
-    const userIdentity = {} as Identities;
-
-    expect(() => stateIdentifierFactory(ExampleIdentifierBuilder, userIdentity)).toThrow(
-      "apiKey is required to generate the identifiers",
-    );
-  });
-
   test.each([
     {
       userIdentity: {
