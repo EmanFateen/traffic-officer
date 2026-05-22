@@ -2,17 +2,15 @@ import { describe, expect, test } from "vitest";
 import { TokenBucket } from "./TokenBucket.ts";
 
 describe("TokenBucket", () => {
-  test("allows a request when there are enough tokens", () => {
+  test("returns an allowed decision when there are enough tokens", () => {
     const tokenBucket = new TokenBucket();
+    const currentState = { tokensCount: 3, lastUpdatedAtInMs: 1_000 };
+    const policy = {
+      bucketCapacityLimit: 3,
+      refillRate: { amount: 2, perMs: 5_000 },
+    };
 
-    const actualDecision = tokenBucket.attempt(
-      { tokensCount: 3, lastUpdatedAtInMs: 1_000 },
-      {
-        refillRate: { amount: 2, perMs: 5_000 },
-        bucketCapacityLimit: 3,
-      },
-      1_000,
-    );
+    const actualDecision = tokenBucket.attempt(currentState, policy, 1_000);
 
     expect(actualDecision.allowed).toBeTruthy();
   });
