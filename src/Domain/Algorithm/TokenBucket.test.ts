@@ -205,17 +205,13 @@ describe("Token bucket algorithm", () => {
   });
 
   test("allows the first request when bucket state does not exist", () => {
-    const requestedAtInMs = 1_000;
     const tokenBucket = new TokenBucket();
+    const policy = {
+      refillRate: { amount: 1, perMs: 1_000 },
+      bucketCapacityLimit: 5,
+    };
 
-    const actualDecision = tokenBucket.attempt(
-      undefined,
-      {
-        refillRate: { amount: 1, perMs: 1_000 },
-        bucketCapacityLimit: 5,
-      },
-      requestedAtInMs,
-    );
+    const actualDecision = tokenBucket.attempt(null, policy, 1_000);
 
     expect(actualDecision).toEqual({
       allowed: true,
@@ -223,7 +219,7 @@ describe("Token bucket algorithm", () => {
       remaining: 4,
       nextState: {
         tokensCount: 4,
-        lastUpdatedAtInMs: requestedAtInMs,
+        lastUpdatedAtInMs: 1_000,
       },
       stateExpiresInMs: 0,
     });
