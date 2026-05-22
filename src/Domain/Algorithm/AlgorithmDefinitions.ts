@@ -1,5 +1,5 @@
 import { AlgorithmInterface } from "./AlgorithmInterface.ts";
-import { TokenBucketPolicy, TokenBucketState } from "./TokenBucket.ts";
+import { TokenBucket, TokenBucketPolicy, TokenBucketState } from "./TokenBucket.ts";
 
 export type AlgorithmDefinitions = {
   TokenBucket: {
@@ -8,4 +8,9 @@ export type AlgorithmDefinitions = {
     policyType: TokenBucketPolicy;
   };
 };
+
 export type AlgorithmName = keyof AlgorithmDefinitions;
+
+export const algorithmsRegistry: Record<AlgorithmName, AlgorithmDefinitions[AlgorithmName]["algorithm"]> = {
+  TokenBucket: new TokenBucket(),
+};
