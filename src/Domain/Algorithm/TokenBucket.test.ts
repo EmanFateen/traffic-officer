@@ -79,7 +79,7 @@ describe("Token bucket algorithm", () => {
   });
 
   describe("remaining tokens", () => {
-    test("decreases by request cost if allowed", () => {
+    test("decreases by consumption cost if allowed", () => {
       const tokenBucket = new TokenBucket();
       const currentState = { tokensCount: 3, lastUpdatedAtInMs: 1_000 };
       const policy = { bucketCapacityLimit: 3, refillRate: { amount: 2, perMs: 5_000 } };
@@ -99,6 +99,17 @@ describe("Token bucket algorithm", () => {
       expect(actualDecision.allowed).toBeTruthy();
       expect(actualDecision.remaining).toEqual(4);
       expect(actualDecision.nextState.tokensCount).toEqual(4.2);
+    });
+
+    test("returns with zero if rejected", () => {
+      const tokenBucket = new TokenBucket();
+      const currentState = { tokensCount: 0, lastUpdatedAtInMs: 1_000 };
+      const policy = { bucketCapacityLimit: 3, refillRate: { amount: 2, perMs: 5_000 } };
+
+      const actualDecision = tokenBucket.attempt(currentState, policy, 1_000);
+
+      expect(actualDecision.allowed).toBeFalsy();
+      expect(actualDecision.remaining).toEqual(0);
     });
   });
 
