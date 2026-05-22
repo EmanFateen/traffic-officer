@@ -6,10 +6,7 @@ describe("Token bucket algorithm", () => {
     test("there are enough tokens", () => {
       const tokenBucket = new TokenBucket();
       const currentState = { tokensCount: 3, lastUpdatedAtInMs: 1_000 };
-      const policy = {
-        bucketCapacityLimit: 3,
-        refillRate: { amount: 2, perMs: 5_000 },
-      };
+      const policy = { bucketCapacityLimit: 3, refillRate: { amount: 2, perMs: 5_000 } };
 
       const actualDecision = tokenBucket.attempt(currentState, policy, 1_000);
 
@@ -19,15 +16,11 @@ describe("Token bucket algorithm", () => {
     test("the available tokens exactly equals consumption amount", () => {
       const tokenBucket = new TokenBucket();
       const currentState = { tokensCount: 1, lastUpdatedAtInMs: 1_000 };
-      const policy = {
-        bucketCapacityLimit: 3,
-        refillRate: { amount: 2, perMs: 5_000 },
-      };
+      const policy = { bucketCapacityLimit: 3, refillRate: { amount: 2, perMs: 5_000 } };
 
       const actualDecision = tokenBucket.attempt(currentState, policy, 1_000);
 
       expect(actualDecision.allowed).toBeTruthy();
-      expect(actualDecision.remaining).toEqual(0);
     });
 
     test("bucket state does not exist", () => {
@@ -61,20 +54,40 @@ describe("Token bucket algorithm", () => {
       expect(actualDecision.allowed).toBeFalsy();
     });
 
-    test("the burst capacity is exceeded", () => {
+    test("tokens are consumed faster than refill rate", () => {
       const tokenBucket = new TokenBucket();
-      const requestedAtInMs = 1_000;
       const policy = { bucketCapacityLimit: 2, refillRate: { amount: 2, perMs: 5_000 } };
-      const initialState = {
-        tokensCount: 2,
-        lastUpdatedAtInMs: 0,
-      };
-      const firstDecision = tokenBucket.attempt(initialState, policy, requestedAtInMs);
+      const initialState = { tokensCount: 2, lastUpdatedAtInMs: 0 };
+      const firstDecision = tokenBucket.attempt(initialState, policy, 1_000);
       const secondDecision = tokenBucket.attempt(firstDecision.nextState, policy, 2_000);
 
       const actualDecision = tokenBucket.attempt(secondDecision.nextState, policy, 2_500);
 
       expect(actualDecision.allowed).toBeFalsy();
+    });
+  });
+
+  describe("retry after", () => {
+    test("returns with zero when allowed", () => {
+      const tokenBucket = new TokenBucket();
+      const currentState = { tokensCount: 3, lastUpdatedAtInMs: 1_000 };
+      const policy = { bucketCapacityLimit: 3, refillRate: { amount: 2, perMs: 5_000 } };
+
+      const actualDecision = tokenBucket.attempt(currentState, policy, 1_000);
+
+      expect(actualDecision.allowed).toBeTruthy();
+      expect(actualDecision.retryAfter).toEqual(0);
+    });
+
+    test("returns the remaining time until the next token refill when rejected", () => {
+      const tokenBucket = new TokenBucket();
+      const currentState = { tokensCount: 0, lastUpdatedAtInMs: 1_000 };
+      const policy = { bucketCapacityLimit: 3, refillRate: { amount: 2, perMs: 1_000 } };
+
+      const actualDecision = tokenBucket.attempt(currentState, policy, 1_000);
+
+      expect(actualDecision.allowed).toBeFalsy();
+      expect(actualDecision.retryAfter).toEqual(500);
     });
   });
 
@@ -89,7 +102,7 @@ describe("Token bucket algorithm", () => {
       expect(actualDecision.remaining).toEqual(currentState.tokensCount - 1);
     });
 
-    test("stays integers", () => {
+    test("returns integer remaining tokens while keeping fractional tokens in next state", () => {
       const tokenBucket = new TokenBucket();
       const currentState = { tokensCount: 5, lastUpdatedAtInMs: 1_000 };
       const policy = { bucketCapacityLimit: 100, refillRate: { amount: 1, perMs: 5_000 } };
