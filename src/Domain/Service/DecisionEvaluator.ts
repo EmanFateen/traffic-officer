@@ -16,7 +16,7 @@ export class DecisionEvaluator {
 
     return {
       allowed,
-      retryAfter: maxRetryAfter,
+      retryAfter: allowed ? 0 : maxRetryAfter,
     };
   }
 }

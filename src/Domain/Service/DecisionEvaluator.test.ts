@@ -29,6 +29,21 @@ describe("decision evaluator", () => {
     expect(actualDecision.allowed).toBeFalsy();
   });
 
+  test("returns zero retry after when all available dimensions are allowed", () => {
+    const decisions = {
+      apiKey: { allowed: true, retryAfter: 0 },
+      ip: { allowed: true, retryAfter: 100 },
+      tenant: { allowed: true, retryAfter: 200 },
+    } as Decisions<never>;
+
+    const actualDecision = new DecisionEvaluator().evaluate(decisions);
+
+    expect(actualDecision).toEqual({
+      allowed: true,
+      retryAfter: 0,
+    });
+  });
+
   test("returns the maximum retry after from the rejected dimensions", () => {
     const decisions = {
       apiKey: { allowed: false, retryAfter: 200 },
