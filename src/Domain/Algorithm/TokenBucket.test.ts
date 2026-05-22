@@ -149,6 +149,17 @@ describe("Token bucket algorithm", () => {
       expect(actualDecision.nextState.lastUpdatedAtInMs).toEqual(requestedAt);
     });
 
+    test("does not move last updated time backwards when requested time is earlier", () => {
+      const tokenBucket = new TokenBucket();
+      const currentState = { tokensCount: 5, lastUpdatedAtInMs: 1_000 };
+      const policy = { bucketCapacityLimit: 100, refillRate: { amount: 1, perMs: 5_000 } };
+
+      const actualDecision = tokenBucket.attempt(currentState, policy, 900);
+
+      expect(actualDecision.allowed).toBeTruthy();
+      expect(actualDecision.nextState.lastUpdatedAtInMs).toEqual(1_000);
+    });
+
     test("tracks remaining tokens after consumption when allowed", () => {
       const tokenBucket = new TokenBucket();
       const currentState = { tokensCount: 2, lastUpdatedAtInMs: 1_000 };
