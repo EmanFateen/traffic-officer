@@ -149,17 +149,6 @@ describe("Token bucket algorithm", () => {
       expect(actualDecision.nextState.tokensCount).toEqual(1);
     });
 
-    test("caps refilled tokens at bucket capacity limit before consumption", () => {
-      const tokenBucket = new TokenBucket();
-      const currentState = { tokensCount: 3, lastUpdatedAtInMs: 0 };
-      const bucketCapacityLimit = 3;
-      const policy = { bucketCapacityLimit: bucketCapacityLimit, refillRate: { amount: 2, perMs: 5_000 } };
-
-      const actualDecision = tokenBucket.attempt(currentState, policy, 5_000);
-
-      expect(actualDecision.nextState.tokensCount).toEqual(bucketCapacityLimit - 1);
-    });
-
     test("tracks refilled tokens when rejected", () => {
       const tokenBucket = new TokenBucket();
       const currentState = { tokensCount: 0, lastUpdatedAtInMs: 0 };
@@ -172,15 +161,28 @@ describe("Token bucket algorithm", () => {
     });
   });
 
-  test("refills tokens before consuming in the next state", () => {
+  test("caps refilled tokens at bucket capacity limit before consumption", () => {
     const tokenBucket = new TokenBucket();
-    const currentState = { tokensCount: 1, lastUpdatedAtInMs: 0 };
-    const policy = { bucketCapacityLimit: 3, refillRate: { amount: 2, perMs: 5_000 } };
+    const currentState = { tokensCount: 3, lastUpdatedAtInMs: 0 };
+    const bucketCapacityLimit = 3;
+    const policy = { bucketCapacityLimit: bucketCapacityLimit, refillRate: { amount: 2, perMs: 5_000 } };
+
+    const actualDecision = tokenBucket.attempt(currentState, policy, 5_000);
+
+    expect(actualDecision.remaining).toEqual(bucketCapacityLimit - 1);
+    expect(actualDecision.nextState.tokensCount).toEqual(bucketCapacityLimit - 1);
+  });
+
+  test("refills tokens before deciding whether to allow consumption", () => {
+    const tokenBucket = new TokenBucket();
+    const currentState = { tokensCount: 0, lastUpdatedAtInMs: 0 };
+    const policy = { bucketCapacityLimit: 3, refillRate: { amount: 2, perMs: 500 } };
 
     const actualDecision = tokenBucket.attempt(currentState, policy, 1_500);
 
     expect(actualDecision.allowed).toBeTruthy();
-    expect(actualDecision.nextState.tokensCount).toEqual(0.6);
+    expect(actualDecision.remaining).toEqual(2);
+    expect(actualDecision.nextState.tokensCount).toEqual(2);
   });
 
   test("should enforce average rate over time by refill bucket", () => {
