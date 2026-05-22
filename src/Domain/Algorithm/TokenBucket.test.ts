@@ -79,7 +79,7 @@ describe("Token bucket algorithm", () => {
       expect(actualDecision.retryAfter).toEqual(0);
     });
 
-    test("returns the remaining time until the next token refill when rejected", () => {
+    test("returns the remaining time until enough tokens are refilled when rejected", () => {
       const tokenBucket = new TokenBucket();
       const currentState = { tokensCount: 0, lastUpdatedAtInMs: 1_000 };
       const policy = { bucketCapacityLimit: 3, refillRate: { amount: 2, perMs: 1_000 } };
@@ -88,6 +88,17 @@ describe("Token bucket algorithm", () => {
 
       expect(actualDecision.allowed).toBeFalsy();
       expect(actualDecision.retryAfter).toEqual(500);
+    });
+
+    test("returns the remaining time based on partially refilled tokens when rejected", () => {
+      const tokenBucket = new TokenBucket();
+      const currentState = { tokensCount: 0.4, lastUpdatedAtInMs: 1_000 };
+      const policy = { bucketCapacityLimit: 3, refillRate: { amount: 2, perMs: 1_000 } };
+
+      const actualDecision = tokenBucket.attempt(currentState, policy, 1_000);
+
+      expect(actualDecision.allowed).toBeFalsy();
+      expect(actualDecision.retryAfter).toEqual(300);
     });
   });
 
