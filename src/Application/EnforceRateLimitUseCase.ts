@@ -14,7 +14,7 @@ export class EnforceRateLimitUseCase<State, Policy> {
 
   async enforce(identities: Identities, policies: Policies<Policy>, requestedAt: number): Promise<EvaluatedDecision> {
     if (!identities.apiKey) {
-      throw new Error("apiKey is required to enforce rate limits");
+      throw new Error("apiKey identity is required to enforce rate limits");
     }
 
     if (!policies.apiKey) {

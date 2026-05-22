@@ -5,15 +5,11 @@ import { DimensionsType } from "../Domain/Dimensions.ts";
 
 describe("state identifier factory", () => {
   test("it must have api key at least", () => {
-    const userIdentity: Identities = {
-      apiKey: "fake-api-key",
-    };
+    const userIdentity: Identities = { apiKey: "fake-api-key" };
 
     const actualKeys = stateIdentifierFactory(ExampleIdentifierBuilder, userIdentity);
 
-    expect(actualKeys).toEqual({
-      apiKey: `build-example-apiKey-for-${userIdentity.apiKey}`,
-    });
+    expect(actualKeys).toEqual({ apiKey: `build-example-apiKey-for-${userIdentity.apiKey}` });
   });
 
   test.each([
