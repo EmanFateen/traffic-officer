@@ -197,52 +197,13 @@ describe("Token bucket algorithm", () => {
     expect(actualDecision.nextState.tokensCount).toEqual(4);
   });
 
-  test("should enforce average rate over time by refill bucket", () => {
-    const bucketCapacity = 2;
-    const refillRate = { amount: 2, perMs: 1_000 };
-    let currentTokens = 2;
-    let lastRefillInMs = 0;
-    let requestedAtInMs = 1_000;
+  test("refills tokens gradually over time", () => {
     const tokenBucket = new TokenBucket();
-    const firstDecision = tokenBucket.attempt(
-      {
-        tokensCount: currentTokens,
-        lastUpdatedAtInMs: lastRefillInMs,
-      },
-      {
-        refillRate,
-        bucketCapacityLimit: bucketCapacity,
-      },
-      requestedAtInMs,
-    );
-    currentTokens = firstDecision.remaining;
-    lastRefillInMs = firstDecision.nextState.lastUpdatedAtInMs;
-    const secondDecision = tokenBucket.attempt(
-      {
-        tokensCount: currentTokens,
-        lastUpdatedAtInMs: lastRefillInMs,
-      },
-      {
-        refillRate,
-        bucketCapacityLimit: bucketCapacity,
-      },
-      requestedAtInMs,
-    );
-    currentTokens = secondDecision.remaining;
-    lastRefillInMs = secondDecision.nextState.lastUpdatedAtInMs;
-    requestedAtInMs = 1_500;
+    const policy = { bucketCapacityLimit: 2, refillRate: { amount: 2, perMs: 1_000 } };
+    const firstDecision = tokenBucket.attempt(null, policy, 1_000);
+    const secondDecision = tokenBucket.attempt(firstDecision.nextState, policy, 1_000);
 
-    const actualDecision = tokenBucket.attempt(
-      {
-        tokensCount: currentTokens,
-        lastUpdatedAtInMs: lastRefillInMs,
-      },
-      {
-        refillRate,
-        bucketCapacityLimit: bucketCapacity,
-      },
-      requestedAtInMs,
-    );
+    const actualDecision = tokenBucket.attempt(secondDecision.nextState, policy, 1_500);
 
     expect(actualDecision.allowed).toBeTruthy();
   });
