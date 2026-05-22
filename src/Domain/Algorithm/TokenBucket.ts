@@ -17,7 +17,7 @@ const CONSUMPTION_AMOUNT = 1;
 
 export class TokenBucket implements AlgorithmInterface<TokenBucketState, TokenBucketPolicy> {
   attempt(
-    state: TokenBucketState | null | undefined,
+    state: TokenBucketState | null,
     policy: TokenBucketPolicy,
     requestedAtInMs: number,
   ): Decision<TokenBucketState> {
