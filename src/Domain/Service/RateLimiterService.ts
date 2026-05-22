@@ -1,4 +1,4 @@
-import { RateLimiterInterface } from "../Algorithm/RateLimiterInterface.ts";
+import { AlgorithmInterface } from "../Algorithm/AlgorithmInterface.ts";
 import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
 import { Decision } from "../Decision.ts";
 import { Policies } from "../Policies.ts";
@@ -14,7 +14,7 @@ export type Decisions<State> = {
 export class RateLimiterService<State, Policy> {
   constructor(
     private readonly stateRepository: StateRepositoryInterface<State>,
-    private readonly limitingAlgorithm: RateLimiterInterface<State, Policy>,
+    private readonly limitingAlgorithm: AlgorithmInterface<State, Policy>,
   ) {}
 
   async execute(

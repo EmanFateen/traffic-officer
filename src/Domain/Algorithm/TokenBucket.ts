@@ -1,4 +1,4 @@
-import { RateLimiterInterface } from "./RateLimiterInterface.ts";
+import { AlgorithmInterface } from "./AlgorithmInterface.ts";
 import { Decision } from "../Decision.ts";
 
 export type TokenBucketState = {
@@ -13,7 +13,7 @@ export type TokenBucketPolicy = {
   };
 };
 
-export class TokenBucket implements RateLimiterInterface<TokenBucketState, TokenBucketPolicy> {
+export class TokenBucket implements AlgorithmInterface<TokenBucketState, TokenBucketPolicy> {
   attempt(
     state: TokenBucketState | null | undefined,
     policy: TokenBucketPolicy,

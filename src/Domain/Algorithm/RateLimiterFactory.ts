@@ -1,9 +1,9 @@
 import { TokenBucket, TokenBucketPolicy, TokenBucketState } from "./TokenBucket.ts";
-import { RateLimiterInterface } from "./RateLimiterInterface.ts";
+import { AlgorithmInterface } from "./AlgorithmInterface.ts";
 
 export type AlgorithmsMap = {
   TokenBucket: {
-    algorithm: RateLimiterInterface<TokenBucketState, TokenBucketPolicy>;
+    algorithm: AlgorithmInterface<TokenBucketState, TokenBucketPolicy>;
     stateType: TokenBucketState;
     policyType: TokenBucketPolicy;
   };

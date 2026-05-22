@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, MockedFunction, test, vi } from "vitest";
 import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
 import { RateLimiterService } from "./RateLimiterService.ts";
-import { RateLimiterInterface } from "../Algorithm/RateLimiterInterface.ts";
+import { AlgorithmInterface } from "../Algorithm/AlgorithmInterface.ts";
 
 const identifiers = {
   apiKey: "apikey-identifier",
@@ -101,7 +101,7 @@ describe("rate limit service", () => {
     );
   });
 
-  function mockAlgorithm<State, Policy>(decisions: object): RateLimiterInterface<State, Policy> {
+  function mockAlgorithm<State, Policy>(decisions: object): AlgorithmInterface<State, Policy> {
     const attempt = vi.fn();
 
     Object.values(decisions).forEach((decision) => {
