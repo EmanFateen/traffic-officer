@@ -170,6 +170,17 @@ describe("Token bucket algorithm", () => {
       expect(actualDecision.allowed).toBeFalsy();
       expect(actualDecision.nextState.tokensCount).toEqual(0.4);
     });
+
+    test("truncates refilled tokens instead of rounding them when rejected", () => {
+      const tokenBucket = new TokenBucket();
+      const currentState = { tokensCount: 0, lastUpdatedAtInMs: 0 };
+      const policy = { bucketCapacityLimit: 3, refillRate: { amount: 339, perMs: 1_000_000 } };
+
+      const actualDecision = tokenBucket.attempt(currentState, policy, 1_000);
+
+      expect(actualDecision.allowed).toBeFalsy();
+      expect(actualDecision.nextState.tokensCount).toEqual(0.33); // 0.339 should become 0.33, not 0.34
+    });
   });
 
   test("caps refilled tokens at bucket capacity limit before consumption", () => {
