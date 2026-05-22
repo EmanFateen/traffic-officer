@@ -1,17 +1,17 @@
 ## Summary
 
-<!-- write a quick summery for what this pr do --> 
----
+## <!-- write a quick summery for what this pr do -->
 
 ## Changes
-<!-- write changes you have done in points --> 
-- 
+
+<!-- write changes you have done in points -->
+
 -
----
+- ***
 
 ## Architecture Notes
-<!-- this section for any architecture decisions you have made -->
----
+
+## <!-- this section for any architecture decisions you have made -->
 
 Closes #<issue_number>
 

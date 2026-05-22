@@ -1,4 +1,4 @@
-import { RateLimiterInterface } from "./RateLimiterInterface.ts";
+import { AlgorithmInterface } from "./AlgorithmInterface.ts";
 import { Decision } from "../Decision.ts";
 
 export type TokenBucketState = {
@@ -13,76 +13,61 @@ export type TokenBucketPolicy = {
   };
 };
 
-export class TokenBucket implements RateLimiterInterface<
-  TokenBucketState,
-  TokenBucketPolicy
-> {
+const CONSUMPTION_AMOUNT = 1;
+
+export class TokenBucket implements AlgorithmInterface<TokenBucketState, TokenBucketPolicy> {
   attempt(
-    state: TokenBucketState | null | undefined,
+    state: TokenBucketState | null,
     policy: TokenBucketPolicy,
     requestedAtInMs: number,
   ): Decision<TokenBucketState> {
-    const availableTokens: number = this.getAvailableTokens(
-      state,
-      policy,
-      requestedAtInMs,
-    );
+    const currentBucketState = state ?? { tokensCount: policy.bucketCapacityLimit, lastUpdatedAtInMs: 0 };
+    const updatedAt = Math.max(requestedAtInMs, currentBucketState.lastUpdatedAtInMs);
 
-    const remainingTokens: number = this.consume(availableTokens);
+    const refilledTokens: number = this.refillTokens(requestedAtInMs, currentBucketState, policy);
 
-    if (remainingTokens >= 0) {
-      const truncatedRemainingTokens = Math.trunc(remainingTokens * 100) / 100;
-      return {
-        allowed: true,
-        retryAfter: 0,
-        remaining: Math.floor(truncatedRemainingTokens),
-        nextState: {
-          tokensCount: truncatedRemainingTokens,
-          lastUpdatedAtInMs: requestedAtInMs,
-        },
-      };
-    }
+    const remainingTokens: number = Math.round((refilledTokens - CONSUMPTION_AMOUNT) * 1000) / 1000;
 
+    return remainingTokens >= 0
+      ? this.allowed(remainingTokens, updatedAt)
+      : this.rejected(remainingTokens, updatedAt, policy, refilledTokens);
+  }
+
+  refillTokens(requestedAtInMs: number, currentBucketState: TokenBucketState, policy: TokenBucketPolicy): number {
+    const elapsedTime: number = Math.max(0, requestedAtInMs - currentBucketState.lastUpdatedAtInMs);
+    const tokensCountCanBeRefiled: number = elapsedTime * (policy.refillRate.amount / policy.refillRate.perMs);
+
+    return Math.min(policy.bucketCapacityLimit, currentBucketState.tokensCount + tokensCountCanBeRefiled);
+  }
+
+  allowed(remainingTokens: number, updatedAt: number): Decision<TokenBucketState> {
+    return {
+      allowed: true,
+      retryAfter: 0,
+      remaining: Math.floor(remainingTokens),
+      nextState: {
+        tokensCount: remainingTokens,
+        lastUpdatedAtInMs: updatedAt,
+      },
+      stateExpiresInMs: 0,
+    };
+  }
+
+  rejected(
+    remainingTokens: number,
+    updatedAt: number,
+    policy: TokenBucketPolicy,
+    refilledTokens: number,
+  ): Decision<TokenBucketState> {
     return {
       allowed: false,
-      retryAfter: Math.ceil(
-        (remainingTokens * -1 * policy.refillRate.perMs) /
-          policy.refillRate.amount,
-      ),
+      retryAfter: Math.ceil((remainingTokens * -1 * policy.refillRate.perMs) / policy.refillRate.amount),
       remaining: 0,
       nextState: {
-        tokensCount: Math.trunc(availableTokens * 100) / 100,
-        lastUpdatedAtInMs: requestedAtInMs,
+        tokensCount: Math.trunc(refilledTokens * 100) / 100,
+        lastUpdatedAtInMs: updatedAt,
       },
+      stateExpiresInMs: 0,
     };
-  }
-
-  private getAvailableTokens(
-    state: TokenBucketState | null | undefined,
-    policy: TokenBucketPolicy,
-    requestedAtInMs: number,
-  ): number {
-    const currentBucketState: TokenBucketState = state ?? {
-      tokensCount: policy.bucketCapacityLimit,
-      lastUpdatedAtInMs: requestedAtInMs,
-    };
-
-    const elapsedInMs: number = Math.max(
-      0,
-      requestedAtInMs - currentBucketState.lastUpdatedAtInMs,
-    );
-    const refilledTokens: number =
-      elapsedInMs * (policy.refillRate.amount / policy.refillRate.perMs);
-
-    return Math.min(
-      policy.bucketCapacityLimit,
-      currentBucketState.tokensCount + refilledTokens,
-    );
-  }
-
-  private consume(availableTokens: number): number {
-    const requestCost = 1;
-
-    return availableTokens - requestCost;
   }
 }

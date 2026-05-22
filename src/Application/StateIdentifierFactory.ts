@@ -2,14 +2,7 @@ import { IdentifierBuilder, Identities } from "./Identities.ts";
 
 import { StateIdentifiers } from "../Domain/StateIdentifiers.ts";
 
-export function stateIdentifierFactory(
-  identifierBuilder: IdentifierBuilder,
-  identities: Identities,
-): StateIdentifiers {
-  if (!identities.apiKey) {
-    throw new Error("apiKey is required to generate the identifiers");
-  }
-
+export function stateIdentifierFactory(identifierBuilder: IdentifierBuilder, identities: Identities): StateIdentifiers {
   const keys: StateIdentifiers = {
     apiKey: identifierBuilder("apiKey").ownedBy(identities.apiKey),
   };

@@ -15,8 +15,7 @@ describe("Redis client singleton and race condition handling", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.resetModules();
-    ({ getClient, configureRedis, closeClient } =
-      await import("./getClient.ts"));
+    ({ getClient, configureRedis, closeClient } = await import("./getClient.ts"));
   });
 
   test("should create Redis client only once", async () => {
@@ -60,10 +59,7 @@ describe("Redis client singleton and race condition handling", () => {
     vi.mocked(createClient).mockResolvedValue(client);
     configureRedis(config);
 
-    const [firstClient, secondClient] = await Promise.all([
-      getClient(),
-      getClient(),
-    ]);
+    const [firstClient, secondClient] = await Promise.all([getClient(), getClient()]);
 
     expect(firstClient).toBe(client);
     expect(secondClient).toBe(client);
@@ -89,9 +85,7 @@ describe("Redis client singleton and race condition handling", () => {
   test("should retry Redis client creation after a failed connection", async () => {
     const config: Config = { url: "redis://localhost:6379" };
     const client = { id: "redis-client" } as unknown as RedisClient;
-    vi.mocked(createClient)
-      .mockRejectedValueOnce(new Error("connection failed"))
-      .mockResolvedValueOnce(client);
+    vi.mocked(createClient).mockRejectedValueOnce(new Error("connection failed")).mockResolvedValueOnce(client);
     configureRedis(config);
 
     await expect(getClient()).rejects.toThrow("connection failed");
@@ -111,9 +105,7 @@ describe("Redis client singleton and race condition handling", () => {
       id: "second-redis-client",
       close: vi.fn(),
     } as unknown as RedisClient;
-    vi.mocked(createClient)
-      .mockResolvedValueOnce(firstClient)
-      .mockResolvedValueOnce(secondClient);
+    vi.mocked(createClient).mockResolvedValueOnce(firstClient).mockResolvedValueOnce(secondClient);
     configureRedis(config);
 
     const currentClient = await getClient();

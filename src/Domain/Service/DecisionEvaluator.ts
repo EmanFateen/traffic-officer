@@ -1,4 +1,4 @@
-import { LimitDecisions } from "./RateLimiterService.ts";
+import { Decisions } from "./RateLimiterService.ts";
 
 export type EvaluatedDecision = {
   allowed: boolean;
@@ -6,22 +6,17 @@ export type EvaluatedDecision = {
 };
 
 export class DecisionEvaluator {
-  evaluate<State>(decisions: LimitDecisions<State>): EvaluatedDecision {
-    const allDecisions = [
-      decisions.apiKey,
-      decisions.ip,
-      decisions.tenant,
-    ].filter((decision) => decision !== undefined);
+  evaluate<State>(decisions: Decisions<State>): EvaluatedDecision {
+    const allDecisions = [decisions.apiKey, decisions.ip, decisions.tenant].filter(
+      (decision) => decision !== undefined,
+    );
 
     const allowed = allDecisions.every((decision) => decision.allowed);
-    const retryAfter = Math.max(
-      0,
-      ...allDecisions.map((decision) => decision.retryAfter),
-    );
+    const maxRetryAfter = Math.max(0, ...allDecisions.map((decision) => decision.retryAfter));
 
     return {
       allowed,
-      retryAfter,
+      retryAfter: allowed ? 0 : maxRetryAfter,
     };
   }
 }

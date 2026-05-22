@@ -2,8 +2,9 @@ import { describe, expect, test, vi } from "vitest";
 import { DecisionEvaluator } from "../Domain/Service/DecisionEvaluator.ts";
 import { RateLimiterService } from "../Domain/Service/RateLimiterService.ts";
 import { EnforceRateLimitUseCase } from "./EnforceRateLimitUseCase.ts";
-import { Identifier, IdentifierScope, Identities } from "./Identities.ts";
+import { Identifier, Identities } from "./Identities.ts";
 import { Policies } from "../Domain/Policies.ts";
+import { DimensionsType } from "../Domain/Dimensions.ts";
 
 type FakeState = {
   key: string;
@@ -51,10 +52,8 @@ describe("enforce rate limit use case", () => {
       retryAfter: 500,
     };
     const identifierBuilder = vi.fn(
-      (scope: IdentifierScope): Identifier => ({
-        ownedBy: vi.fn(
-          (identity: string) => `example-${scope}-for-${identity}`,
-        ),
+      (scope: DimensionsType): Identifier => ({
+        ownedBy: vi.fn((identity: string) => `example-${scope}-for-${identity}`),
       }),
     );
     const limitService = {
@@ -63,17 +62,9 @@ describe("enforce rate limit use case", () => {
     const decisionEvaluator = {
       evaluate: vi.fn().mockReturnValue(expectedEvaluatedDecision),
     } as unknown as DecisionEvaluator;
-    const useCase = new EnforceRateLimitUseCase(
-      identifierBuilder,
-      limitService,
-      decisionEvaluator,
-    );
+    const useCase = new EnforceRateLimitUseCase(identifierBuilder, limitService, decisionEvaluator);
 
-    const actualDecision = await useCase.enforce(
-      userIdentity,
-      policies,
-      requestedAt,
-    );
+    const actualDecision = await useCase.enforce(userIdentity, policies, requestedAt);
 
     expect(actualDecision).toEqual(expectedEvaluatedDecision);
     expect(limitService.execute).toHaveBeenCalledWith(
@@ -94,10 +85,8 @@ describe("enforce rate limit use case", () => {
       apiKey: { key: "api-key-policy" },
     };
     const identifierBuilder = vi.fn(
-      (scope: IdentifierScope): Identifier => ({
-        ownedBy: vi.fn(
-          (identity: string) => `example-${scope}-for-${identity}`,
-        ),
+      (scope: DimensionsType): Identifier => ({
+        ownedBy: vi.fn((identity: string) => `example-${scope}-for-${identity}`),
       }),
     );
     const limitService = {
@@ -106,15 +95,11 @@ describe("enforce rate limit use case", () => {
     const decisionEvaluator = {
       evaluate: vi.fn(),
     } as unknown as DecisionEvaluator;
-    const useCase = new EnforceRateLimitUseCase(
-      identifierBuilder,
-      limitService,
-      decisionEvaluator,
-    );
+    const useCase = new EnforceRateLimitUseCase(identifierBuilder, limitService, decisionEvaluator);
 
-    await expect(
-      useCase.enforce(userIdentity, policies, 1_000),
-    ).rejects.toThrow("apikey is required to enforce rate limits");
+    await expect(useCase.enforce(userIdentity, policies, 1_000)).rejects.toThrow(
+      "apiKey is required to enforce rate limits",
+    );
     expect(limitService.execute).not.toHaveBeenCalled();
   });
 
@@ -124,10 +109,8 @@ describe("enforce rate limit use case", () => {
     };
     const policies = {} as Policies<FakePolicy>;
     const identifierBuilder = vi.fn(
-      (scope: IdentifierScope): Identifier => ({
-        ownedBy: vi.fn(
-          (identity: string) => `example-${scope}-for-${identity}`,
-        ),
+      (scope: DimensionsType): Identifier => ({
+        ownedBy: vi.fn((identity: string) => `example-${scope}-for-${identity}`),
       }),
     );
     const limitService = {
@@ -136,15 +119,11 @@ describe("enforce rate limit use case", () => {
     const decisionEvaluator = {
       evaluate: vi.fn(),
     } as unknown as DecisionEvaluator;
-    const useCase = new EnforceRateLimitUseCase(
-      identifierBuilder,
-      limitService,
-      decisionEvaluator,
-    );
+    const useCase = new EnforceRateLimitUseCase(identifierBuilder, limitService, decisionEvaluator);
 
-    await expect(
-      useCase.enforce(userIdentity, policies, 1_000),
-    ).rejects.toThrow("api key policy is required to enforce rate limits");
+    await expect(useCase.enforce(userIdentity, policies, 1_000)).rejects.toThrow(
+      "apiKey policy is required to enforce rate limits",
+    );
     expect(limitService.execute).not.toHaveBeenCalled();
   });
 });

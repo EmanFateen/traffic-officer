@@ -24,9 +24,9 @@ describe("Redis bucket repository", () => {
     } as unknown as RedisClientType;
     vi.mocked(getClient).mockResolvedValue(redisClient);
 
-    const repository = new stateRepository<mockState>();
+    const repository = new stateRepository();
 
-    const bucketState: mockState | null = await repository.findOneBy(key);
+    const bucketState = await repository.findOneBy(key);
 
     expect(bucketState).toBeNull();
     expect(redisClient.get).toHaveBeenCalledWith(key);
@@ -48,9 +48,7 @@ describe("Redis bucket repository", () => {
     const bucketState: mockState | null = await repository.findOneBy(key);
 
     expect(bucketState?.name).toEqual(expectedState.name);
-    expect(bucketState?.lastUpdatedAtInMs).toEqual(
-      expectedState.lastUpdatedAtInMs,
-    );
+    expect(bucketState?.lastUpdatedAtInMs).toEqual(expectedState.lastUpdatedAtInMs);
     expect(redisClient.get).toHaveBeenCalledWith(key);
   });
 
@@ -69,9 +67,6 @@ describe("Redis bucket repository", () => {
 
     await repository.save(key, bucketState);
 
-    expect(redisClient.set).toHaveBeenCalledWith(
-      key,
-      JSON.stringify(bucketState),
-    );
+    expect(redisClient.set).toHaveBeenCalledWith(key, JSON.stringify(bucketState), undefined);
   });
 });
