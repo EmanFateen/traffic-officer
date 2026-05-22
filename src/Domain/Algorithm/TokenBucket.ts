@@ -21,13 +21,13 @@ export class TokenBucket implements AlgorithmInterface<TokenBucketState, TokenBu
     policy: TokenBucketPolicy,
     requestedAtInMs: number,
   ): Decision<TokenBucketState> {
-    const availableTokens: number = calculateAvailableTokens();
+    const currentTokensCount: number = calculateCurrentTokensCount();
 
-    const remainingTokens: number = Math.round((availableTokens - CONSUMPTION_AMOUNT) * 1000) / 1000;
+    const remainingTokens: number = Math.round((currentTokensCount - CONSUMPTION_AMOUNT) * 1000) / 1000;
 
     return remainingTokens >= 0 ? allowed() : rejected();
 
-    function calculateAvailableTokens(): number {
+    function calculateCurrentTokensCount(): number {
       const currentBucketState: TokenBucketState = state ?? {
         tokensCount: policy.bucketCapacityLimit,
         lastUpdatedAtInMs: 0,
@@ -58,7 +58,7 @@ export class TokenBucket implements AlgorithmInterface<TokenBucketState, TokenBu
         retryAfter: Math.ceil((remainingTokens * -1 * policy.refillRate.perMs) / policy.refillRate.amount),
         remaining: 0,
         nextState: {
-          tokensCount: Math.trunc(availableTokens * 100) / 100,
+          tokensCount: Math.trunc(currentTokensCount * 100) / 100,
           lastUpdatedAtInMs: requestedAtInMs,
         },
         stateExpiresInMs: 0,

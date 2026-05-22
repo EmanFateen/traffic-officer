@@ -75,20 +75,29 @@ describe("Token bucket algorithm", () => {
     });
   });
 
-  test("should decrease tokens by request cost if allowed", () => {
-    const availableTokens = 3;
+  test("decreases tokens count by request cost if allowed", () => {
     const tokenBucket = new TokenBucket();
+    const currentState = { tokensCount: 3, lastUpdatedAtInMs: 1_000 };
+    const policy = { bucketCapacityLimit: 3, refillRate: { amount: 2, perMs: 5_000 } };
 
-    const actualDecision = tokenBucket.attempt(
-      { tokensCount: availableTokens, lastUpdatedAtInMs: 1_000 },
-      {
-        refillRate: { amount: 2, perMs: 5_000 },
-        bucketCapacityLimit: 3,
-      },
-      1_000,
-    );
+    const actualDecision = tokenBucket.attempt(currentState, policy, 1_000);
 
-    expect(actualDecision.remaining).toEqual(availableTokens - 1);
+    expect(actualDecision.remaining).toEqual(currentState.tokensCount - 1);
+  });
+
+  test("remaining tokens should stay integers", () => {
+    const tokenBucket = new TokenBucket();
+    const currentState = { tokensCount: 5, lastUpdatedAtInMs: 1_000 };
+    const policy = {
+      refillRate: { amount: 1, perMs: 5_000 },
+      bucketCapacityLimit: 100,
+    };
+
+    const actualDecision = tokenBucket.attempt(currentState, policy, 2_000);
+
+    expect(actualDecision.allowed).toBeTruthy();
+    expect(actualDecision.remaining).toEqual(4);
+    expect(actualDecision.nextState.tokensCount).toEqual(4.2);
   });
 
   test("should return updated bucket state after decision", () => {
@@ -159,23 +168,6 @@ describe("Token bucket algorithm", () => {
     );
 
     expect(actualDecision.allowed).toBeTruthy();
-  });
-
-  test("remaining tokens should stay integers", () => {
-    const tokenBucket = new TokenBucket();
-
-    const actualDecision = tokenBucket.attempt(
-      { tokensCount: 5, lastUpdatedAtInMs: 1_000 },
-      {
-        refillRate: { amount: 1, perMs: 5_000 },
-        bucketCapacityLimit: 100,
-      },
-      2_000,
-    );
-
-    expect(actualDecision.allowed).toBeTruthy();
-    expect(actualDecision.remaining).toEqual(4);
-    expect(actualDecision.nextState.tokensCount).toEqual(4.2);
   });
 
   test("should not refill when requested time is earlier than last update", () => {
