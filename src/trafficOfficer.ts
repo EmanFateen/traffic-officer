@@ -1,12 +1,13 @@
 import { EnforceRateLimitUseCase } from "./Application/EnforceRateLimitUseCase.ts";
 import type { Identities } from "./Application/Identities.ts";
-import { AlgorithmName, AlgorithmsMap, algorithmFactory } from "./Domain/Algorithm/AlgorithmFactory.ts";
+import { algorithmFactory } from "./Domain/Algorithm/AlgorithmFactory.ts";
 import { DecisionEvaluator, EvaluatedDecision } from "./Domain/Service/DecisionEvaluator.ts";
 import { RateLimiterService } from "./Domain/Service/RateLimiterService.ts";
 import { configureRedis } from "./Infrastructure/Cache/Redis/Client/getClient.ts";
 import { RedisIdentifierBuilder } from "./Infrastructure/Cache/Redis/Identifier/RedisIdentifierBuilder.ts";
 import { stateRepository } from "./Infrastructure/Cache/Redis/Repository/stateRepository.ts";
 import { Policies } from "./Domain/Policies.ts";
+import { AlgorithmName, AlgorithmDefinitions } from "./Domain/Algorithm/AlgorithmDefinitions.ts";
 
 export type TrafficOfficerConfig = {
   dbUrl: string;
@@ -16,7 +17,7 @@ export type TrafficOfficerConfig = {
 export type TrafficOfficer<name extends AlgorithmName> = {
   enforce(
     identities: Identities,
-    policies: Policies<AlgorithmsMap[name]["policyType"]>,
+    policies: Policies<AlgorithmDefinitions[name]["policyType"]>,
     requestedAt: number,
   ): Promise<EvaluatedDecision>;
 };
@@ -25,7 +26,7 @@ export function createTrafficOfficer<name extends AlgorithmName>(config: Traffic
   configureRedis({ url: config.dbUrl });
 
   const rateLimiterService = new RateLimiterService(
-    new stateRepository<AlgorithmsMap[name]["stateType"]>(),
+    new stateRepository<AlgorithmDefinitions[name]["stateType"]>(),
     algorithmFactory(config.algorithm ?? "TokenBucket"),
   );
 

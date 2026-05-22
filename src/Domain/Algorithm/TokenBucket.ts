@@ -21,7 +21,7 @@ export class TokenBucket implements AlgorithmInterface<TokenBucketState, TokenBu
     policy: TokenBucketPolicy,
     requestedAtInMs: number,
   ): Decision<TokenBucketState> {
-    const currentBucketState = state ?? { tokensCount: policy.bucketCapacityLimit, lastUpdatedAtInMs: 0};
+    const currentBucketState = state ?? { tokensCount: policy.bucketCapacityLimit, lastUpdatedAtInMs: 0 };
     const updatedAt = Math.max(requestedAtInMs, currentBucketState.lastUpdatedAtInMs);
 
     const refilledTokens: number = this.refillTokens(requestedAtInMs, currentBucketState, policy);
