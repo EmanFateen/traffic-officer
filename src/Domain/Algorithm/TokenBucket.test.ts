@@ -235,17 +235,12 @@ describe("Token bucket algorithm", () => {
     expect(actualDecision.allowed).toBeTruthy();
   });
 
-  test("should not refill when requested time is earlier than last update", () => {
+  test("does not refill tokens when requested time is earlier than last update", () => {
     const tokenBucket = new TokenBucket();
+    const currentState = { tokensCount: 5, lastUpdatedAtInMs: 1_000 };
+    const policy = { bucketCapacityLimit: 100, refillRate: { amount: 1, perMs: 5_000 } };
 
-    const actualDecision = tokenBucket.attempt(
-      { tokensCount: 5, lastUpdatedAtInMs: 1_000 },
-      {
-        refillRate: { amount: 1, perMs: 5_000 },
-        bucketCapacityLimit: 100,
-      },
-      900,
-    );
+    const actualDecision = tokenBucket.attempt(currentState, policy, 900);
 
     expect(actualDecision.allowed).toBeTruthy();
     expect(actualDecision.remaining).toEqual(4);
