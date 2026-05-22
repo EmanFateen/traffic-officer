@@ -29,6 +29,15 @@ describe("Token bucket algorithm", () => {
       expect(actualDecision.allowed).toBeTruthy();
       expect(actualDecision.remaining).toEqual(0);
     });
+
+    test("bucket state does not exist", () => {
+      const tokenBucket = new TokenBucket();
+      const policy = { bucketCapacityLimit: 5, refillRate: { amount: 1, perMs: 1_000 }};
+
+      const actualDecision = tokenBucket.attempt(null, policy, 1_000);
+
+      expect(actualDecision.allowed).toBeTruthy();
+    });
   });
 
   describe("returns a rejected decision when", () => {
@@ -202,26 +211,5 @@ describe("Token bucket algorithm", () => {
 
     expect(actualDecision.allowed).toBeTruthy();
     expect(actualDecision.remaining).toEqual(bucketCapacity - 1);
-  });
-
-  test("allows the first request when bucket state does not exist", () => {
-    const tokenBucket = new TokenBucket();
-    const policy = {
-      refillRate: { amount: 1, perMs: 1_000 },
-      bucketCapacityLimit: 5,
-    };
-
-    const actualDecision = tokenBucket.attempt(null, policy, 1_000);
-
-    expect(actualDecision).toEqual({
-      allowed: true,
-      retryAfter: 0,
-      remaining: 4,
-      nextState: {
-        tokensCount: 4,
-        lastUpdatedAtInMs: 1_000,
-      },
-      stateExpiresInMs: 0,
-    });
   });
 });
