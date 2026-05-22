@@ -13,17 +13,33 @@ export type TokenBucketPolicy = {
   };
 };
 
+const REQUEST_COST = 1;
+
 export class TokenBucket implements AlgorithmInterface<TokenBucketState, TokenBucketPolicy> {
   attempt(
     state: TokenBucketState | null | undefined,
     policy: TokenBucketPolicy,
     requestedAtInMs: number,
   ): Decision<TokenBucketState> {
-    const availableTokens: number = this.getAvailableTokens(state, policy, requestedAtInMs);
+    const availableTokens: number = getAvailableTokens();
 
-    const remainingTokens: number = this.consume(availableTokens);
+    const remainingTokens: number = availableTokens - REQUEST_COST;
 
-    if (remainingTokens >= 0) {
+    return remainingTokens >= 0 ? allowed() : rejected();
+
+    function getAvailableTokens(): number {
+      const currentBucketState: TokenBucketState = state ?? {
+        tokensCount: policy.bucketCapacityLimit,
+        lastUpdatedAtInMs: requestedAtInMs,
+      };
+
+      const elapsedInMs: number = Math.max(0, requestedAtInMs - currentBucketState.lastUpdatedAtInMs);
+      const refilledTokens: number = elapsedInMs * (policy.refillRate.amount / policy.refillRate.perMs);
+
+      return Math.min(policy.bucketCapacityLimit, currentBucketState.tokensCount + refilledTokens);
+    }
+
+    function allowed() {
       const truncatedRemainingTokens = Math.trunc(remainingTokens * 100) / 100;
       return {
         allowed: true,
@@ -37,37 +53,17 @@ export class TokenBucket implements AlgorithmInterface<TokenBucketState, TokenBu
       };
     }
 
-    return {
-      allowed: false,
-      retryAfter: Math.ceil((remainingTokens * -1 * policy.refillRate.perMs) / policy.refillRate.amount),
-      remaining: 0,
-      nextState: {
-        tokensCount: Math.trunc(availableTokens * 100) / 100,
-        lastUpdatedAtInMs: requestedAtInMs,
-      },
-      stateExpiresInMs: 0,
-    };
-  }
-
-  private getAvailableTokens(
-    state: TokenBucketState | null | undefined,
-    policy: TokenBucketPolicy,
-    requestedAtInMs: number,
-  ): number {
-    const currentBucketState: TokenBucketState = state ?? {
-      tokensCount: policy.bucketCapacityLimit,
-      lastUpdatedAtInMs: requestedAtInMs,
-    };
-
-    const elapsedInMs: number = Math.max(0, requestedAtInMs - currentBucketState.lastUpdatedAtInMs);
-    const refilledTokens: number = elapsedInMs * (policy.refillRate.amount / policy.refillRate.perMs);
-
-    return Math.min(policy.bucketCapacityLimit, currentBucketState.tokensCount + refilledTokens);
-  }
-
-  private consume(availableTokens: number): number {
-    const requestCost = 1;
-
-    return availableTokens - requestCost;
+    function rejected() {
+      return {
+        allowed: false,
+        retryAfter: Math.ceil((remainingTokens * -1 * policy.refillRate.perMs) / policy.refillRate.amount),
+        remaining: 0,
+        nextState: {
+          tokensCount: Math.trunc(availableTokens * 100) / 100,
+          lastUpdatedAtInMs: requestedAtInMs,
+        },
+        stateExpiresInMs: 0,
+      };
+    }
   }
 }

@@ -33,7 +33,7 @@ describe("TokenBucket", () => {
     expect(actualDecision.remaining).toEqual(0);
   });
 
-  test("denies a request when no available tokens", () => {
+  test("rejects a request when no available tokens", () => {
     const tokenBucket = new TokenBucket();
 
     const actualDecision = tokenBucket.attempt(
