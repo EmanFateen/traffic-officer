@@ -1,5 +1,5 @@
-import { describe, expect, test } from "vitest";
-import { TokenBucket } from "./TokenBucket.ts";
+import {describe, expect, test} from "vitest";
+import {TokenBucket} from "./TokenBucket.ts";
 
 describe("Token bucket algorithm", () => {
   describe("returns an allowed decision when", () => {
@@ -126,24 +126,27 @@ describe("Token bucket algorithm", () => {
     });
   });
 
-  test("should return updated bucket state after decision", () => {
-    const requestedAtInMs = 500;
-    const tokenBucket = new TokenBucket();
+  describe("next state", () => {
+    test("tracks the attempt time in the next state", () => {
+      const tokenBucket = new TokenBucket();
+      const requestedAt = 1_000;
+      const currentState = { tokensCount: 3, lastUpdatedAtInMs: 500 };
+      const policy = { bucketCapacityLimit: 3, refillRate: { amount: 2, perMs: 5_000 } };
 
-    const actualDecision = tokenBucket.attempt(
-      { tokensCount: 0, lastUpdatedAtInMs: 0 },
-      {
-        refillRate: { amount: 2, perMs: 1_000 },
-        bucketCapacityLimit: 2,
-      },
-      requestedAtInMs,
-    );
+      const actualDecision = tokenBucket.attempt(currentState, policy, requestedAt);
 
-    expect(actualDecision.allowed).toBeTruthy();
-    expect(actualDecision.remaining).toEqual(0);
-    expect(actualDecision.retryAfter).toEqual(0);
-    expect(actualDecision.nextState.lastUpdatedAtInMs).toEqual(requestedAtInMs);
-    expect(actualDecision.nextState.tokensCount).toEqual(0);
+      expect(actualDecision.nextState.lastUpdatedAtInMs).toEqual(requestedAt);
+    });
+
+    test("keeps fractional tokens count for future attempts", () => {
+      const tokenBucket = new TokenBucket();
+      const currentState = { tokensCount: 2, lastUpdatedAtInMs: 500 };
+      const policy = { bucketCapacityLimit: 3, refillRate: { amount: 2, perMs: 5_000 } };
+
+      const actualDecision = tokenBucket.attempt(currentState, policy, 2_000);
+
+      expect(actualDecision.nextState.tokensCount).toEqual(1.6);
+    });
   });
 
   test("should enforce average rate over time by refill bucket", () => {
