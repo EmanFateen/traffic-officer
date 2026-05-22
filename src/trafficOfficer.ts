@@ -1,6 +1,6 @@
 import { EnforceRateLimitUseCase } from "./Application/EnforceRateLimitUseCase.ts";
 import type { Identities } from "./Application/Identities.ts";
-import { AlgorithmName, AlgorithmsMap, rateLimiterFactory } from "./Domain/Algorithm/RateLimiterFactory.ts";
+import { AlgorithmName, AlgorithmsMap, algorithmFactory } from "./Domain/Algorithm/AlgorithmFactory.ts";
 import { DecisionEvaluator, EvaluatedDecision } from "./Domain/Service/DecisionEvaluator.ts";
 import { RateLimiterService } from "./Domain/Service/RateLimiterService.ts";
 import { configureRedis } from "./Infrastructure/Cache/Redis/Client/getClient.ts";
@@ -26,7 +26,7 @@ export function createTrafficOfficer<name extends AlgorithmName>(config: Traffic
 
   const rateLimiterService = new RateLimiterService(
     new stateRepository<AlgorithmsMap[name]["stateType"]>(),
-    rateLimiterFactory(config.algorithm ?? "TokenBucket"),
+    algorithmFactory(config.algorithm ?? "TokenBucket"),
   );
 
   const enforceRateLimit = new EnforceRateLimitUseCase(
