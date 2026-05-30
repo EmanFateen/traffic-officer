@@ -135,7 +135,7 @@ describe("traffic officer", () => {
       const officer = createOfficer();
 
       await expect(officer.enforce(identities, policies, requestedAt)).rejects.toThrow(
-        "apiKey is required to enforce rate limits",
+        "apiKey identity is required to enforce rate limits",
       );
     });
   });
