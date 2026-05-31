@@ -1,12 +1,12 @@
 import { describe, expect, test, vi } from "vitest";
 import { DecisionEvaluator } from "../Domain/Service/DecisionEvaluator.ts";
 import { TrafficLimiter } from "../Domain/Service/TrafficLimiter.ts";
-import { EnforceRateLimitUseCase } from "./EnforceRateLimitUseCase.ts";
+import { EnforceTrafficLimit } from "./EnforceTrafficLimit.ts";
 import { Identifier, Identities } from "./Identities.ts";
 import { Policies } from "../Domain/Policies.ts";
 import { DimensionsType } from "../Domain/Dimensions.ts";
 
-describe("enforce rate limit use case", () => {
+describe("enforce traffic limit", () => {
   test("should return the enforcement decision for the requested user identities", async () => {
     const identities = { apiKey: "fake-api-key", ip: "fake-ip", tenant: "fake-tenant" };
     const policies = { apiKey: { key: "api-key-policy" }, ip: { key: "ip-policy" }, tenant: { key: "tenant-policy" } };
@@ -34,7 +34,7 @@ describe("enforce rate limit use case", () => {
     const expectedEvaluatedDecision = { allowed: false, retryAfter: 500 };
     const mockedService = mockLimitService(expectedDecisions);
     const mockedDecisionEvaluator = mockDecisionEvaluator(expectedEvaluatedDecision);
-    const useCase = new EnforceRateLimitUseCase(mockIdentifierBuilder(), mockedService, mockedDecisionEvaluator);
+    const useCase = new EnforceTrafficLimit(mockIdentifierBuilder(), mockedService, mockedDecisionEvaluator);
 
     const actualDecision = await useCase.enforce(identities, policies, requestedAt);
 
@@ -57,7 +57,7 @@ describe("enforce rate limit use case", () => {
       const policies = { apiKey: { key: "api-key-policy" } };
       const limitService = mockLimitService({});
       const decisionEvaluator = mockDecisionEvaluator({});
-      const useCase = new EnforceRateLimitUseCase(mockIdentifierBuilder(), limitService, decisionEvaluator);
+      const useCase = new EnforceTrafficLimit(mockIdentifierBuilder(), limitService, decisionEvaluator);
 
       await expect(useCase.enforce(userIdentity, policies, 1_000)).rejects.toThrow(
         "apiKey identity is required to enforce rate limits",
@@ -71,7 +71,7 @@ describe("enforce rate limit use case", () => {
       const policies = {} as Policies<unknown>;
       const limitService = mockLimitService({});
       const decisionEvaluator = mockDecisionEvaluator({});
-      const useCase = new EnforceRateLimitUseCase(mockIdentifierBuilder(), limitService, decisionEvaluator);
+      const useCase = new EnforceTrafficLimit(mockIdentifierBuilder(), limitService, decisionEvaluator);
 
       await expect(useCase.enforce(userIdentity, policies, 1_000)).rejects.toThrow(
         "apiKey policy is required to enforce rate limits",

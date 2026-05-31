@@ -1,9 +1,9 @@
 import { IdentifierBuilder, Identities } from "./Identities.ts";
 
-import { StateIdentifiers } from "../Domain/StateIdentifiers.ts";
+import { Identifiers } from "../Domain/Identifiers.ts";
 
-export function stateIdentifierFactory(identifierBuilder: IdentifierBuilder, identities: Identities): StateIdentifiers {
-  const keys: StateIdentifiers = {
+export function identifiersFactory(identifierBuilder: IdentifierBuilder, identities: Identities): Identifiers {
+  const keys: Identifiers = {
     apiKey: identifierBuilder("apiKey").ownedBy(identities.apiKey),
   };
 

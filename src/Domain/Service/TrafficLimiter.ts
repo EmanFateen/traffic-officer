@@ -2,7 +2,7 @@ import { AlgorithmInterface } from "../Algorithm/AlgorithmInterface.ts";
 import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
 import { Decision } from "../Decision.ts";
 import { Policies } from "../Policies.ts";
-import { StateIdentifiers } from "../StateIdentifiers.ts";
+import { Identifiers } from "../Identifiers.ts";
 import { dimensions, DimensionsType } from "../Dimensions.ts";
 
 export type Decisions<State> = {
@@ -17,11 +17,7 @@ export class TrafficLimiter<State, Policy> {
     private readonly limitingAlgorithm: AlgorithmInterface<State, Policy>,
   ) {}
 
-  async execute(
-    identifiers: StateIdentifiers,
-    policies: Policies<Policy>,
-    requestedAt: number,
-  ): Promise<Decisions<State>> {
+  async execute(identifiers: Identifiers, policies: Policies<Policy>, requestedAt: number): Promise<Decisions<State>> {
     const decisions = {} as Decisions<State>;
 
     for (const dimension of dimensions) {
@@ -37,7 +33,7 @@ export class TrafficLimiter<State, Policy> {
 
   private async attempt(
     dimension: DimensionsType,
-    identifiers: StateIdentifiers,
+    identifiers: Identifiers,
     policies: Policies<Policy>,
     requestedAt: number,
   ): Promise<Decision<State>> {

@@ -1,14 +1,14 @@
 import { DecisionEvaluator, EvaluatedDecision } from "../Domain/Service/DecisionEvaluator.ts";
 import { TrafficLimiter } from "../Domain/Service/TrafficLimiter.ts";
-import { stateIdentifierFactory } from "./StateIdentifierFactory.ts";
+import { identifiersFactory } from "./IdentifiersFactory.ts";
 import { IdentifierBuilder, Identities } from "./Identities.ts";
 import { Policies } from "../Domain/Policies.ts";
-import { StateIdentifiers } from "../Domain/StateIdentifiers.ts";
+import { Identifiers } from "../Domain/Identifiers.ts";
 
-export class EnforceRateLimitUseCase<State, Policy> {
+export class EnforceTrafficLimit<State, Policy> {
   constructor(
     private readonly identifierBuilder: IdentifierBuilder,
-    private readonly rateLimiterService: TrafficLimiter<State, Policy>,
+    private readonly trafficLimiter: TrafficLimiter<State, Policy>,
     private readonly decisionEvaluator: DecisionEvaluator,
   ) {}
 
@@ -21,9 +21,9 @@ export class EnforceRateLimitUseCase<State, Policy> {
       throw new Error("apiKey policy is required to enforce rate limits");
     }
 
-    const stateIdentifiers: StateIdentifiers = stateIdentifierFactory(this.identifierBuilder, identities);
+    const identifiers: Identifiers = identifiersFactory(this.identifierBuilder, identities);
 
-    const decisions = await this.rateLimiterService.execute(stateIdentifiers, policies, requestedAt);
+    const decisions = await this.trafficLimiter.execute(identifiers, policies, requestedAt);
 
     return this.decisionEvaluator.evaluate(decisions);
   }
