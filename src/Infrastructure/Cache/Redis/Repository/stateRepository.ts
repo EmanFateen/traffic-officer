@@ -21,4 +21,10 @@ export class stateRepository<State> implements StateRepositoryInterface<State> {
 
     await client?.set(key, JSON.stringify(state), options);
   }
+
+  async delete(key: string): Promise<void> {
+    const client = await getClient();
+
+    await client?.del(key);
+  }
 }
