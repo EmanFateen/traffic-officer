@@ -212,3 +212,6 @@ docker run --name traffic-officer-redis -p 6379:6379 -d redis:latest
 docker ps
 docker exec -it traffic-officer-redis redis-cli
 ```
+
+## License
+Traffic Officer is GPL-3.0 licensed.
