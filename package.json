@@ -2,6 +2,7 @@
   "name": "rate-limiter",
   "version": "1.0.0",
   "private": true,
+  "license": "GPL-3.0-only",
   "description": "An external rate-limiter service built to practice and explore different system design techniques.",
   "type": "module",
   "engines": {
