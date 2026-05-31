@@ -1,6 +1,6 @@
-# Rate-Limiter service
+# Traffic Officer service
 
-An external rate-limiter package built to practice and explore scalable system design techniques.
+It's an external rate limiter package built to practice and explore scalable system design techniques.
 
 ## Overview
 
@@ -40,7 +40,7 @@ type TrafficOfficerConfig = {
 };
 ```
 
-### `trafficOfficer.enforce(identities, policies, requestedAt)`
+### `trafficOfficer.enforce(identities, policies, requestedAt) : EnforcementDecision`
 
 ```ts
 type Identities = {
