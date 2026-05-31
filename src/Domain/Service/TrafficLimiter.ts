@@ -45,7 +45,9 @@ export class TrafficLimiter<State, Policy> {
       requestedAt,
     );
 
-    await this.stateRepository.save(identifiers[dimension] as string, decision.nextState);
+    if (decision.stateValidForMs > 0)
+      await this.stateRepository.save(identifiers[dimension] as string, decision.nextState, decision.stateValidForMs);
+    else await this.stateRepository.delete(identifiers[dimension] as string);
 
     return decision;
   }

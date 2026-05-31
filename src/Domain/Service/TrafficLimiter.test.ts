@@ -23,7 +23,7 @@ describe("rate limit service", () => {
   test("returns a decision for the required apiKey identity", async () => {
     const currentStates = [{ key: "current-apiKey-state" }];
     const mockedRepository = mockRepository(currentStates);
-    const mockedExpectedDecisions = { apiKey: { nextState: { key: "new-apiKey-state" } } };
+    const mockedExpectedDecisions = { apiKey: { nextState: { key: "new-apiKey-state" }, stateValidForMs: 1_000 } };
     const mockedAlgorithm = mockAlgorithm(mockedExpectedDecisions);
     const limitService = new TrafficLimiter(mockedRepository, mockedAlgorithm);
     const identifier = { apiKey: identifiers["apiKey"] };
@@ -37,7 +37,9 @@ describe("rate limit service", () => {
     expect(mockedRepository.save).toHaveBeenCalledExactlyOnceWith(
       identifier.apiKey,
       mockedExpectedDecisions.apiKey.nextState,
+      mockedExpectedDecisions.apiKey.stateValidForMs,
     );
+    expect(mockedRepository.delete).not.toHaveBeenCalled();
   });
 
   test("limit returns decisions for all optional dimensions", async () => {
@@ -48,9 +50,9 @@ describe("rate limit service", () => {
     ];
     const mockedRepository = mockRepository(currentStates);
     const mockedExpectedDecisions = {
-      apiKey: { nextState: { state: "new-apiKey-state" } },
-      ip: { nextState: { state: "new-ip-state" } },
-      tenant: { nextState: { state: "new-tenant-state" } },
+      apiKey: { nextState: { state: "new-apiKey-state" }, stateValidForMs: 1_000 },
+      ip: { nextState: { state: "new-ip-state" }, stateValidForMs: 2_000 },
+      tenant: { nextState: { state: "new-tenant-state" }, stateValidForMs: 3_000 },
     };
     const mockedAlgorithm = mockAlgorithm(mockedExpectedDecisions);
     const limitService = new TrafficLimiter(mockedRepository, mockedAlgorithm);
@@ -63,13 +65,26 @@ describe("rate limit service", () => {
     expect(mockedAlgorithm.attempt).toHaveBeenCalledTimes(3);
     expect(mockedRepository.findOneBy).toHaveBeenCalledWith(identifiers.apiKey);
     expect(mockedAlgorithm.attempt).toHaveBeenCalledWith(currentStates[0], policies.apiKey, 1_000);
-    expect(mockedRepository.save).toHaveBeenCalledWith(identifiers.apiKey, mockedExpectedDecisions.apiKey.nextState);
+    expect(mockedRepository.save).toHaveBeenCalledWith(
+      identifiers.apiKey,
+      mockedExpectedDecisions.apiKey.nextState,
+      mockedExpectedDecisions.apiKey.stateValidForMs,
+    );
     expect(mockedRepository.findOneBy).toHaveBeenCalledWith(identifiers.ip);
     expect(mockedAlgorithm.attempt).toHaveBeenCalledWith(currentStates[1], policies.ip, 1_000);
-    expect(mockedRepository.save).toHaveBeenCalledWith(identifiers.ip, mockedExpectedDecisions.ip?.nextState);
+    expect(mockedRepository.save).toHaveBeenCalledWith(
+      identifiers.ip,
+      mockedExpectedDecisions.ip?.nextState,
+      mockedExpectedDecisions.ip?.stateValidForMs,
+    );
     expect(mockedRepository.findOneBy).toHaveBeenCalledWith(identifiers.tenant);
     expect(mockedAlgorithm.attempt).toHaveBeenCalledWith(currentStates[2], policies.tenant, 1_000);
-    expect(mockedRepository.save).toHaveBeenCalledWith(identifiers.tenant, mockedExpectedDecisions.tenant?.nextState);
+    expect(mockedRepository.save).toHaveBeenCalledWith(
+      identifiers.tenant,
+      mockedExpectedDecisions.tenant?.nextState,
+      mockedExpectedDecisions.tenant?.stateValidForMs,
+    );
+    expect(mockedRepository.delete).not.toHaveBeenCalled();
   });
 
   test.each([
@@ -86,7 +101,7 @@ describe("rate limit service", () => {
   ])(`ignores optional dimensions when either their $missing missing`, async ({ identifiers, policies }) => {
     const currentStates = [{ key: "current-apiKey-state" }];
     const mockedRepository = mockRepository(currentStates);
-    const expectedDecision = { apiKey: { nextState: { key: "new-apiKey-state" } } };
+    const expectedDecision = { apiKey: { nextState: { key: "new-apiKey-state" }, stateValidForMs: 1_000 } };
     const mockedAlgorithm = mockAlgorithm(expectedDecision);
     const limitService = new TrafficLimiter(mockedRepository, mockedAlgorithm);
 
@@ -98,7 +113,27 @@ describe("rate limit service", () => {
     expect(mockedRepository.save).toHaveBeenCalledExactlyOnceWith(
       identifiers.apiKey,
       expectedDecision.apiKey.nextState,
+      expectedDecision.apiKey.stateValidForMs,
     );
+    expect(mockedRepository.delete).not.toHaveBeenCalled();
+  });
+
+  test("deletes state when the decision does not need to be kept", async () => {
+    const currentStates = [{ key: "current-apiKey-state" }];
+    const mockedRepository = mockRepository(currentStates);
+    const expectedDecision = { apiKey: { nextState: { key: "new-apiKey-state" }, stateValidForMs: 0 } };
+    const mockedAlgorithm = mockAlgorithm(expectedDecision);
+    const limitService = new TrafficLimiter(mockedRepository, mockedAlgorithm);
+    const identifier = { apiKey: identifiers["apiKey"] };
+    const policy = { apiKey: policies["apiKey"] };
+
+    const actualDecisions = await limitService.execute(identifier, policy, 1_000);
+
+    expect(actualDecisions).toEqual(expectedDecision);
+    expect(mockedRepository.findOneBy).toHaveBeenCalledExactlyOnceWith(identifier.apiKey);
+    expect(mockedAlgorithm.attempt).toHaveBeenCalledExactlyOnceWith(currentStates[0], policy.apiKey, 1_000);
+    expect(mockedRepository.save).not.toHaveBeenCalled();
+    expect(mockedRepository.delete).toHaveBeenCalledExactlyOnceWith(identifier.apiKey);
   });
 
   function mockAlgorithm<State, Policy>(decisions: object): AlgorithmInterface<State, Policy> {
@@ -121,6 +156,7 @@ describe("rate limit service", () => {
     return {
       findOneBy,
       save: vi.fn().mockResolvedValue(undefined),
+      delete: vi.fn().mockResolvedValue(undefined),
     };
   }
 });

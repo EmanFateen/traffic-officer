@@ -102,6 +102,44 @@ describe("Token bucket algorithm", () => {
     });
   });
 
+  describe("state expiration", () => {
+    test("returns the time until the bucket is refilled with the limit again when allowed", () => {
+      const tokenBucket = new TokenBucket();
+      const currentState = { tokensCount: 3, lastUpdatedAtInMs: 1_000 };
+      const policy = { bucketCapacityLimit: 5, refillRate: { amount: 2, perMs: 1_000 } };
+
+      const actualDecision = tokenBucket.attempt(currentState, policy, 1_000);
+
+      expect(actualDecision.allowed).toBeTruthy();
+      expect(actualDecision.nextState.tokensCount).toEqual(2);
+      expect(actualDecision.stateValidForMs).toEqual(1_500);
+    });
+
+    test("returns the time until the bucket is refilled with the limit again when rejected", () => {
+      const tokenBucket = new TokenBucket();
+      const currentState = { tokensCount: 0.4, lastUpdatedAtInMs: 1_000 };
+      const policy = { bucketCapacityLimit: 5, refillRate: { amount: 2, perMs: 1_000 } };
+
+      const actualDecision = tokenBucket.attempt(currentState, policy, 1_000);
+
+      expect(actualDecision.allowed).toBeFalsy();
+      expect(actualDecision.nextState.tokensCount).toEqual(0.4);
+      expect(actualDecision.stateValidForMs).toEqual(2_300);
+    });
+
+    test("returns the time after refilling to the limit before consumption", () => {
+      const tokenBucket = new TokenBucket();
+      const currentState = { tokensCount: 5, lastUpdatedAtInMs: 1_000 };
+      const policy = { bucketCapacityLimit: 5, refillRate: { amount: 2, perMs: 1_000 } };
+
+      const actualDecision = tokenBucket.attempt(currentState, policy, 3_000);
+
+      expect(actualDecision.allowed).toBeTruthy();
+      expect(actualDecision.nextState.tokensCount).toEqual(4);
+      expect(actualDecision.stateValidForMs).toEqual(500);
+    });
+  });
+
   describe("remaining tokens", () => {
     test("decreases by consumption cost if allowed", () => {
       const tokenBucket = new TokenBucket();

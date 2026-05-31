@@ -69,4 +69,17 @@ describe("Redis bucket repository", () => {
 
     expect(redisClient.set).toHaveBeenCalledWith(key, JSON.stringify(bucketState), undefined);
   });
+
+  test("deletes bucket state", async () => {
+    const key = "bucket:user:123";
+    const redisClient = {
+      del: vi.fn(),
+    } as unknown as RedisClientType;
+    vi.mocked(getClient).mockResolvedValue(redisClient);
+    const repository = new stateRepository<mockState>();
+
+    await repository.delete(key);
+
+    expect(redisClient.del).toHaveBeenCalledWith(key);
+  });
 });
