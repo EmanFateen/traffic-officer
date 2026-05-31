@@ -4,7 +4,7 @@ import { DimensionsType } from "../../../../Domain/Dimensions.ts";
 const PREFIX = `ratelimit`;
 const SUFFIX = `state`;
 
-export function RedisIdentifierBuilder(scope: DimensionsType): Identifier {
+export function identifierBuilder(scope: DimensionsType): Identifier {
   return {
     ownedBy(identity: string): string {
       return `${PREFIX}:${scope}:${identity}:${SUFFIX}`;
