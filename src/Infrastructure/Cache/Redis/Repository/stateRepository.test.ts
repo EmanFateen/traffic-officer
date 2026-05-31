@@ -12,12 +12,12 @@ type mockState = {
   lastUpdatedAtInMs: number;
 };
 
-describe("Redis bucket repository", () => {
+describe("state repository", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
-  test("returns null when bucket does not exist", async () => {
-    const key = "bucket:user:123";
+  test("returns null when state key does not exist", async () => {
+    const key = "state:example:user:123";
     const redisClient = {
       get: vi.fn().mockResolvedValue(null),
       set: vi.fn(),
@@ -26,14 +26,14 @@ describe("Redis bucket repository", () => {
 
     const repository = new stateRepository();
 
-    const bucketState = await repository.findOneBy(key);
+    const state = await repository.findOneBy(key);
 
-    expect(bucketState).toBeNull();
+    expect(state).toBeNull();
     expect(redisClient.get).toHaveBeenCalledWith(key);
   });
 
-  test("returns bucket state when bucket exists", async () => {
-    const key = "bucket:user:123";
+  test("returns state when key exists", async () => {
+    const key = "state:example:user:123";
     const expectedState: mockState = {
       name: "exmaple-name",
       lastUpdatedAtInMs: 1_000,
@@ -45,16 +45,16 @@ describe("Redis bucket repository", () => {
     vi.mocked(getClient).mockResolvedValue(redisClient);
     const repository = new stateRepository<mockState>();
 
-    const bucketState: mockState | null = await repository.findOneBy(key);
+    const state: mockState | null = await repository.findOneBy(key);
 
-    expect(bucketState?.name).toEqual(expectedState.name);
-    expect(bucketState?.lastUpdatedAtInMs).toEqual(expectedState.lastUpdatedAtInMs);
+    expect(state?.name).toEqual(expectedState.name);
+    expect(state?.lastUpdatedAtInMs).toEqual(expectedState.lastUpdatedAtInMs);
     expect(redisClient.get).toHaveBeenCalledWith(key);
   });
 
-  test("sets bucket state as json", async () => {
-    const key = "bucket:user:123";
-    const bucketState: mockState = {
+  test("sets state as json", async () => {
+    const key = "state:example:user:123";
+    const state: mockState = {
       name: "exmaple-name",
       lastUpdatedAtInMs: 2_000,
     };
@@ -65,13 +65,13 @@ describe("Redis bucket repository", () => {
     vi.mocked(getClient).mockResolvedValue(redisClient);
     const repository = new stateRepository<mockState>();
 
-    await repository.save(key, bucketState);
+    await repository.save(key, state);
 
-    expect(redisClient.set).toHaveBeenCalledWith(key, JSON.stringify(bucketState), undefined);
+    expect(redisClient.set).toHaveBeenCalledWith(key, JSON.stringify(state), undefined);
   });
 
-  test("deletes bucket state", async () => {
-    const key = "bucket:user:123";
+  test("deletes state", async () => {
+    const key = "state:example:user:123";
     const redisClient = {
       del: vi.fn(),
     } as unknown as RedisClientType;
