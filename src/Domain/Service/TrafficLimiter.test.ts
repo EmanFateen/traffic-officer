@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, MockedFunction, test, vi } from "vitest";
 import { StateRepositoryInterface } from "../Repository/StateRepositoryInterface.ts";
-import { RateLimiterService } from "./RateLimiterService.ts";
+import { TrafficLimiter } from "./TrafficLimiter.ts";
 import { AlgorithmInterface } from "../Algorithm/AlgorithmInterface.ts";
 
 const identifiers = {
@@ -25,7 +25,7 @@ describe("rate limit service", () => {
     const mockedRepository = mockRepository(currentStates);
     const mockedExpectedDecisions = { apiKey: { nextState: { key: "new-apiKey-state" } } };
     const mockedAlgorithm = mockAlgorithm(mockedExpectedDecisions);
-    const limitService = new RateLimiterService(mockedRepository, mockedAlgorithm);
+    const limitService = new TrafficLimiter(mockedRepository, mockedAlgorithm);
     const identifier = { apiKey: identifiers["apiKey"] };
     const policy = { apiKey: policies["apiKey"] };
 
@@ -53,7 +53,7 @@ describe("rate limit service", () => {
       tenant: { nextState: { state: "new-tenant-state" } },
     };
     const mockedAlgorithm = mockAlgorithm(mockedExpectedDecisions);
-    const limitService = new RateLimiterService(mockedRepository, mockedAlgorithm);
+    const limitService = new TrafficLimiter(mockedRepository, mockedAlgorithm);
 
     const actualDecisions = await limitService.execute(identifiers, policies, 1_000);
 
@@ -88,7 +88,7 @@ describe("rate limit service", () => {
     const mockedRepository = mockRepository(currentStates);
     const expectedDecision = { apiKey: { nextState: { key: "new-apiKey-state" } } };
     const mockedAlgorithm = mockAlgorithm(expectedDecision);
-    const limitService = new RateLimiterService(mockedRepository, mockedAlgorithm);
+    const limitService = new TrafficLimiter(mockedRepository, mockedAlgorithm);
 
     const actualDecisions = await limitService.execute(identifiers, policies, 1_000);
 

@@ -11,7 +11,7 @@ export type Decisions<State> = {
   tenant?: Decision<State>;
 };
 
-export class RateLimiterService<State, Policy> {
+export class TrafficLimiter<State, Policy> {
   constructor(
     private readonly stateRepository: StateRepositoryInterface<State>,
     private readonly limitingAlgorithm: AlgorithmInterface<State, Policy>,

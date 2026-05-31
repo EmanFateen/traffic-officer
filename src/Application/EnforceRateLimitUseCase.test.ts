@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 import { DecisionEvaluator } from "../Domain/Service/DecisionEvaluator.ts";
-import { RateLimiterService } from "../Domain/Service/RateLimiterService.ts";
+import { TrafficLimiter } from "../Domain/Service/TrafficLimiter.ts";
 import { EnforceRateLimitUseCase } from "./EnforceRateLimitUseCase.ts";
 import { Identifier, Identities } from "./Identities.ts";
 import { Policies } from "../Domain/Policies.ts";
@@ -89,8 +89,8 @@ describe("enforce rate limit use case", () => {
     );
   }
 
-  function mockLimitService<State, Policy>(expectedDecisions: object): RateLimiterService<State, Policy> {
-    return { execute: vi.fn().mockResolvedValue(expectedDecisions) } as unknown as RateLimiterService<State, Policy>;
+  function mockLimitService<State, Policy>(expectedDecisions: object): TrafficLimiter<State, Policy> {
+    return { execute: vi.fn().mockResolvedValue(expectedDecisions) } as unknown as TrafficLimiter<State, Policy>;
   }
 
   function mockDecisionEvaluator(expectedEvaluatedDecision: object): DecisionEvaluator {

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { DecisionEvaluator } from "./DecisionEvaluator.ts";
-import { Decisions } from "./RateLimiterService.ts";
+import { Decisions } from "./TrafficLimiter.ts";
 
 describe("decision evaluator", () => {
   test("returns an allowed decision when all dimensions are allowed", () => {

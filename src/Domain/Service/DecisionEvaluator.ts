@@ -1,4 +1,4 @@
-import { Decisions } from "./RateLimiterService.ts";
+import { Decisions } from "./TrafficLimiter.ts";
 
 export type EvaluatedDecision = {
   allowed: boolean;
