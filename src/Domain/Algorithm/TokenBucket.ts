@@ -29,7 +29,7 @@ export class TokenBucket implements AlgorithmInterface<TokenBucketState, TokenBu
     const remainingTokens: number = Math.round((refilledTokens - CONSUMPTION_AMOUNT) * 1000) / 1000;
 
     return remainingTokens >= 0
-      ? this.allowed(remainingTokens, updatedAt)
+      ? this.allowed(remainingTokens, updatedAt, policy)
       : this.rejected(remainingTokens, updatedAt, policy, refilledTokens);
   }
 
@@ -40,7 +40,7 @@ export class TokenBucket implements AlgorithmInterface<TokenBucketState, TokenBu
     return Math.min(policy.bucketCapacityLimit, currentBucketState.tokensCount + tokensCountCanBeRefiled);
   }
 
-  allowed(remainingTokens: number, updatedAt: number): Decision<TokenBucketState> {
+  allowed(remainingTokens: number, updatedAt: number, policy: TokenBucketPolicy): Decision<TokenBucketState> {
     return {
       allowed: true,
       retryAfter: 0,
@@ -49,7 +49,7 @@ export class TokenBucket implements AlgorithmInterface<TokenBucketState, TokenBu
         tokensCount: remainingTokens,
         lastUpdatedAtInMs: updatedAt,
       },
-      stateExpiresInMs: 0,
+      stateValidForMs: this.stateValidFor(remainingTokens, policy),
     };
   }
 
@@ -67,7 +67,13 @@ export class TokenBucket implements AlgorithmInterface<TokenBucketState, TokenBu
         tokensCount: Math.trunc(refilledTokens * 100) / 100,
         lastUpdatedAtInMs: updatedAt,
       },
-      stateExpiresInMs: 0,
+      stateValidForMs: this.stateValidFor(Math.trunc(refilledTokens * 100) / 100, policy),
     };
+  }
+
+  stateValidFor(tokensCount: number, policy: TokenBucketPolicy): number {
+    const tokensCountToRefill = Math.max(0, policy.bucketCapacityLimit - tokensCount);
+
+    return Math.ceil((tokensCountToRefill * policy.refillRate.perMs) / policy.refillRate.amount);
   }
 }

@@ -3,5 +3,5 @@ export type Decision<State> = {
   retryAfter: number;
   remaining: number;
   nextState: State;
-  stateExpiresInMs: number;
+  stateValidForMs: number;
 };
